@@ -1,0 +1,34 @@
+export type TAuthCredentials = {
+  email: string;
+  password: string;
+  name?: string;
+};
+
+export type TAuthMethodResult = { error: string | null };
+
+export type TUser = {
+  id: string;
+  account: {
+    name: string;
+    email: string;
+  };
+  role: {
+    index: number;
+    name: string;
+  };
+};
+
+export type TAuthData = {
+  token: string;
+  user: TUser;
+};
+
+export type TAuthSession = TAuthData | null;
+
+export type TAuthContext = {
+  session: TAuthSession;
+  isLoading: boolean;
+  signUp: (args: TAuthCredentials) => Promise<boolean | undefined>;
+  signIn: (args: TAuthCredentials) => Promise<boolean | undefined>;
+  signOut: () => Promise<any>;
+};
