@@ -31,9 +31,14 @@ const Index = () => {
           {auth.session?.token ? (
             <>
               <Button
-                title="Home"
-                handlePress={() => router.push('/home')}
+                title="Facts"
+                handlePress={() => router.push('/facts')}
                 containerClassName="w-48"
+              />
+              <Button
+                title="My Favorites"
+                handlePress={() => router.push('/favorites')}
+                containerClassName="mt-6 w-48"
               />
               <Button
                 title="Dashboard"

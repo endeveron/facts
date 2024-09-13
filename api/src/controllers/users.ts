@@ -3,6 +3,8 @@ import { NextFunction, Request, Response } from 'express';
 import UserModel from '../models/user.js';
 import { HttpError } from '../utils/error.js';
 import logger from '../utils/logger.js';
+import FactModel from '../models/fact.js';
+import { factItemProps } from '../constants/facts.js';
 
 // export const getUser = async (
 //   req: Request,
@@ -33,6 +35,49 @@ import logger from '../utils/logger.js';
 //     return next(new HttpError('Unable to retrieve user data.', 500));
 //   }
 // };
+
+export const getFavorites = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const userId = req.params.userId;
+  try {
+    const user = await UserModel.findById(userId);
+    if (!user) {
+      return next(
+        new HttpError('Unable to find a user with the specified ID.', 404)
+      );
+    }
+    const likedIdArr = user.facts.liked;
+    if (!likedIdArr.length) {
+      return res.status(200).json({
+        data: { liked: [] },
+      });
+    }
+
+    const likedFacts = await FactModel.find({
+      _id: { $in: likedIdArr },
+    }).select(factItemProps);
+
+    const serializedFavorites = likedFacts.map(
+      ({ _id, title, details, category, source }) => ({
+        id: _id.toString(),
+        title,
+        details,
+        category,
+        source,
+      })
+    );
+
+    res.status(200).json({
+      data: { liked: serializedFavorites },
+    });
+  } catch (err: any) {
+    logger.r('getFavorites', err);
+    return next(new HttpError('Unable to fetch user liked facts.', 500));
+  }
+};
 
 export const postEvaluateFact = async (
   req: Request,

@@ -54,9 +54,6 @@ const Facts = () => {
   const authSession = auth.session;
   if (authSession === null) return null;
 
-  console.log('');
-  console.log('Render Facts');
-
   const [isFetching, setIsFetching] = useState(false);
   const [noMoreFacts, setNoMoreFacts] = useState(false);
   const [state, setState] = useState<TFactsState>({
@@ -66,11 +63,11 @@ const Facts = () => {
     notShownNum: null,
   });
 
-  // const flatListRef = useRef<FlatList<TFactItem>>(null);
-
   const userId = authSession.user.id;
   const token = authSession.token;
   const factsLength = state.facts.length;
+
+  // console.log('token', token);
 
   const handleLike = async (factId: string) => {
     const likedUpd = [...state.liked];
@@ -86,7 +83,7 @@ const Facts = () => {
         ...rest,
       };
     });
-    // Send request to API
+    // Send request to server
     await postEvaluateFact({
       userId,
       factId,

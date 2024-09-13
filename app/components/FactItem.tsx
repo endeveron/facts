@@ -10,7 +10,7 @@ import {
 import CopyIcon from '@/components/icons/CopyIcon';
 import HeartIcon from '@/components/icons/HeartIcon';
 import { factCategoryColorMap } from '@/core/constants/colors';
-import { TFactItem } from '@/core/types/facts';
+import { TFactItem, TFavoriteArr } from '@/core/types/facts';
 
 // Get the height of device window
 const windowHeight = Dimensions.get('window').height;
@@ -18,7 +18,7 @@ const windowHeight = Dimensions.get('window').height;
 type TFactItemProps = {
   itemData: TFactItem & { index: number | null };
   factsTotal: number | null;
-  liked: TLikedFactsArr;
+  liked: TFavoriteArr;
   onLike: (factId: string) => void;
 };
 

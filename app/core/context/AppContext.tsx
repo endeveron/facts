@@ -1,6 +1,9 @@
 import { router } from 'expo-router';
 
-import { SIGN_OUT_REDIRECT_URL } from '@/core/constants';
+import {
+  SIGN_IN_SUCCESS_REDIRECT_URL,
+  SIGN_OUT_REDIRECT_URL,
+} from '@/core/constants';
 import { showAlert } from '@/core/helpers/alert';
 import {
   TAuthContext,
@@ -8,7 +11,6 @@ import {
   TAuthData,
   TAuthSession,
 } from '@/core/types/auth';
-import { TCurrentItem } from '@/core/types/facts';
 
 import {
   deleteAuthDataFromSecureStore,
@@ -26,7 +28,6 @@ import {
 
 type TAppContextProps = {
   auth: TAuthContext;
-  // facts: TFactsContext;
 };
 
 const AppContext = createContext<TAppContextProps>({
@@ -47,14 +48,6 @@ export const AppContextProvider = ({ children }: PropsWithChildren) => {
   const [isAuthLoading, setIsAuthLoading] = useState(false);
   const [authSession, setAuthSession] = useState<TAuthSession>(null);
 
-  const [currentItem, setCurrentItem] = useState<TCurrentItem | null>(null);
-  const [totalItems, setTotalItems] = useState<number | null>(null);
-  const [notShownItemsNumber, setNotShownItemsNumber] = useState<number | null>(
-    null
-  );
-
-  // Auth section
-
   /** Updates auth state, adds auth data to SecureStore. */
   const saveAuthData = async ({ token, user }: TAuthData) => {
     setAuthSession({ token, user });
@@ -66,7 +59,7 @@ export const AppContextProvider = ({ children }: PropsWithChildren) => {
     const authData = await getAuthDataFromSecureStore();
     if (authData) {
       setAuthSession(authData);
-      router.push('/home');
+      router.push(SIGN_IN_SUCCESS_REDIRECT_URL);
     }
   };
 

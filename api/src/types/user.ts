@@ -10,10 +10,10 @@ type TUserAccount = {
   };
 };
 
-export type TLikedFactsArr = string[];
+export type TFavoriteArr = string[];
 
 type TFacts = {
-  liked: TLikedFactsArr;
+  liked: TFavoriteArr;
   offset: number;
 };
 

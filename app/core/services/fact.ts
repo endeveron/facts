@@ -12,7 +12,7 @@ export const getFacts = async ({
 }): Promise<
   | TServiceResponse<{
       facts: TFactItem[];
-      liked: TLikedFactsArr;
+      liked: TFavoriteArr;
     }>
   | undefined
 > => {

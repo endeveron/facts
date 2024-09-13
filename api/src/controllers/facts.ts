@@ -1,9 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 
-import {
-  FACT_ITEMS_LIMIT,
-  factsSelectedProperies,
-} from '../constants/facts.js';
+import { FACT_ITEMS_LIMIT, factItemProps } from '../constants/facts.js';
 import FactModel from '../models/fact.js';
 import UserModel from '../models/user.js';
 import { TFactItem } from '../types/fact.js';
@@ -35,7 +32,7 @@ export const getFacts = async (
     const facts = await FactModel.find({})
       .skip(offset)
       .limit(FACT_ITEMS_LIMIT)
-      .select(factsSelectedProperies);
+      .select(factItemProps);
 
     if (facts.length) {
       // Serialize fact items

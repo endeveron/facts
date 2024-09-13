@@ -50,7 +50,7 @@ export const FormField = ({
 
       <View
         style={{ backgroundColor: inputColor }}
-        className="w-full h-14 px-4 rounded-lg focus:border-accent flex flex-row items-center"
+        className="w-full h-14 px-4 border-2 border-transparent rounded-lg focus:border-accent flex flex-row items-center"
       >
         <TextInput
           className="flex-1 font-psemibold text-base"
@@ -66,7 +66,7 @@ export const FormField = ({
 
         {name === 'password' && (
           <TouchableOpacity
-            className="opacity-50 px-2 py-4"
+            className="opacity-40 px-2 py-4"
             onPress={() => setShowPassword(!showPassword)}
           >
             {showPassword ? (

@@ -4,7 +4,11 @@ type TScreen = {
   name: string;
 };
 
-const screens: TScreen[] = [{ name: 'home' }, { name: 'dashboard' }];
+const screens: TScreen[] = [
+  { name: 'facts' },
+  { name: 'favorites' },
+  { name: 'dashboard' },
+];
 
 const ScreensLayout = () => {
   return (

@@ -1,35 +1,25 @@
-const accentLight = '#4ca8f5';
-const accentDark = '#1481db';
-
-const iconLight = '#8e9ead';
-const iconDark = '#5e6d7d';
-
 export const colors = {
   light: {
-    text: '#1c1e20',
-    muted: '#90939c',
-    accent: accentLight,
-    success: '#39be44',
-    error: '#f2135a',
-    background: '#f0f0f2',
-    input: '#fff',
-    icon: iconLight,
-    tabbar: '#f7f9fa',
-    tabIconDefault: iconLight,
-    tabIconSelected: accentLight,
+    text: '#030712', // gray-950
+    muted: '#6B7280', // gray-500
+    accent: '#38BDF8', // sky-400
+    success: '#16A34A', // green-600
+    error: '#E11D48', // rose-600
+    background: '#F3F4F6', // gray-100
+    card: '#FFF', // white
+    input: '#FFF', // white
+    icon: '#9CA3AF', // gray-400
   },
   dark: {
-    text: '#ecedee',
-    muted: '#7d8082',
-    accent: accentDark,
-    success: '#39be44',
-    error: '#fa145d',
-    background: '#151718',
-    input: '#202224',
-    icon: iconDark,
-    tabbar: '#1e2021',
-    tabIconDefault: iconDark,
-    tabIconSelected: accentDark,
+    text: '#F9FAFB', // gray-50
+    muted: '#6B7280', // gray-500
+    accent: '#0284C7', // sky-600
+    success: '#16A34A', // green-600
+    error: '#F43F5E', // rose-500
+    background: '#030712', // gray-950
+    card: '#111827', // gray-900
+    input: '#111827', // gray-900
+    icon: '#4B5563', // gray-600
   },
 };
 
