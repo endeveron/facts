@@ -1,0 +1,20 @@
+# Common
+node_modules/
+
+# API
+api/build/
+api/nodemon.json
+
+# App
+app/.expo/
+app/dist/
+app/npm-debug.*
+app/*.jks
+app/*.p8
+app/*.p12
+app/*.key
+app/*.mobileprovision
+app/*.orig.*
+app/web-build/
+app/expo-env.d.ts
+app/.env.local
