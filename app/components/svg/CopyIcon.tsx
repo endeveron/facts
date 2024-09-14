@@ -1,10 +1,11 @@
-import { useThemeColor } from '@/core/hooks/useThemeColor';
-import { TIconProps } from '@/core/types/common';
 import React from 'react';
 import Svg, { Path } from 'react-native-svg';
 
-const CopyIcon = ({ color, size = 32 }: TIconProps) => (
-  <Svg width={size} height={size} viewBox={`0 0 64 64`}>
+import { useThemeColor } from '@/core/hooks/useThemeColor';
+import { TIconProps } from '@/core/types/common';
+
+const CopyIcon = ({ color, opacity = 1, size = 32 }: TIconProps) => (
+  <Svg width={size} height={size} opacity={opacity} viewBox={`0 0 64 64`}>
     <Path
       fill={color ?? useThemeColor('icon')}
       d="M20 24C20 20.134 23.134 17 27 17H51C54.866 17 58 20.134 58 24V53C58 56.866 54.866 60 51 60H27C23.134 60 20 56.866 20 53V24Z"

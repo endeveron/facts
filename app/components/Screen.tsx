@@ -16,7 +16,9 @@ const Screen = ({ title, children }: TScreenProps) => {
 
   return (
     <View style={{ backgroundColor }} className="h-full">
-      {title && <Text className="p-4 pt-16 text-3xl font-pbold">{title}</Text>}
+      {title && (
+        <Text className="px-4 pt-14 pb-4 text-2xl font-pbold">{title}</Text>
+      )}
       {children}
       {/* <StatusBar backgroundColor={statusBarBgColor} /> */}
       <StatusBar backgroundColor="transparent" />

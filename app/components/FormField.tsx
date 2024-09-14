@@ -12,8 +12,8 @@ import {
 import { Text } from '@/components/Text';
 import { FormErrorMessage } from '@/components/FormErrorMessage';
 import { useThemeColor } from '@/core/hooks/useThemeColor';
-import EyeIcon from '@/components/icons/EyeIcon';
-import EyeSlashIcon from '@/components/icons/EyeSlashIcon';
+import EyeIcon from '@/components/svg/EyeIcon';
+import EyeSlashIcon from '@/components/svg/EyeSlashIcon';
 
 export const FormField = ({
   name,

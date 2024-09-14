@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 
 import FactItem from '@/components/FactItem';
-import HomeIcon from '@/components/icons/HomeIcon';
+import HomeIcon from '@/components/svg/HomeIcon';
 import { FACTS_LENGTH_TO_FETCH_NEW_ITEMS } from '@/core/constants';
 import { useAppContext } from '@/core/context/AppContext';
 import { showAlert } from '@/core/helpers/alert';
@@ -224,15 +224,18 @@ const Facts = () => {
       const factsStateFromStorage = await getFactsStateFromAsyncStorage();
       if (factsStateFromStorage) {
         const { facts, current, liked, notShownNum } = factsStateFromStorage;
-        // Set the local state
-        setState({
-          facts,
-          current,
-          liked,
-          notShownNum,
-        });
+        if (facts.length > FACTS_LENGTH_TO_FETCH_NEW_ITEMS) {
+          setState({
+            facts,
+            current,
+            liked,
+            notShownNum,
+          });
+        } else {
+          fetchData();
+        }
       } else {
-        // Otherwise, fetch the data using API
+        // Otherwise, fetch data from server
         fetchData();
       }
     };

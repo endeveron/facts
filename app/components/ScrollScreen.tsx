@@ -18,7 +18,7 @@ const ScrollScreen = ({ title, children }: TScrollScreenProps) => {
     <View style={{ backgroundColor }} className="h-full">
       <ScrollView>
         {title && (
-          <Text className="p-4 pt-16 text-3xl font-pbold">{title}</Text>
+          <Text className="px-4 pt-14 pb-4 text-2xl font-pbold">{title}</Text>
         )}
         {children}
       </ScrollView>
