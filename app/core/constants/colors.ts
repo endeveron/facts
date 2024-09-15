@@ -1,58 +1,35 @@
 export const colors = {
   light: {
     text: '#020617', // slate-950
-    muted: '#8595ab', // ~slate-400
+    muted: '#94A3B8', // slate-400
     accent: '#38BDF8', // sky-400
     success: '#16A34A', // green-600
     error: '#E11D48', // rose-600
     background: '#E2E8F0', // slate-200
-    card: '#FFF', // white
-    input: '#FFF', // white
-    icon: '#94A3B8', // slate-400
+    card: '#F8FAFC', // slate-50
+    border: '#fcfcfc', // ~ white
+    input: '#F8FAFC', // slate-50
+    icon: '#abb8c9', // ~ slate-300
   },
   dark: {
-    text: '#F9FAFB', // gray-50
-    muted: '#636363', //
+    text: '#F8FAFC', // slate-50
+    muted: '#64748B', // slate-500
     accent: '#0284C7', // sky-600
     success: '#16A34A', // green-600
     error: '#F43F5E', // rose-500
     background: '#000', // black
-    card: '#171717', //
-    input: '#171717', // gray-900
-    icon: '#4A5157', //
+    card: '#000', // black
+    border: '#192230', // ~ slate-800
+    input: '#000', // black
+    icon: '#334155', // slate-700
   },
 };
 
 export const factCategoryColorMap = new Map([
-  ['science', { light: '#4338CA', dark: '#3730A3' }], // indigo 700 / 800
-  ['nature', { light: '#15803D', dark: '#166534' }], // green 700 / 800
-  ['human', { light: '#7E22CE', dark: '#581C87' }], // purple 700 / 900
-  ['business', { light: '#0369A1', dark: '#075985' }], // sky 700 / 800
-  ['entertainment', { light: '#C2410C', dark: '#9A3412' }], // orange 700 / 800
-  ['miscellaneous', { light: '#BE123C', dark: '#9F1239' }], // rose 700 / 800
+  ['science', { light: '#4437db', dark: '#312a9c' }], // indigo 600~700 / 800~900
+  ['nature', { light: '#0b8038', dark: '#156635' }], // green 600~700 / 800~900
+  ['human', { light: '#7f18d9', dark: '#5e1994' }], // purple 600~700 / 800~900
+  ['business', { light: '#027cbf', dark: '#024d75' }], // sky 600~700 / 800~900
+  ['entertainment', { light: '#c94906', dark: '#a13700' }], // orange 600~700 / 700~800
+  ['miscellaneous', { light: '#c7163d', dark: '#96082f' }], // rose ~600 / 800~900
 ]);
-
-// export const colors = {
-//   light: {
-//     text: '#030712', // gray-950
-//     muted: '#6B7280', // gray-500
-//     accent: '#38BDF8', // sky-400
-//     success: '#16A34A', // green-600
-//     error: '#E11D48', // rose-600
-//     background: '#F3F4F6', // gray-100
-//     card: '#FFF', // white
-//     input: '#FFF', // white
-//     icon: '#9CA3AF', // gray-400
-//   },
-//   dark: {
-//     text: '#F9FAFB', // gray-50
-//     muted: '#6B7280', // gray-500
-//     accent: '#0284C7', // sky-600
-//     success: '#16A34A', // green-600
-//     error: '#F43F5E', // rose-500
-//     background: '#030712', // gray-950
-//     card: '#111827', // gray-900
-//     input: '#111827', // gray-900
-//     icon: '#4B5563', // gray-600
-//   },
-// };

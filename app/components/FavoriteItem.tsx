@@ -1,10 +1,10 @@
 import React, { memo, useState } from 'react';
 import { Pressable, useColorScheme, View } from 'react-native';
 
+import Card from '@/components/Card';
 import { Text } from '@/components/Text';
-import { useThemeColor } from '@/core/hooks/useThemeColor';
-import { TFactItem } from '@/core/types/facts';
 import { factCategoryColorMap } from '@/core/constants/colors';
+import { TFactItem } from '@/core/types/facts';
 
 type TFavoriteItemProps = {
   itemData: TFactItem;
@@ -13,7 +13,6 @@ type TFavoriteItemProps = {
 
 const FavoriteItem = ({ itemData, onDislike }: TFavoriteItemProps) => {
   const theme = useColorScheme() ?? 'light';
-  const backgroundColor = useThemeColor('card');
 
   const [showPrompt, setShowPrompt] = useState(false);
 
@@ -31,7 +30,7 @@ const FavoriteItem = ({ itemData, onDislike }: TFavoriteItemProps) => {
   };
 
   return (
-    <View style={{ backgroundColor }} className="rounded-3xl mt-2">
+    <Card containerClassName="mt-2">
       <Pressable onPress={handlePress}>
         <Text className="px-4 pt-4 text-lg font-psemibold">
           {itemData.title}
@@ -58,7 +57,7 @@ const FavoriteItem = ({ itemData, onDislike }: TFavoriteItemProps) => {
             <View className="flex-row items-center gap-x-2 p-2">
               <View
                 style={{ backgroundColor: categoryColor }}
-                className="w-3 h-3 rounded-full opacity-70"
+                className="w-3 h-3 rounded-full opacity-80"
               ></View>
               <Text colorName="muted" className="text-sm uppercase font-plight">
                 {itemData.category}
@@ -67,7 +66,7 @@ const FavoriteItem = ({ itemData, onDislike }: TFavoriteItemProps) => {
           )}
         </View>
       </Pressable>
-    </View>
+    </Card>
   );
 };
 

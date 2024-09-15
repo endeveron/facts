@@ -1,18 +1,16 @@
-import React, {
-  memo,
-  ReactElement,
-  useCallback,
-  useEffect,
-  useState,
-} from 'react';
+import React, { memo, ReactElement, useEffect, useRef, useState } from 'react';
 import {
+  Animated,
   Dimensions,
+  Easing,
   Image,
   Text as TextNative,
   TouchableOpacity,
   useColorScheme,
   View,
 } from 'react-native';
+
+import './style.css';
 
 import CopyIcon from '@/components/svg/CopyIcon';
 import HeartIcon from '@/components/svg/HeartIcon';
@@ -25,11 +23,12 @@ import AtomStrokeIcon from '@/components/svg/AtomStrokeIcon';
 import CaseStrokeIcon from '@/components/svg/CaseStrokeIcon';
 import MiscStrokeIcon from '@/components/svg/MiscStrokeIcon';
 import { categories } from '@/core/constants/categories';
+import { useThemeColor } from '@/core/hooks/useThemeColor';
 
 // Get the height of device window
 const windowHeight = Dimensions.get('window').height;
 
-const iconOpacity = 0.5;
+const iconOpacity = 0.55;
 const categoryIconMap = new Map([
   ['science', <AtomStrokeIcon opacity={iconOpacity} />],
   ['nature', <EarthStrokeIcon opacity={iconOpacity} />],
@@ -53,14 +52,18 @@ const FactItem = ({ itemData, factsTotal, liked, onLike }: TFactItemProps) => {
   }
 
   const theme = useColorScheme() ?? 'light';
+  const backgroundColor = useThemeColor('background');
+  const borderColor = useThemeColor('border');
+  // const fadeAnim = useRef(new Animated.Value(0)).current; // Initial value for opacity: 0
+
   const [isLiked, setIsLiked] = useState(false);
 
   const category = itemData.category;
-  let backgroundColor = '';
+  let categoryBgColor = '';
   let categoryIcon: ReactElement | null = null;
   if (categories.includes(category)) {
     const colorMapItem = factCategoryColorMap.get(category);
-    if (colorMapItem) backgroundColor = colorMapItem[theme];
+    if (colorMapItem) categoryBgColor = colorMapItem[theme];
     categoryIcon = categoryIconMap.get(category) ?? null;
   }
 
@@ -77,10 +80,26 @@ const FactItem = ({ itemData, factsTotal, liked, onLike }: TFactItemProps) => {
     setIsLiked(liked.includes(itemData.id));
   }, [liked]);
 
+  // useEffect(() => {
+  //   Animated.timing(fadeAnim, {
+  //     toValue: 1,
+  //     duration: 200,
+  //     easing: Easing.quad,
+  //     useNativeDriver: true,
+  //   }).start();
+  // }, [fadeAnim]);
+
   return (
-    <View style={{ height: windowHeight }} className="flex-col justify-center">
+    // <Animated.View
+    <View
+      style={{
+        height: windowHeight,
+        // opacity: fadeAnim, // Bind opacity to animated value
+      }}
+      className="flex-col justify-center px-2"
+    >
       <View
-        style={{ backgroundColor }}
+        style={{ backgroundColor: categoryBgColor }}
         className="relative min-h-[500px] -translate-y-8 flex-col justify-center rounded-3xl p-4"
       >
         <View className="relative z-10">
@@ -96,14 +115,14 @@ const FactItem = ({ itemData, factsTotal, liked, onLike }: TFactItemProps) => {
         </View>
         <View className="absolute inset-x-0 inset-y-0 rounded-3xl overflow-hidden z-0">
           <View
-            style={{ backgroundColor }}
-            className="absolute right-8 bottom-8 w-20 h-20 items-center justify-center border-[#ffffff15] border-[1px] rounded-full z-10"
+            style={{ backgroundColor: categoryBgColor }}
+            className="absolute right-8 bottom-8 w-20 h-20 items-center justify-center border-[#ffffff20] border-[1px] rounded-full z-10"
           >
             {categoryIcon}
           </View>
           <View className="absolute inset-x-0 inset-y-0 rounded-3xl overflow-hidden z-0">
             <Image
-              className="w-full h-full opacity-20"
+              className="w-full h-full opacity-30"
               source={require('@/assets/images/wave.png')}
               resizeMode="cover"
             />
@@ -111,13 +130,18 @@ const FactItem = ({ itemData, factsTotal, liked, onLike }: TFactItemProps) => {
         </View>
       </View>
 
-      <View className="flex-row items-center justify-center mt-4 gap-x-16">
-        <TouchableOpacity onPress={handleLike}>
-          <HeartIcon color={isLiked ? '#E11D48' : undefined} />
-        </TouchableOpacity>
-        <TouchableOpacity onPress={handleCopy}>
-          <CopyIcon />
-        </TouchableOpacity>
+      <View className="mt-4 flex-row justify-center">
+        <View
+          style={{ backgroundColor, borderColor }}
+          className="flex-row justify-center rounded-full py-4 border-[1px]"
+        >
+          <TouchableOpacity onPress={handleLike} className="mx-6">
+            <HeartIcon color={isLiked ? '#E11D48' : undefined} />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={handleCopy} className="mx-6">
+            <CopyIcon />
+          </TouchableOpacity>
+        </View>
       </View>
     </View>
   );

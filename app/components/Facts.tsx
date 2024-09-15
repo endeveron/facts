@@ -20,6 +20,7 @@ import {
 import { getFacts } from '@/core/services/fact';
 import { postEvaluateFact } from '@/core/services/user';
 import { TCurrentItem, TFactItem } from '@/core/types/facts';
+import Card from '@/components/Card';
 
 // Get the height of device window
 const windowHeight = Dimensions.get('window').height;
@@ -67,8 +68,6 @@ const Facts = () => {
   const token = authSession.token;
   const factsLength = state.facts.length;
 
-  // console.log('token', token);
-
   const handleLike = async (factId: string) => {
     const likedUpd = [...state.liked];
     const index = likedUpd.indexOf(factId);
@@ -93,8 +92,8 @@ const Facts = () => {
 
   const onViewableItemsChanged = async ({
     viewableItems,
-    changed,
-  }: TOnViewableItemsChangedArgs) => {
+  }: // changed,
+  TOnViewableItemsChangedArgs) => {
     // Add info: console.log('Changed in this iteration', changed);
     if (viewableItems.length && viewableItems[0]) {
       const item = viewableItems[0];
@@ -266,9 +265,11 @@ const Facts = () => {
 
   return (
     <View className="h-full relative">
-      <View className="absolute items-end justify-evenly bottom-2 left-0 right-0 p-8 z-10">
+      <View className="absolute bottom-4 right-4 z-50">
         <TouchableOpacity onPress={handleGoHome}>
-          <HomeIcon />
+          <Card addClassName="p-4 rounded-full">
+            <HomeIcon />
+          </Card>
         </TouchableOpacity>
       </View>
 
