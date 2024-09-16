@@ -31,13 +31,13 @@ const Index = () => {
                 containerClassName="w-48"
               />
               <Button
-                title="My Favorites"
+                title="Favorites"
                 handlePress={() => router.push('/favorites')}
                 containerClassName="mt-6 w-48"
               />
               <Button
-                title="Dashboard"
-                handlePress={() => router.push('/dashboard')}
+                title="New fact"
+                handlePress={() => router.push('/create')}
                 containerClassName="mt-6 w-48"
               />
               <Button

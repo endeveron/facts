@@ -60,15 +60,11 @@ export const getFavorites = async (
       _id: { $in: likedIdArr },
     }).select(factItemProps);
 
-    const serializedFavorites = likedFacts.map(
-      ({ _id, title, details, category, source }) => ({
-        id: _id.toString(),
-        title,
-        details,
-        category,
-        source,
-      })
-    );
+    const serializedFavorites = likedFacts.map(({ _id, title, category }) => ({
+      id: _id.toString(),
+      title,
+      category,
+    }));
 
     res.status(200).json({
       data: { liked: serializedFavorites },

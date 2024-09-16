@@ -67,11 +67,9 @@ const FactItem = ({
   const category = itemData.category;
   let categoryBgColor = '';
   let categoryIcon: ReactElement | null = null;
-  if (categories.includes(category)) {
-    const colorMapItem = factCategoryColorMap.get(category);
-    if (colorMapItem) categoryBgColor = colorMapItem[theme];
-    categoryIcon = categoryIconMap.get(category) ?? null;
-  }
+  const colorMapItem = factCategoryColorMap.get(category);
+  if (colorMapItem) categoryBgColor = colorMapItem[theme];
+  categoryIcon = categoryIconMap.get(category) ?? null;
 
   const handleCopy = async () => {
     onCopy(itemData.title);

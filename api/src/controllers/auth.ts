@@ -3,7 +3,6 @@ import { NextFunction, Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 
 import { Id } from '../types/common.js';
-// import { User, UserModel } from '../models/user.js';
 import { HttpError } from '../utils/error.js';
 import { getItem } from '../utils/getFromDb.js';
 import logger from '../utils/logger.js';

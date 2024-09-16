@@ -9,7 +9,7 @@ const KEY_FACTS_LIKED = 'facts_liked';
 const KEY_FACTS_CURRENT = 'facts_current';
 const KEY_FACTS_NOT_SHOWN = 'facts_not_shown';
 
-const SIGN_IN_SUCCESS_REDIRECT_URL = '/facts';
+const SIGN_IN_SUCCESS_REDIRECT_URL = '/create';
 const SIGN_OUT_REDIRECT_URL = '/';
 
 export {

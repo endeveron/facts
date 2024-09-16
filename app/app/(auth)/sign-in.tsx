@@ -15,12 +15,7 @@ import { signInSchema, TSignInFormData } from '@/core/utils/validation';
 
 const SignIn = () => {
   const { auth } = useAppContext();
-  const {
-    control,
-    handleSubmit,
-    setValue,
-    formState: { errors },
-  } = useForm<TSignInFormData>({
+  const { control, handleSubmit, setValue } = useForm<TSignInFormData>({
     resolver: zodResolver(signInSchema),
   });
 

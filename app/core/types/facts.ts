@@ -1,9 +1,10 @@
-export type TFactItem = {
-  id: string;
+export type TFactData = {
   title: string;
-  details: string;
   category: string;
-  source: string;
+};
+
+export type TFactItem = TFactData & {
+  id: string;
 };
 
 export type TFavoriteArr = string[];
@@ -43,3 +44,12 @@ export type TFactsContext = {
   setNotShownItemsNumber: (number: number) => void;
   countNotShownFacts: (args: TcountNotShownFactsArgs) => void;
 };
+
+export enum Categories {
+  nature = 'nature',
+  human = 'human',
+  entertainment = 'entertainment',
+  science = 'science',
+  business = 'business',
+  miscellaneous = 'miscellaneous',
+}

@@ -1,13 +1,14 @@
 import { ObjectId } from 'mongoose';
 
-export type TFact = {
-  _id: ObjectId;
+export type TFactData = {
   title: string;
-  details: string;
   category: string;
-  source: string;
 };
 
-export type TFactItem = Omit<TFact, '_id'> & {
+export type TFact = TFactData & {
+  _id: ObjectId;
+};
+
+export type TFactItem = TFactData & {
   id: string;
 };

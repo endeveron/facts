@@ -1,6 +1,7 @@
 import { Router } from 'express';
+import { body } from 'express-validator';
 
-import { getFacts, resetStatistics } from '../controllers/facts.js';
+import { getFacts, postFact, resetStatistics } from '../controllers/facts.js';
 import { checkAuth } from '../middleware/check-auth.js';
 import { handleHttpError } from '../utils/error.js';
 
@@ -10,6 +11,11 @@ router.use(checkAuth);
 
 router.get('/:userId', getFacts);
 router.get('/reset-statistics/:userId', resetStatistics);
+router.post(
+  '/',
+  [body('title').isLength({ min: 10, max: 100 }), body('category').notEmpty()],
+  postFact
+);
 
 router.use(handleHttpError);
 

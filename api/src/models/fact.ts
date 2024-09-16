@@ -1,14 +1,12 @@
 import { Schema, model } from 'mongoose';
 
-import { Str } from '../types/common.js';
+import { StrReq } from '../types/common.js';
 import { TFact } from '../types/fact.js';
 
 const factSchema = new Schema<TFact>(
   {
-    title: { Str },
-    details: { Str },
-    category: { Str },
-    source: { Str },
+    title: StrReq,
+    category: StrReq,
   },
   {
     versionKey: false,

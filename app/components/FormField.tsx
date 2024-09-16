@@ -9,11 +9,11 @@ import {
   View,
 } from 'react-native';
 
-import { Text } from '@/components/Text';
 import { FormErrorMessage } from '@/components/FormErrorMessage';
-import { useThemeColor } from '@/core/hooks/useThemeColor';
 import EyeIcon from '@/components/svg/EyeIcon';
 import EyeSlashIcon from '@/components/svg/EyeSlashIcon';
+import { Text } from '@/components/Text';
+import { useThemeColor } from '@/core/hooks/useThemeColor';
 
 export const FormField = ({
   name,
@@ -22,16 +22,18 @@ export const FormField = ({
   placeholder,
   handleChangeText,
   containerClassName,
+  numberOfLines = 1,
   keyboardType,
   onBlur,
   error,
 }: {
   name: string;
-  label: string;
   value: string;
   handleChangeText: (text: string) => void;
+  label?: string;
   containerClassName?: string;
   placeholder?: string;
+  numberOfLines?: number;
   keyboardType?: KeyboardTypeOptions;
   onBlur?: (e: NativeSyntheticEvent<TextInputFocusEventData>) => void;
   error?: FieldError;
@@ -43,24 +45,42 @@ export const FormField = ({
   const borderColor = useThemeColor('border');
   const mutedColor = useThemeColor('muted');
 
+  const nultiline = numberOfLines > 1;
+  let heightClassName = 'h-14';
+
+  if (nultiline) {
+    switch (numberOfLines) {
+      case 2:
+        heightClassName = 'h-20';
+        break;
+      default:
+        heightClassName = 'h-24';
+    }
+  }
+
   return (
     <View className={`space-y-2 ${containerClassName}`}>
-      <Text colorName="muted" className="font-pmedium">
-        {label}
-      </Text>
+      {label && (
+        <Text colorName="muted" className="font-pmedium">
+          {label}
+        </Text>
+      )}
 
       <View
         style={{ backgroundColor: inputColor, borderColor }}
-        className="w-full h-14 px-4 border-[1px] rounded-lg focus:border-accent flex flex-row items-center"
+        className={`${heightClassName} w-full px-4 border-[1px] rounded-lg focus:border-accent flex flex-row items-center`}
       >
         <TextInput
-          className="flex-1 font-psemibold text-base"
+          className="flex-1 font-psemibold text-base py-2"
           style={{ color: textColor }}
           value={value}
           placeholder={placeholder}
-          placeholderTextColor="#7B7B8B"
+          placeholderTextColor={mutedColor}
           onChangeText={handleChangeText}
           onBlur={onBlur}
+          multiline={nultiline}
+          numberOfLines={numberOfLines}
+          textAlignVertical={nultiline ? 'top' : 'center'}
           secureTextEntry={name === 'password' && !showPassword}
           keyboardType={keyboardType}
         />

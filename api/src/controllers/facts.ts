@@ -1,12 +1,13 @@
 import { NextFunction, Request, Response } from 'express';
 
 import { FACT_ITEMS_LIMIT, factItemProps } from '../constants/facts.js';
-import FactModel from '../models/fact.js';
+
 import UserModel from '../models/user.js';
 import { TFactItem } from '../types/fact.js';
 import { HttpError } from '../utils/error.js';
 import { configureFactItems } from '../utils/facts.js';
 import logger from '../utils/logger.js';
+import FactModel from '../models/fact.js';
 
 export const getFacts = async (
   req: Request,
@@ -52,6 +53,31 @@ export const getFacts = async (
   } catch (err) {
     logger.r('getUser', err);
     return next(new HttpError('Unable to retrieve user data.', 500));
+  }
+};
+
+export const postFact = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const { title, category } = req.body;
+
+  try {
+    const fact = new FactModel({
+      category,
+      title,
+    });
+    await fact.save();
+
+    res.status(201).json({
+      data: {
+        factId: fact._id.toString(),
+      },
+    });
+  } catch (err) {
+    logger.r('getUser', err);
+    return next(new HttpError('Unable to add fact.', 500));
   }
 };
 
