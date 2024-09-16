@@ -18,11 +18,12 @@ const CreateFact = () => {
   const authSession = auth.session;
   if (authSession === null) return null;
 
-  const { control, handleSubmit, setValue, reset } = useForm<TFactFormData>({
+  const { control, handleSubmit, reset } = useForm<TFactFormData>({
     resolver: zodResolver(factSchema),
   });
 
   const [category, setCategory] = useState('nature');
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleCategory = (name: string) => {
     setCategory(name);
@@ -32,6 +33,7 @@ const CreateFact = () => {
     data: TFactFormData
   ) => {
     try {
+      setIsLoading(true);
       const result = await postFact({
         fact: {
           category,
@@ -43,22 +45,18 @@ const CreateFact = () => {
       if (result?.data?.factId) {
         // Success
         showAlert('Fact item added to database.', 'Success!');
-        // Reset form
-        reset();
+        reset(); // form
       }
     } catch (error: any) {
       showAlert(error.message, 'Error');
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  useEffect(() => {
-    setValue('title', 'Dev test item');
-  }, []);
-
   return (
     <View className="px-4">
-      <Text className=" text-lg font-psemibold">Category</Text>
-      <View className="flex-row flex-wrap -mx-3">
+      <View className="flex-row flex-wrap -mt-2 -mx-3">
         {Object.keys(Categories).map((name) => (
           <CategoryItem
             onPress={handleCategory}
@@ -69,8 +67,7 @@ const CreateFact = () => {
         ))}
       </View>
 
-      <Text className="mt-4 mb-2 text-lg font-psemibold">Fact</Text>
-      <View className="flex justify-center -mx-1">
+      <View className="flex justify-center mt-4 -mx-1">
         <Controller
           control={control}
           render={({
@@ -91,10 +88,10 @@ const CreateFact = () => {
         />
 
         <Button
-          title="Add Fact"
+          title="Submit"
           handlePress={handleSubmit(onSubmit)}
           containerClassName="mt-6"
-          // isLoading={isLoading}
+          isLoading={isLoading}
         />
       </View>
     </View>

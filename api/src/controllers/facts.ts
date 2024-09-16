@@ -76,8 +76,8 @@ export const postFact = async (
       },
     });
   } catch (err) {
-    logger.r('getUser', err);
-    return next(new HttpError('Unable to add fact.', 500));
+    logger.r('postFact', err);
+    return next(new HttpError('Unable to add fact to database.', 500));
   }
 };
 

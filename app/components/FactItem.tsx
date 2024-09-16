@@ -1,8 +1,6 @@
-import React, { memo, ReactElement, useEffect, useRef, useState } from 'react';
+import React, { memo, ReactElement, useEffect, useState } from 'react';
 import {
-  Animated,
   Dimensions,
-  Easing,
   Image,
   Text as TextNative,
   TouchableOpacity,
@@ -10,20 +8,17 @@ import {
   View,
 } from 'react-native';
 
-import './style.css';
-
-import CopyIcon from '@/components/svg/CopyIcon';
-import HeartIcon from '@/components/svg/HeartIcon';
-import { factCategoryColorMap } from '@/core/constants/colors';
-import { TFactItem, TFavoriteArr } from '@/core/types/facts';
-import UserStrokeIcon from '@/components/svg/UserStrokeIcon';
-import StarsStrokeIcon from '@/components/svg/StarsStrokeIcon';
-import EarthStrokeIcon from '@/components/svg/EarthStrokeIcon';
 import AtomStrokeIcon from '@/components/svg/AtomStrokeIcon';
 import CaseStrokeIcon from '@/components/svg/CaseStrokeIcon';
+import CopyIcon from '@/components/svg/CopyIcon';
+import EarthStrokeIcon from '@/components/svg/EarthStrokeIcon';
+import HeartIcon from '@/components/svg/HeartIcon';
 import MiscStrokeIcon from '@/components/svg/MiscStrokeIcon';
-import { categories } from '@/core/constants/categories';
+import StarsStrokeIcon from '@/components/svg/StarsStrokeIcon';
+import UserStrokeIcon from '@/components/svg/UserStrokeIcon';
+import { factCategoryColorMap } from '@/core/constants/colors';
 import { useThemeColor } from '@/core/hooks/useThemeColor';
+import { TFactItem, TFavoriteArr } from '@/core/types/facts';
 
 // Get the height of device window
 const windowHeight = Dimensions.get('window').height;

@@ -26,7 +26,7 @@ const CategoryItem = ({ isActive, name, onPress }: TCategoryItemProps) => {
       >
         <Text
           colorName={isActive ? 'inversed' : 'text'}
-          className={classNames('text-xs uppercase', {
+          className={classNames('text-xs uppercase font-pmedium', {
             'font-pextrabold': isActive,
           })}
         >

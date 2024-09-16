@@ -25,6 +25,7 @@ import { TCurrentItem, TFactItem } from '@/core/types/facts';
 import Card from '@/components/Card';
 import { Text } from '@/components/Text';
 import { useThemeColor } from '@/core/hooks/useThemeColor';
+import Navbar from '@/components/Navbar';
 
 // Get the height of device window
 const windowHeight = Dimensions.get('window').height;
@@ -152,7 +153,6 @@ const Facts = () => {
         notShownNum: state.notShownNum,
       });
     }
-    router.push('/');
   };
 
   const fetchData = async () => {
@@ -276,13 +276,7 @@ const Facts = () => {
 
   return (
     <View className="h-full relative">
-      <View className="absolute w-16 h-16 bottom-8 left-1/2 -ml-8 flex items-center justify-center z-50">
-        <TouchableOpacity onPress={handleGoHome}>
-          <Card addClassName="p-4 rounded-full">
-            <HomeIcon />
-          </Card>
-        </TouchableOpacity>
-      </View>
+      <Navbar onHome={handleGoHome} />
 
       {isFetching ? (
         <View className="-translate-y-24 flex-1 items-center justify-center">

@@ -43,6 +43,7 @@ export const FormField = ({
   const textColor = useThemeColor('text');
   const inputColor = useThemeColor('input');
   const borderColor = useThemeColor('border');
+  const errorColor = useThemeColor('error');
   const mutedColor = useThemeColor('muted');
 
   const nultiline = numberOfLines > 1;
@@ -67,8 +68,11 @@ export const FormField = ({
       )}
 
       <View
-        style={{ backgroundColor: inputColor, borderColor }}
-        className={`${heightClassName} w-full px-4 border-[1px] rounded-lg focus:border-accent flex flex-row items-center`}
+        style={{
+          backgroundColor: inputColor,
+          borderColor: !!error ? errorColor : borderColor,
+        }}
+        className={`${heightClassName} w-full px-4 border-2 rounded-lg flex flex-row items-center`}
       >
         <TextInput
           className="flex-1 font-psemibold text-base py-2"
