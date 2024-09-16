@@ -1,6 +1,8 @@
+import * as Clipboard from 'expo-clipboard';
 import { router } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import {
+  ActivityIndicator,
   Dimensions,
   FlatList,
   TouchableOpacity,
@@ -21,6 +23,8 @@ import { getFacts } from '@/core/services/fact';
 import { postEvaluateFact } from '@/core/services/user';
 import { TCurrentItem, TFactItem } from '@/core/types/facts';
 import Card from '@/components/Card';
+import { Text } from '@/components/Text';
+import { useThemeColor } from '@/core/hooks/useThemeColor';
 
 // Get the height of device window
 const windowHeight = Dimensions.get('window').height;
@@ -55,6 +59,8 @@ const Facts = () => {
   const authSession = auth.session;
   if (authSession === null) return null;
 
+  const accentColor = useThemeColor('accent');
+
   const [isFetching, setIsFetching] = useState(false);
   const [noMoreFacts, setNoMoreFacts] = useState(false);
   const [state, setState] = useState<TFactsState>({
@@ -67,6 +73,11 @@ const Facts = () => {
   const userId = authSession.user.id;
   const token = authSession.token;
   const factsLength = state.facts.length;
+
+  const handleCopy = async (text: string) => {
+    if (!text) return;
+    await Clipboard.setStringAsync(text);
+  };
 
   const handleLike = async (factId: string) => {
     const likedUpd = [...state.liked];
@@ -210,7 +221,7 @@ const Facts = () => {
       await saveFactsStateInAsyncStorage({
         facts: updFacts,
         current: updCurrent,
-        liked: state.liked,
+        liked: fetchedLiked,
         notShownNum: updNotShownNum,
       });
     }
@@ -252,7 +263,7 @@ const Facts = () => {
     }
   }, [state.notShownNum]);
 
-  // // Dev Log
+  // // Dev
   // useEffect(() => {
   //   console.log('');
   //   console.log('facts        ', factsLength);
@@ -265,7 +276,7 @@ const Facts = () => {
 
   return (
     <View className="h-full relative">
-      <View className="absolute bottom-4 right-4 z-50">
+      <View className="absolute w-16 h-16 bottom-8 left-1/2 -ml-8 flex items-center justify-center z-50">
         <TouchableOpacity onPress={handleGoHome}>
           <Card addClassName="p-4 rounded-full">
             <HomeIcon />
@@ -273,26 +284,33 @@ const Facts = () => {
         </TouchableOpacity>
       </View>
 
-      <FlatList
-        data={state.facts}
-        className="relative"
-        snapToAlignment="center"
-        decelerationRate="normal"
-        snapToInterval={windowHeight}
-        keyExtractor={(item) => item.id}
-        getItemLayout={getItemLayout}
-        disableIntervalMomentum={true}
-        viewabilityConfig={viewabilityConfig}
-        onViewableItemsChanged={onViewableItemsChanged}
-        renderItem={({ item, index }) => (
-          <FactItem
-            itemData={{ index, ...item }}
-            factsTotal={factsLength}
-            liked={state.liked}
-            onLike={handleLike}
-          />
-        )}
-      />
+      {isFetching ? (
+        <View className="-translate-y-24 flex-1 items-center justify-center">
+          <ActivityIndicator size="large" color={accentColor} />
+        </View>
+      ) : (
+        <FlatList
+          data={state.facts}
+          className="relative"
+          snapToAlignment="center"
+          decelerationRate="normal"
+          snapToInterval={windowHeight}
+          keyExtractor={(item) => item.id}
+          getItemLayout={getItemLayout}
+          disableIntervalMomentum={true}
+          viewabilityConfig={viewabilityConfig}
+          onViewableItemsChanged={onViewableItemsChanged}
+          renderItem={({ item, index }) => (
+            <FactItem
+              itemData={{ index, ...item }}
+              factsTotal={factsLength}
+              liked={state.liked}
+              onCopy={handleCopy}
+              onLike={handleLike}
+            />
+          )}
+        />
+      )}
     </View>
   );
 };

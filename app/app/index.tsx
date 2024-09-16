@@ -6,17 +6,12 @@ import { SafeAreaView } from '@/components/SafeAreaView';
 import { StatusBar } from '@/components/StatusBar';
 import { Text } from '@/components/Text';
 import { useAppContext } from '@/core/context/AppContext';
-import { deleteFactsDataFromAsyncStorage } from '@/core/helpers/store';
 
 const Index = () => {
   const { auth } = useAppContext();
 
   const handleSignin = async () => {
     router.push('/sign-in');
-  };
-
-  const handleClear = async () => {
-    await deleteFactsDataFromAsyncStorage();
   };
 
   return (
@@ -43,11 +38,6 @@ const Index = () => {
               <Button
                 title="Dashboard"
                 handlePress={() => router.push('/dashboard')}
-                containerClassName="mt-6 w-48"
-              />
-              <Button
-                title="Clear Storage"
-                handlePress={handleClear}
                 containerClassName="mt-6 w-48"
               />
               <Button

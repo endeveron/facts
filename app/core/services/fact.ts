@@ -1,7 +1,7 @@
 import { API_BASE_URL } from '@/core/constants';
 import { commonHeaders } from '@/core/constants/api';
 import { TServiceResponse } from '@/core/types/common';
-import { TFactItem } from '@/core/types/facts';
+import { TFactItem, TFavoriteArr } from '@/core/types/facts';
 
 export const getFacts = async ({
   userId,
@@ -54,7 +54,7 @@ export const resetStatistics = async ({
       }
     );
     if (!response.ok) {
-      return { data: null, error: { message: 'Could not fetch facts.' } };
+      return { data: null, error: { message: 'Could not reset statistics.' } };
     }
     const result = await response.json();
     if (result?.data) {

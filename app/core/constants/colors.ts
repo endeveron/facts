@@ -1,7 +1,7 @@
 export const colors = {
   light: {
     text: '#020617', // slate-950
-    muted: '#94A3B8', // slate-400
+    muted: '#7a899e', // ~slate-500
     accent: '#38BDF8', // sky-400
     success: '#16A34A', // green-600
     error: '#E11D48', // rose-600
@@ -13,7 +13,7 @@ export const colors = {
   },
   dark: {
     text: '#F8FAFC', // slate-50
-    muted: '#64748B', // slate-500
+    muted: '#56657a', // ~slate-500
     accent: '#0284C7', // sky-600
     success: '#16A34A', // green-600
     error: '#F43F5E', // rose-500

@@ -37,7 +37,7 @@ const ScrollScreen = ({ title, children }: TScrollScreenProps) => {
       <View className="relative z-10">
         <ScrollView>
           {title && (
-            <Text className="px-4 pt-14 pb-4 text-2xl font-pbold">{title}</Text>
+            <Text className="px-4 pt-16 pb-6 text-2xl font-pbold">{title}</Text>
           )}
           {children}
         </ScrollView>

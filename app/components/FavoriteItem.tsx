@@ -30,7 +30,7 @@ const FavoriteItem = ({ itemData, onDislike }: TFavoriteItemProps) => {
   };
 
   return (
-    <Card containerClassName="mt-2">
+    <Card addClassName="mt-2">
       <Pressable onPress={handlePress}>
         <Text className="px-4 pt-4 text-lg font-psemibold">
           {itemData.title}

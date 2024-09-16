@@ -42,10 +42,17 @@ type TFactItemProps = {
   itemData: TFactItem & { index: number | null };
   factsTotal: number | null;
   liked: TFavoriteArr;
+  onCopy: (text: string) => void;
   onLike: (factId: string) => void;
 };
 
-const FactItem = ({ itemData, factsTotal, liked, onLike }: TFactItemProps) => {
+const FactItem = ({
+  itemData,
+  factsTotal,
+  liked,
+  onCopy,
+  onLike,
+}: TFactItemProps) => {
   if (itemData.index === null) {
     console.error('FactItem: Invalid index.');
     return null;
@@ -54,7 +61,6 @@ const FactItem = ({ itemData, factsTotal, liked, onLike }: TFactItemProps) => {
   const theme = useColorScheme() ?? 'light';
   const backgroundColor = useThemeColor('background');
   const borderColor = useThemeColor('border');
-  // const fadeAnim = useRef(new Animated.Value(0)).current; // Initial value for opacity: 0
 
   const [isLiked, setIsLiked] = useState(false);
 
@@ -68,7 +74,7 @@ const FactItem = ({ itemData, factsTotal, liked, onLike }: TFactItemProps) => {
   }
 
   const handleCopy = async () => {
-    console.log('Copy');
+    onCopy(itemData.title);
   };
 
   const handleLike = async () => {

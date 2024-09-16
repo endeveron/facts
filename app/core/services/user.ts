@@ -89,3 +89,38 @@ export const postEvaluateFact = async ({
     return { data: null, error: { message: err.message } };
   }
 };
+
+export const getResetFacts = async ({
+  userId,
+  token,
+}: {
+  userId: string;
+  token: string;
+}): Promise<TServiceResponse<{}> | undefined> => {
+  if (!userId)
+    return { data: null, error: { message: 'No user ID provided.' } };
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/users/${userId}/reset-facts`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          ...commonHeaders,
+        },
+      }
+    );
+    if (!response.ok) {
+      return {
+        data: null,
+        error: { message: 'Unable to reset facts.' },
+      };
+    }
+    const result = await response.json();
+    if (result?.data) {
+      return { data: result.data, error: null };
+    }
+  } catch (err: any) {
+    console.error(err);
+    return { data: null, error: { message: err.message } };
+  }
+};

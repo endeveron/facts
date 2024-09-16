@@ -1,7 +1,11 @@
 import { Router } from 'express';
 import { body } from 'express-validator';
 
-import { getFavorites, postEvaluateFact } from '../controllers/users.js';
+import {
+  getFavorites,
+  postEvaluateFact,
+  getResetFacts,
+} from '../controllers/users.js';
 import { checkAuth } from '../middleware/check-auth.js';
 import { handleHttpError } from '../utils/error.js';
 
@@ -10,6 +14,7 @@ const router = Router();
 router.use(checkAuth);
 
 router.get('/:userId/favorites', getFavorites);
+router.get('/:userId/reset-facts', getResetFacts);
 router.post(
   '/evaluate-fact',
   body('factId').isLength({ min: 24, max: 24 }),

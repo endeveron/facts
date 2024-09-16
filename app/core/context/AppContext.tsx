@@ -14,6 +14,7 @@ import {
 
 import {
   deleteAuthDataFromSecureStore,
+  deleteFactsDataFromAsyncStorage,
   getAuthDataFromSecureStore,
   saveAuthDataInSecureStore,
 } from '@/core/helpers/store';
@@ -25,6 +26,7 @@ import {
   useEffect,
   useState,
 } from 'react';
+import { getResetFacts } from '@/core/services/user';
 
 type TAppContextProps = {
   auth: TAuthContext;
@@ -104,8 +106,17 @@ export const AppContextProvider = ({ children }: PropsWithChildren) => {
   };
 
   const signOut = async () => {
-    const success = await deleteAuthDataFromSecureStore();
-    if (success) {
+    // Dev start
+    await deleteFactsDataFromAsyncStorage();
+    const result = await getResetFacts({
+      token: authSession?.token as string,
+      userId: authSession?.user.id as string,
+    });
+    if (!!result?.data) console.info('Fact offset is reset in DB.');
+    // Dev end
+
+    const isAuthDataResetSuccess = await deleteAuthDataFromSecureStore();
+    if (isAuthDataResetSuccess) {
       setAuthSession(null);
       router.replace(SIGN_OUT_REDIRECT_URL);
     }

@@ -119,3 +119,30 @@ export const postEvaluateFact = async (
     return next(new HttpError('Unable to evaluate fact.', 500));
   }
 };
+
+export const getResetFacts = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const userId = req.params.userId;
+
+  try {
+    const user = await UserModel.findById(userId);
+    if (!user) {
+      return next(
+        new HttpError('Unable to find a user with the specified ID.', 404)
+      );
+    }
+
+    user.facts.offset = 0;
+    await user.save();
+
+    res.status(201).json({
+      data: {},
+    });
+  } catch (err) {
+    logger.r('reset', err);
+    return next(new HttpError('Unable to reset facts.', 500));
+  }
+};
