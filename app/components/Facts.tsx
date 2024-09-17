@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 
 import FactItem from '@/components/FactItem';
-import Navbar from '@/components/Navbar';
+import Navbar, { NavItemName } from '@/components/Navbar';
 import { FACTS_LENGTH_TO_FETCH_NEW_ITEMS } from '@/core/constants';
 import { useAppContext } from '@/core/context/AppContext';
 import { showAlert } from '@/core/helpers/alert';
@@ -140,7 +140,7 @@ const Facts = () => {
     []
   );
 
-  const handleGoHome = async () => {
+  const handleNavbarPress = async (name: NavItemName) => {
     if (state.current !== null && state.notShownNum !== null) {
       const freshFacts = state.facts.slice(state.current.index);
       await saveFactsStateInAsyncStorage({
@@ -283,7 +283,7 @@ const Facts = () => {
 
   return (
     <View className="h-full relative">
-      <Navbar onHome={handleGoHome} />
+      <Navbar onPress={handleNavbarPress} />
 
       {state.current === null && isFetching ? (
         <View className="-translate-y-24 flex-1 items-center justify-center">

@@ -61,7 +61,7 @@ const Favourites = () => {
   }, []);
 
   return (
-    <View className="-mt-2">
+    <View className="-mt-2 pb-28">
       {state.liked.map((data) => (
         <FavouriteItem
           itemData={data}

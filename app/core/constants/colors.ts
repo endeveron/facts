@@ -1,3 +1,5 @@
+export const heartColor = '#E11D48';
+
 export const colors = {
   light: {
     text: '#020617', // slate-950
@@ -13,6 +15,7 @@ export const colors = {
     border: '#fcfcfc', // ~ white
     input: '#F8FAFC', // slate-50
     icon: '#abb8c9', // ~ slate-300
+    iconActive: '#1E293B', // slate-800
   },
   dark: {
     text: '#F8FAFC', // slate-50
@@ -25,9 +28,10 @@ export const colors = {
     error: '#F43F5E', // rose-500
     background: '#000', // black
     card: '#000', // black
-    border: '#192230', // ~ slate-800
+    border: '#192230', // ~slate-800
     input: '#000', // black
     icon: '#334155', // slate-700
+    iconActive: '#94A3B8', // !slate-400
   },
 };
 

@@ -1,3 +1,7 @@
+export type TScreen = {
+  name: string;
+};
+
 export type TIconProps = {
   color?: string;
   size?: number;

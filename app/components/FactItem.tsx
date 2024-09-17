@@ -8,6 +8,7 @@ import {
   View,
 } from 'react-native';
 
+import Card from '@/components/Card';
 import AtomStrokeIcon from '@/components/svg/AtomStrokeIcon';
 import CaseStrokeIcon from '@/components/svg/CaseStrokeIcon';
 import CopyIcon from '@/components/svg/CopyIcon';
@@ -16,7 +17,7 @@ import HeartIcon from '@/components/svg/HeartIcon';
 import MiscStrokeIcon from '@/components/svg/MiscStrokeIcon';
 import StarsStrokeIcon from '@/components/svg/StarsStrokeIcon';
 import UserStrokeIcon from '@/components/svg/UserStrokeIcon';
-import { factCategoryColorMap } from '@/core/constants/colors';
+import { factCategoryColorMap, heartColor } from '@/core/constants/colors';
 import { useThemeColor } from '@/core/hooks/useThemeColor';
 import { TFactItem, TFavouriteArr } from '@/core/types/facts';
 
@@ -84,11 +85,11 @@ const FactItem = ({
       style={{
         height: windowHeight,
       }}
-      className="flex-col justify-center px-2"
+      className="flex-col justify-center"
     >
       <View
         style={{ backgroundColor: categoryBgColor }}
-        className="relative min-h-[500px] -translate-y-8 flex-col justify-center rounded-3xl p-4"
+        className="relative min-h-[480px] -translate-y-8 flex-col justify-center rounded-3xl p-4"
       >
         <View className="relative z-10">
           <TextNative className="text-white text-sm uppercase font-plight opacity-50">
@@ -119,17 +120,14 @@ const FactItem = ({
       </View>
 
       <View className="mt-4 flex-row justify-center">
-        <View
-          style={{ backgroundColor, borderColor }}
-          className="flex-row justify-center rounded-full py-4 border-[1px]"
-        >
-          <TouchableOpacity onPress={handleLike} className="mx-6">
-            <HeartIcon color={isLiked ? '#E11D48' : undefined} />
+        <Card addClassName="flex-row space-x-10 py-4 px-6 rounded-full">
+          <TouchableOpacity onPress={handleLike}>
+            <HeartIcon color={isLiked ? heartColor : undefined} />
           </TouchableOpacity>
-          <TouchableOpacity onPress={handleCopy} className="mx-6">
+          <TouchableOpacity onPress={handleCopy}>
             <CopyIcon />
           </TouchableOpacity>
-        </View>
+        </Card>
       </View>
     </View>
   );

@@ -2,6 +2,7 @@ import { SplashScreen, Stack } from 'expo-router';
 import { useFonts } from 'expo-font';
 import { useEffect } from 'react';
 import { AppContextProvider } from '@/core/context/AppContext';
+import { TScreen } from '@/core/types/common';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -31,12 +32,24 @@ const RootLayout = () => {
     return null;
   }
 
+  const screens: TScreen[] = [
+    { name: 'index' },
+    { name: '(auth)' },
+    { name: '(screens)' },
+  ];
+
   return (
     <AppContextProvider>
       <Stack>
-        <Stack.Screen name="index" options={{ headerShown: false }} />
-        <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-        <Stack.Screen name="(screens)" options={{ headerShown: false }} />
+        {screens.map((screen: TScreen) => (
+          <Stack.Screen
+            name={screen.name}
+            options={{
+              headerShown: false,
+            }}
+            key={screen.name}
+          />
+        ))}
       </Stack>
     </AppContextProvider>
   );

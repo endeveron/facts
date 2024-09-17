@@ -1,13 +1,13 @@
 import { Stack } from 'expo-router';
 
-type TScreen = {
-  name: string;
-};
+import { TScreen } from '@/core/types/common';
 
 const screens: TScreen[] = [
+  { name: 'categories' },
   { name: 'create' },
   { name: 'facts' },
   { name: 'favourites' },
+  { name: 'profile' },
 ];
 
 const ScreensLayout = () => {
