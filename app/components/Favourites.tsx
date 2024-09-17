@@ -6,9 +6,12 @@ import { useAppContext } from '@/core/context/AppContext';
 import { showAlert } from '@/core/helpers/alert';
 import { getFavourites, postEvaluateFact } from '@/core/services/user';
 import { TFactItem } from '@/core/types/facts';
+import HeartIcon from '@/components/svg/HeartIcon';
+import { heartColor } from '@/core/constants/colors';
+import { Text } from '@/components/Text';
 
 type TFavouritesState = {
-  liked: TFactItem[];
+  favourites: TFactItem[];
 };
 
 const Favourites = () => {
@@ -17,17 +20,19 @@ const Favourites = () => {
   if (authSession === null) return null;
 
   const [state, setState] = useState<TFavouritesState>({
-    liked: [],
+    favourites: [],
   });
 
   const userId = authSession.user.id;
   const token = authSession.token;
 
   const handleDislike = async (factId: string) => {
-    const updLiked = [...state.liked].filter((data) => data.id !== factId);
+    const updFavourites = [...state.favourites].filter(
+      (data) => data.id !== factId
+    );
     // Update local state
-    setState(({ liked, ...state }) => ({
-      liked: updLiked,
+    setState(({ favourites, ...state }) => ({
+      favourites: updFavourites,
       ...state,
     }));
     // Send request to server
@@ -47,9 +52,9 @@ const Favourites = () => {
       showAlert(result.error.message);
     }
     if (result?.data) {
-      const likedFacts = result.data.liked;
-      setState(({ liked, ...state }) => ({
-        liked: likedFacts,
+      const fetchedFavourites = result.data.liked;
+      setState(({ favourites, ...state }) => ({
+        favourites: fetchedFavourites,
         ...state,
       }));
     }
@@ -61,8 +66,15 @@ const Favourites = () => {
   }, []);
 
   return (
-    <View className="-mt-2 pb-28">
-      {state.liked.map((data) => (
+    <View className="pb-28">
+      <View className="flex-row items-center px-4 pb-2">
+        <View className="mr-3">
+          <HeartIcon size={20} color={heartColor} />
+        </View>
+        <Text className="text-xl font-pbold">My Favourites</Text>
+      </View>
+
+      {state.favourites.map((data) => (
         <FavouriteItem
           itemData={data}
           onDislike={handleDislike}

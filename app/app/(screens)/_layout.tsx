@@ -6,7 +6,6 @@ const screens: TScreen[] = [
   { name: 'categories' },
   { name: 'create' },
   { name: 'facts' },
-  { name: 'favourites' },
   { name: 'profile' },
 ];
 

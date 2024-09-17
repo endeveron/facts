@@ -2,6 +2,7 @@ import React, { memo, ReactElement, useEffect, useState } from 'react';
 import {
   Dimensions,
   Image,
+  StatusBar,
   Text as TextNative,
   TouchableOpacity,
   useColorScheme,
@@ -18,11 +19,12 @@ import MiscStrokeIcon from '@/components/svg/MiscStrokeIcon';
 import StarsStrokeIcon from '@/components/svg/StarsStrokeIcon';
 import UserStrokeIcon from '@/components/svg/UserStrokeIcon';
 import { factCategoryColorMap, heartColor } from '@/core/constants/colors';
-import { useThemeColor } from '@/core/hooks/useThemeColor';
 import { TFactItem, TFavouriteArr } from '@/core/types/facts';
+import { getFullScreenHeight } from '@/core/helpers/misc';
 
-// Get the height of device window
-const windowHeight = Dimensions.get('window').height;
+// Get the height of device screen
+const screenHeight = Dimensions.get('window').height;
+// const screenHeight = getFullScreenHeight();
 
 const iconOpacity = 0.55;
 const categoryIconMap = new Map([
@@ -55,8 +57,6 @@ const FactItem = ({
   }
 
   const theme = useColorScheme() ?? 'light';
-  const backgroundColor = useThemeColor('background');
-  const borderColor = useThemeColor('border');
 
   const [isLiked, setIsLiked] = useState(false);
 
@@ -83,9 +83,9 @@ const FactItem = ({
   return (
     <View
       style={{
-        height: windowHeight,
+        height: screenHeight,
       }}
-      className="flex-col justify-center"
+      className="flex-col h-full justify-center relative"
     >
       <View
         style={{ backgroundColor: categoryBgColor }}
@@ -120,11 +120,11 @@ const FactItem = ({
       </View>
 
       <View className="mt-4 flex-row justify-center">
-        <Card addClassName="flex-row space-x-10 py-4 px-6 rounded-full">
-          <TouchableOpacity onPress={handleLike}>
+        <Card addClassName="flex-row p-4 rounded-full">
+          <TouchableOpacity onPress={handleLike} className="mx-4">
             <HeartIcon color={isLiked ? heartColor : undefined} />
           </TouchableOpacity>
-          <TouchableOpacity onPress={handleCopy}>
+          <TouchableOpacity onPress={handleCopy} className="mx-4">
             <CopyIcon />
           </TouchableOpacity>
         </Card>

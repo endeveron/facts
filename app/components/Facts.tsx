@@ -9,7 +9,9 @@ import {
 } from 'react-native';
 
 import FactItem from '@/components/FactItem';
-import Navbar, { NavItemName } from '@/components/Navbar';
+import Navbar, { NavItemName, TNavbarItem } from '@/components/Navbar';
+import CategoriesIcon from '@/components/svg/CategoriesIcon';
+import UserIcon from '@/components/svg/UserIcon';
 import { FACTS_LENGTH_TO_FETCH_NEW_ITEMS } from '@/core/constants';
 import { useAppContext } from '@/core/context/AppContext';
 import { showAlert } from '@/core/helpers/alert';
@@ -49,6 +51,20 @@ type TFactsState = {
   liked: string[];
   notShownNum: number | null;
 };
+
+const navItems: TNavbarItem[] = [
+  {
+    name: NavItemName.categories,
+    href: '/categories',
+    icon: <CategoriesIcon />,
+  },
+  {
+    name: NavItemName.profile,
+    href: '/profile',
+    icon: <UserIcon />,
+    // className: 'w-6 -translate-x-[6px]',
+  },
+];
 
 const Facts = () => {
   const { auth } = useAppContext();
@@ -283,10 +299,10 @@ const Facts = () => {
 
   return (
     <View className="h-full relative">
-      <Navbar onPress={handleNavbarPress} />
+      <Navbar navItems={navItems} onPress={handleNavbarPress} />
 
       {state.current === null && isFetching ? (
-        <View className="-translate-y-24 flex-1 items-center justify-center">
+        <View className="-translate-y-24 h-full items-center justify-center">
           <ActivityIndicator size="large" color={accentColor} />
         </View>
       ) : (
@@ -294,7 +310,7 @@ const Facts = () => {
           ref={flatListRef}
           data={state.facts}
           className="relative"
-          snapToAlignment="center"
+          snapToAlignment="start" // 'start' - important to avoid item displacement on lazy load
           decelerationRate="normal"
           snapToInterval={windowHeight}
           keyExtractor={(item) => item.id}

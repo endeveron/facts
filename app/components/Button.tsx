@@ -20,13 +20,13 @@ export const Button = ({
   return (
     <TouchableOpacity
       onPress={handlePress}
-      activeOpacity={0.7}
+      activeOpacity={0.9}
       style={{ backgroundColor }}
       className={classNames(
-        `rounded-full min-h-[56px] flex flex-row justify-center items-center transition-opacity ${containerClassName}`,
-        {
-          'opacity-50': isLoading,
-        }
+        `rounded-full min-h-[56px] flex flex-row justify-center items-center transition-opacity ${containerClassName}`
+        // {
+        //   'opacity-50': isLoading,
+        // }
       )}
       disabled={isLoading}
     >

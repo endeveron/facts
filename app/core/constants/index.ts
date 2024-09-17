@@ -1,7 +1,6 @@
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
 
 const FACTS_LENGTH_TO_FETCH_NEW_ITEMS = 2;
-const HIDE_NAVBAR_PATH_ARRAY = ['/facts'];
 
 const KEY_AUTH_TOKEN = 'auth_token';
 const KEY_AUTH_USER = 'auth_user';
@@ -16,7 +15,6 @@ const SIGN_OUT_REDIRECT_URL = '/sign-in';
 export {
   API_BASE_URL,
   FACTS_LENGTH_TO_FETCH_NEW_ITEMS,
-  HIDE_NAVBAR_PATH_ARRAY,
   KEY_AUTH_TOKEN,
   KEY_AUTH_USER,
   KEY_FACTS_ARRAY,

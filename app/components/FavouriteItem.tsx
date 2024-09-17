@@ -55,10 +55,10 @@ const FavouriteItem = ({ itemData, onDislike }: TFavouriteItemProps) => {
             </View>
           ) : (
             <View className="flex-row items-center gap-x-2 p-2">
-              <View
+              {/* <View
                 style={{ backgroundColor: categoryColor }}
                 className="w-3 h-3 rounded-full opacity-80"
-              ></View>
+              ></View> */}
               <Text colorName="muted" className="text-sm uppercase font-plight">
                 {itemData.category}
               </Text>
