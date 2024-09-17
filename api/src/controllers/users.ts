@@ -36,7 +36,7 @@ import { factItemProps } from '../constants/facts.js';
 //   }
 // };
 
-export const getFavorites = async (
+export const getFavourites = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -60,17 +60,17 @@ export const getFavorites = async (
       _id: { $in: likedIdArr },
     }).select(factItemProps);
 
-    const serializedFavorites = likedFacts.map(({ _id, title, category }) => ({
+    const serializedFavourites = likedFacts.map(({ _id, title, category }) => ({
       id: _id.toString(),
       title,
       category,
     }));
 
     res.status(200).json({
-      data: { liked: serializedFavorites },
+      data: { liked: serializedFavourites },
     });
   } catch (err: any) {
-    logger.r('getFavorites', err);
+    logger.r('getFavourites', err);
     return next(new HttpError('Unable to fetch user liked facts.', 500));
   }
 };

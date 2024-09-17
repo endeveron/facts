@@ -7,7 +7,7 @@ type TScreen = {
 const screens: TScreen[] = [
   { name: 'create' },
   { name: 'facts' },
-  { name: 'favorites' },
+  { name: 'favourites' },
 ];
 
 const ScreensLayout = () => {

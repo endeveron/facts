@@ -31,8 +31,8 @@ const Index = () => {
                 containerClassName="w-48"
               />
               <Button
-                title="Favorites"
-                handlePress={() => router.push('/favorites')}
+                title="Favourites"
+                handlePress={() => router.push('/favourites')}
                 containerClassName="mt-6 w-48"
               />
               <Button

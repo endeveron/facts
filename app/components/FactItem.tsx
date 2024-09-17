@@ -18,7 +18,7 @@ import StarsStrokeIcon from '@/components/svg/StarsStrokeIcon';
 import UserStrokeIcon from '@/components/svg/UserStrokeIcon';
 import { factCategoryColorMap } from '@/core/constants/colors';
 import { useThemeColor } from '@/core/hooks/useThemeColor';
-import { TFactItem, TFavoriteArr } from '@/core/types/facts';
+import { TFactItem, TFavouriteArr } from '@/core/types/facts';
 
 // Get the height of device window
 const windowHeight = Dimensions.get('window').height;
@@ -36,7 +36,7 @@ const categoryIconMap = new Map([
 type TFactItemProps = {
   itemData: TFactItem & { index: number | null };
   factsTotal: number | null;
-  liked: TFavoriteArr;
+  liked: TFavouriteArr;
   onCopy: (text: string) => void;
   onLike: (factId: string) => void;
 };
@@ -79,21 +79,10 @@ const FactItem = ({
     setIsLiked(liked.includes(itemData.id));
   }, [liked]);
 
-  // useEffect(() => {
-  //   Animated.timing(fadeAnim, {
-  //     toValue: 1,
-  //     duration: 200,
-  //     easing: Easing.quad,
-  //     useNativeDriver: true,
-  //   }).start();
-  // }, [fadeAnim]);
-
   return (
-    // <Animated.View
     <View
       style={{
         height: windowHeight,
-        // opacity: fadeAnim, // Bind opacity to animated value
       }}
       className="flex-col justify-center px-2"
     >

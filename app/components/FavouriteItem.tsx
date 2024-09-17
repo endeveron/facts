@@ -6,12 +6,12 @@ import { Text } from '@/components/Text';
 import { factCategoryColorMap } from '@/core/constants/colors';
 import { TFactItem } from '@/core/types/facts';
 
-type TFavoriteItemProps = {
+type TFavouriteItemProps = {
   itemData: TFactItem;
   onDislike: (factId: string) => void;
 };
 
-const FavoriteItem = ({ itemData, onDislike }: TFavoriteItemProps) => {
+const FavouriteItem = ({ itemData, onDislike }: TFavouriteItemProps) => {
   const theme = useColorScheme() ?? 'light';
 
   const [showPrompt, setShowPrompt] = useState(false);
@@ -70,4 +70,4 @@ const FavoriteItem = ({ itemData, onDislike }: TFavoriteItemProps) => {
   );
 };
 
-export default memo(FavoriteItem);
+export default memo(FavouriteItem);

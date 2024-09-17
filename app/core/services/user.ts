@@ -24,7 +24,7 @@ import { TFactItem } from '@/core/types/facts';
 //   }
 // };
 
-export const getFavorites = async ({
+export const getFavourites = async ({
   userId,
   token,
 }: {
@@ -34,7 +34,7 @@ export const getFavorites = async ({
   if (!userId)
     return { data: null, error: { message: 'No user ID provided.' } };
   try {
-    const response = await fetch(`${API_BASE_URL}/users/${userId}/favorites`, {
+    const response = await fetch(`${API_BASE_URL}/users/${userId}/favourites`, {
       headers: {
         Authorization: `Bearer ${token}`,
         ...commonHeaders,

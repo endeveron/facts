@@ -1,17 +1,15 @@
 import * as Clipboard from 'expo-clipboard';
-import { router } from 'expo-router';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Dimensions,
   FlatList,
-  TouchableOpacity,
   View,
   ViewToken,
 } from 'react-native';
 
 import FactItem from '@/components/FactItem';
-import HomeIcon from '@/components/svg/HomeIcon';
+import Navbar from '@/components/Navbar';
 import { FACTS_LENGTH_TO_FETCH_NEW_ITEMS } from '@/core/constants';
 import { useAppContext } from '@/core/context/AppContext';
 import { showAlert } from '@/core/helpers/alert';
@@ -19,13 +17,10 @@ import {
   getFactsStateFromAsyncStorage,
   saveFactsStateInAsyncStorage,
 } from '@/core/helpers/store';
+import { useThemeColor } from '@/core/hooks/useThemeColor';
 import { getFacts } from '@/core/services/fact';
 import { postEvaluateFact } from '@/core/services/user';
 import { TCurrentItem, TFactItem } from '@/core/types/facts';
-import Card from '@/components/Card';
-import { Text } from '@/components/Text';
-import { useThemeColor } from '@/core/hooks/useThemeColor';
-import Navbar from '@/components/Navbar';
 
 // Get the height of device window
 const windowHeight = Dimensions.get('window').height;
@@ -70,6 +65,8 @@ const Facts = () => {
     liked: [],
     notShownNum: null,
   });
+
+  const flatListRef = useRef<FlatList<TFactItem>>(null);
 
   const userId = authSession.user.id;
   const token = authSession.token;
@@ -208,6 +205,12 @@ const Facts = () => {
       }));
     } else {
       // Refetch data
+      // Scroll to current item
+      flatListRef.current?.scrollToIndex({
+        index: state.current.index,
+        animated: false,
+      });
+
       updNotShownNum = updFactsLength - state.current.index - 1;
       setState(({ notShownNum, ...rest }) => {
         return {
@@ -215,6 +218,10 @@ const Facts = () => {
           ...rest,
         };
       });
+      // flatListRef.current?.scrollToIndex({
+      //   index: currentIndex,
+      //   animated: false,
+      // });
     }
 
     if (updCurrent && updNotShownNum) {
@@ -232,7 +239,7 @@ const Facts = () => {
     const init = async () => {
       // Check if the facts data is persist in the storage
       const factsStateFromStorage = await getFactsStateFromAsyncStorage();
-      if (factsStateFromStorage) {
+      if (factsStateFromStorage !== null) {
         const { facts, current, liked, notShownNum } = factsStateFromStorage;
         if (facts.length > FACTS_LENGTH_TO_FETCH_NEW_ITEMS) {
           setState({
@@ -278,12 +285,13 @@ const Facts = () => {
     <View className="h-full relative">
       <Navbar onHome={handleGoHome} />
 
-      {isFetching ? (
+      {state.current === null && isFetching ? (
         <View className="-translate-y-24 flex-1 items-center justify-center">
           <ActivityIndicator size="large" color={accentColor} />
         </View>
       ) : (
         <FlatList
+          ref={flatListRef}
           data={state.facts}
           className="relative"
           snapToAlignment="center"

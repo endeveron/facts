@@ -7,7 +7,7 @@ export type TFactItem = TFactData & {
   id: string;
 };
 
-export type TFavoriteArr = string[];
+export type TFavouriteArr = string[];
 
 export type TCurrentItem = {
   id: string;
@@ -28,7 +28,7 @@ export type TcountNotShownFactsArgs = {
 
 export type TFactsStorageState = {
   facts: TFactItem[];
-  liked: TFavoriteArr;
+  liked: TFavouriteArr;
   current: TCurrentItem;
   notShownNum: number;
 };

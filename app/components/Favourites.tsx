@@ -1,22 +1,22 @@
 import { useEffect, useState } from 'react';
 import { View } from 'react-native';
 
-import FavoriteItem from '@/components/FavoriteItem';
+import FavouriteItem from '@/components/FavouriteItem';
 import { useAppContext } from '@/core/context/AppContext';
 import { showAlert } from '@/core/helpers/alert';
-import { getFavorites, postEvaluateFact } from '@/core/services/user';
+import { getFavourites, postEvaluateFact } from '@/core/services/user';
 import { TFactItem } from '@/core/types/facts';
 
-type TFavoritesState = {
+type TFavouritesState = {
   liked: TFactItem[];
 };
 
-const Favorites = () => {
+const Favourites = () => {
   const { auth } = useAppContext();
   const authSession = auth.session;
   if (authSession === null) return null;
 
-  const [state, setState] = useState<TFavoritesState>({
+  const [state, setState] = useState<TFavouritesState>({
     liked: [],
   });
 
@@ -38,8 +38,8 @@ const Favorites = () => {
     });
   };
 
-  const fetchFavorites = async () => {
-    const result = await getFavorites({
+  const fetchFavourites = async () => {
+    const result = await getFavourites({
       userId,
       token,
     });
@@ -57,16 +57,20 @@ const Favorites = () => {
 
   // Init
   useEffect(() => {
-    fetchFavorites();
+    fetchFavourites();
   }, []);
 
   return (
     <View className="-mt-2">
       {state.liked.map((data) => (
-        <FavoriteItem itemData={data} onDislike={handleDislike} key={data.id} />
+        <FavouriteItem
+          itemData={data}
+          onDislike={handleDislike}
+          key={data.id}
+        />
       ))}
     </View>
   );
 };
 
-export default Favorites;
+export default Favourites;

@@ -23,9 +23,9 @@ export const getAuthDataFromSecureStore = async (): Promise<{
 } | null> => {
   try {
     const token = await SecureStore.getItemAsync(KEY_AUTH_TOKEN);
-    if (!token) return null;
+    if (token === null) return null;
     const userStr = await SecureStore.getItemAsync(KEY_AUTH_USER);
-    if (!userStr) {
+    if (userStr === null) {
       showAlert('Could not get user data from store.');
       return null;
     }
@@ -114,7 +114,14 @@ export const getFactsStateFromAsyncStorage =
       const currentStr = await AsyncStorage.getItem(KEY_FACTS_CURRENT);
       const likedStr = await AsyncStorage.getItem(KEY_FACTS_LIKED);
       const notShownStr = await AsyncStorage.getItem(KEY_FACTS_NOT_SHOWN);
-      if (!factsStr || !currentStr || !likedStr || !notShownStr) return null;
+      if (
+        factsStr === null ||
+        currentStr === null ||
+        likedStr === null ||
+        notShownStr === null
+      ) {
+        return null;
+      }
       const facts = JSON.parse(factsStr);
       const current = JSON.parse(currentStr);
       const liked = JSON.parse(likedStr);
@@ -138,12 +145,23 @@ export const getFactsStateFromAsyncStorage =
  */
 export const deleteFactsDataFromAsyncStorage = async (): Promise<boolean> => {
   try {
-    await AsyncStorage.removeItem(KEY_FACTS_ARRAY);
-    await AsyncStorage.removeItem(KEY_FACTS_CURRENT);
-    await AsyncStorage.removeItem(KEY_FACTS_LIKED);
-    await AsyncStorage.removeItem(KEY_FACTS_NOT_SHOWN);
-    console.info('Facts data deleted from AsyncStorage.');
-    return true;
+    const clear = async () => {
+      await AsyncStorage.removeItem(KEY_FACTS_ARRAY);
+      await AsyncStorage.removeItem(KEY_FACTS_CURRENT);
+      await AsyncStorage.removeItem(KEY_FACTS_LIKED);
+      await AsyncStorage.removeItem(KEY_FACTS_NOT_SHOWN);
+    };
+    const check = async (): Promise<boolean> => {
+      const currentStr = await AsyncStorage.getItem(KEY_FACTS_CURRENT);
+      return currentStr === null;
+    };
+
+    await clear();
+    const clean = await check();
+    if (clean) {
+      console.info('Facts data deleted from AsyncStorage.');
+      return true;
+    } else return false;
   } catch (err: any) {
     console.error(err);
     return false;
