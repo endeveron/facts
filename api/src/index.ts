@@ -13,13 +13,13 @@ app.use(express.json());
 // app.use(cors(corsConfig));
 app.use(cors());
 
-// Routes
+// routes
 app.use('/api/auth', authRoutes);
 app.use('/api/facts', factsRoutes);
 app.use('/api/users', usersRoutes);
 
-// Ping
+// ping
 app.use('/api/ping', (_, res) => res.send({ message: 'Ping OK' }));
 
-// Connect to DB
+// connect to DB
 mongo.connect().then(() => app.listen(process.env.PORT));

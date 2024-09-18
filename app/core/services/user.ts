@@ -24,17 +24,17 @@ import { TFactItem } from '@/core/types/fact';
 //   }
 // };
 
-export const getFavourites = async ({
+export const getFavorites = async ({
   userId,
   token,
 }: {
   userId: string;
   token: string;
-}): Promise<TServiceResponse<{ favourites: TFactItem[] }> | undefined> => {
+}): Promise<TServiceResponse<{ favorites: TFactItem[] }> | undefined> => {
   if (!userId)
     return { data: null, error: { message: 'No user ID provided.' } };
   try {
-    const response = await fetch(`${API_BASE_URL}/users/${userId}/favourites`, {
+    const response = await fetch(`${API_BASE_URL}/users/${userId}/favorites`, {
       headers: {
         Authorization: `Bearer ${token}`,
         ...commonHeaders,
@@ -43,7 +43,7 @@ export const getFavourites = async ({
     if (!response.ok) {
       return {
         data: null,
-        error: { message: 'Unable to retrieve the facts user favourites.' },
+        error: { message: 'Unable to retrieve the facts user favorites.' },
       };
     }
     const result = await response.json();

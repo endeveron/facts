@@ -2,7 +2,6 @@ import React, { memo, ReactElement, useEffect, useState } from 'react';
 import {
   Dimensions,
   Image,
-  StatusBar,
   Text as TextNative,
   TouchableOpacity,
   useColorScheme,
@@ -19,12 +18,10 @@ import MiscStrokeIcon from '@/components/svg/MiscStrokeIcon';
 import StarsStrokeIcon from '@/components/svg/StarsStrokeIcon';
 import UserStrokeIcon from '@/components/svg/UserStrokeIcon';
 import { factCategoryColorMap, heartColor } from '@/core/constants/colors';
-import { TFactItem, TFavourites } from '@/core/types/fact';
-import { getFullScreenHeight } from '@/core/helpers/misc';
+import { TFactItem, TFavorites } from '@/core/types/fact';
 
-// Get the height of device screen
+// get the height of device screen
 const screenHeight = Dimensions.get('window').height;
-// const screenHeight = getFullScreenHeight();
 
 const iconOpacity = 0.55;
 const categoryIconMap = new Map([
@@ -39,7 +36,7 @@ const categoryIconMap = new Map([
 type TFactItemProps = {
   itemData: TFactItem & { index: number | null };
   factsTotal: number | null;
-  favourites: TFavourites;
+  favorites: TFavorites;
   onCopy: (text: string) => void;
   onLike: (factId: string, category: string) => void;
 };
@@ -47,7 +44,7 @@ type TFactItemProps = {
 const FactItem = ({
   itemData,
   factsTotal,
-  favourites,
+  favorites,
   onCopy,
   onLike,
 }: TFactItemProps) => {
@@ -58,7 +55,7 @@ const FactItem = ({
 
   const theme = useColorScheme() ?? 'light';
 
-  const [isFavourites, setIsFavourites] = useState(false);
+  const [isFavorites, setIsFavorites] = useState(false);
 
   const category = itemData.category;
   let categoryBgColor = '';
@@ -72,13 +69,13 @@ const FactItem = ({
   };
 
   const handleLike = async () => {
-    setIsFavourites((prev) => (prev = !prev));
+    setIsFavorites((prev) => (prev = !prev));
     onLike(itemData.id, category);
   };
 
   useEffect(() => {
-    setIsFavourites(favourites.includes(itemData.id));
-  }, [favourites]);
+    setIsFavorites(favorites.includes(itemData.id));
+  }, [favorites]);
 
   return (
     <View
@@ -122,7 +119,7 @@ const FactItem = ({
       <View className="mt-4 flex-row justify-center">
         <Card addClassName="flex-row p-4 rounded-full">
           <TouchableOpacity onPress={handleLike} className="mx-4">
-            <HeartIcon color={isFavourites ? heartColor : undefined} />
+            <HeartIcon color={isFavorites ? heartColor : undefined} />
           </TouchableOpacity>
           <TouchableOpacity onPress={handleCopy} className="mx-4">
             <CopyIcon />

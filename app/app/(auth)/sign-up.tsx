@@ -8,7 +8,11 @@ import { Button } from '@/components/Button';
 import { FormField } from '@/components/FormField';
 import { SafeAreaView } from '@/components/SafeAreaView';
 import { Text } from '@/components/Text';
-import { SIGN_IN_SUCCESS_REDIRECT_URL } from '@/core/constants';
+import {
+  AUTH_EMAIL,
+  AUTH_PASSWORD,
+  SIGN_IN_SUCCESS_REDIRECT_URL,
+} from '@/core/constants';
 import { useAppContext } from '@/core/context/AppContext';
 import { showAlert } from '@/core/helpers/alert';
 import { signUpSchema, TSignUpFormData } from '@/core/utils/validation';
@@ -19,11 +23,11 @@ const SignUp = () => {
     resolver: zodResolver(signUpSchema),
   });
 
-  // Fill out the form
+  // fill out the form
   useEffect(() => {
     setValue('name', 'Admin');
-    setValue('email', 'admin@dev.com');
-    setValue('password', 'Secured123');
+    setValue('email', AUTH_EMAIL ?? '');
+    setValue('password', AUTH_PASSWORD ?? '');
   }, []);
 
   const onSubmit: SubmitHandler<TSignUpFormData> = async (

@@ -18,11 +18,11 @@ export const checkAuth = (req: Request, res: Response, next: NextFunction) => {
     const token = req.headers.authorization?.split(' ')[1]; // Authorization: 'Bearer '
     if (!token) return handleUnauthenticated();
 
-    // Verify the token
+    // verify the token
     const isTokenValid = jwt.verify(token, process.env.JWT_KEY!) as JwtPayload;
     if (!isTokenValid) return handleUnauthenticated();
 
-    // Token is valid
+    // token is valid
     next();
   } catch (err) {
     handleUnauthenticated();

@@ -12,13 +12,13 @@ type TUserAccount = {
 };
 
 type TFacts = {
-  favourites: TFavourites;
+  favorites: TFavorites;
   categoryRateMap: TCategoryMap;
   offsetMap: TCategoryMap;
   offset: number;
 };
 
-export type TFavourites = string[];
+export type TFavorites = string[];
 
 export type TUser = {
   _id: ObjectId;

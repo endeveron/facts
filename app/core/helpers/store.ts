@@ -5,13 +5,13 @@ import {
   KEY_AUTH_USER,
   KEY_FACTS_ARRAY,
   KEY_FACTS_CURRENT,
-  KEY_FACTS_LIKED,
+  KEY_FACTS_FAVORITES,
   KEY_FACTS_NOT_SHOWN,
 } from '@/core/constants';
 import { showAlert } from '@/core/helpers/alert';
 import { TAuthData, TUser } from '@/core/types/auth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { TFactItem, TFactsStorageState } from '@/core/types/fact';
+import { TFactsStorageState } from '@/core/types/fact';
 
 /**
  * Retrieves authentication data including token and user information from SecureStore.
@@ -47,12 +47,12 @@ export const getAuthDataFromSecureStore = async (): Promise<{
  */
 export const saveAuthDataInSecureStore = async ({ token, user }: TAuthData) => {
   try {
-    // Add auth token
+    // add auth token
     await SecureStore.setItemAsync(KEY_AUTH_TOKEN, token);
-    // Add user data
+    // add user data
     const userStr = JSON.stringify(user);
     await SecureStore.setItemAsync(KEY_AUTH_USER, userStr);
-    // console.log('Auth data saved to storage.');
+    console.log('Auth data saved to storage.');
   } catch (err: any) {
     console.error(err);
     showAlert('Could not save data to storage.');
@@ -83,17 +83,17 @@ export const deleteAuthDataFromSecureStore = async (): Promise<boolean> => {
 export const saveFactsStateInAsyncStorage = async ({
   facts,
   current,
-  favourites,
+  favorites,
   notShownNum,
 }: TFactsStorageState): Promise<boolean> => {
   try {
     const factsStr = JSON.stringify(facts);
     const currentStr = JSON.stringify(current);
-    const favouritesStr = JSON.stringify(favourites);
+    const favoritesStr = JSON.stringify(favorites);
     const notShownStr = JSON.stringify(notShownNum);
     await AsyncStorage.setItem(KEY_FACTS_ARRAY, factsStr);
     await AsyncStorage.setItem(KEY_FACTS_CURRENT, currentStr);
-    await AsyncStorage.setItem(KEY_FACTS_LIKED, favouritesStr);
+    await AsyncStorage.setItem(KEY_FACTS_FAVORITES, favoritesStr);
     await AsyncStorage.setItem(KEY_FACTS_NOT_SHOWN, notShownStr);
     console.log('Facts state saved in AsyncStorage.');
     return true;
@@ -112,25 +112,25 @@ export const getFactsStateFromAsyncStorage =
     try {
       const factsStr = await AsyncStorage.getItem(KEY_FACTS_ARRAY);
       const currentStr = await AsyncStorage.getItem(KEY_FACTS_CURRENT);
-      const favouritesStr = await AsyncStorage.getItem(KEY_FACTS_LIKED);
+      const favoritesStr = await AsyncStorage.getItem(KEY_FACTS_FAVORITES);
       const notShownStr = await AsyncStorage.getItem(KEY_FACTS_NOT_SHOWN);
       if (
         factsStr === null ||
         currentStr === null ||
-        favouritesStr === null ||
+        favoritesStr === null ||
         notShownStr === null
       ) {
         return null;
       }
       const facts = JSON.parse(factsStr);
       const current = JSON.parse(currentStr);
-      const favourites = JSON.parse(favouritesStr);
+      const favorites = JSON.parse(favoritesStr);
       const notShownNum = JSON.parse(notShownStr);
       console.log('Facts state retrieved from AsyncStorage.');
       return {
         facts,
         current,
-        favourites,
+        favorites,
         notShownNum,
       };
     } catch (err: any) {
@@ -148,7 +148,7 @@ export const deleteFactsDataFromAsyncStorage = async (): Promise<boolean> => {
     const clear = async () => {
       await AsyncStorage.removeItem(KEY_FACTS_ARRAY);
       await AsyncStorage.removeItem(KEY_FACTS_CURRENT);
-      await AsyncStorage.removeItem(KEY_FACTS_LIKED);
+      await AsyncStorage.removeItem(KEY_FACTS_FAVORITES);
       await AsyncStorage.removeItem(KEY_FACTS_NOT_SHOWN);
     };
     const check = async (): Promise<boolean> => {

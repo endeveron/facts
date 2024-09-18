@@ -22,7 +22,7 @@ const userSchema = new Schema<TUser>(
       },
     },
     facts: {
-      favourites: [Str],
+      favorites: [Str],
       categoryRateMap: {
         type: Map,
         of: Number,

@@ -4,7 +4,7 @@ import { useEffect } from 'react';
 import { AppContextProvider } from '@/core/context/AppContext';
 import { TScreen } from '@/core/types/common';
 
-// Prevent the splash screen from auto-hiding before asset loading is complete.
+// prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
 const RootLayout = () => {

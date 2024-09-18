@@ -24,7 +24,7 @@ import { getFacts } from '@/core/services/fact';
 import { postEvaluateFact } from '@/core/services/user';
 import { TCurrentItem, TFactItem } from '@/core/types/fact';
 
-// Get the height of device window
+// get the height of device window
 const windowHeight = Dimensions.get('window').height;
 
 // FlatList config
@@ -48,7 +48,7 @@ type TOnViewableItemsChangedArgs = {
 type TFactsState = {
   facts: TFactItem[];
   current: TCurrentItem | null;
-  favourites: string[];
+  favorites: string[];
   notShownNum: number | null;
 };
 
@@ -78,7 +78,7 @@ const Facts = () => {
   const [state, setState] = useState<TFactsState>({
     facts: [],
     current: null,
-    favourites: [],
+    favorites: [],
     notShownNum: null,
   });
 
@@ -94,20 +94,20 @@ const Facts = () => {
   };
 
   const handleLike = async (factId: string, category: string) => {
-    const favouritesUpd = [...state.favourites];
-    const index = favouritesUpd.indexOf(factId);
+    const favoritesUpd = [...state.favorites];
+    const index = favoritesUpd.indexOf(factId);
     if (index === -1) {
-      favouritesUpd.push(factId);
+      favoritesUpd.push(factId);
     } else {
-      favouritesUpd.splice(index, 1);
+      favoritesUpd.splice(index, 1);
     }
-    setState(({ favourites, ...rest }) => {
+    setState(({ favorites, ...rest }) => {
       return {
-        favourites: favouritesUpd,
+        favorites: favoritesUpd,
         ...rest,
       };
     });
-    // Send request to server
+    // send request to server
     await postEvaluateFact({
       userId,
       factId,
@@ -120,7 +120,7 @@ const Facts = () => {
     viewableItems,
   }: // changed,
   TOnViewableItemsChangedArgs) => {
-    // Add info: console.log('Changed in this iteration', changed);
+    // add info: console.log('Changed in this iteration', changed);
     if (viewableItems.length && viewableItems[0]) {
       const item = viewableItems[0];
       if (item.index == null) return;
@@ -129,7 +129,7 @@ const Facts = () => {
         index: item.index,
       };
 
-      // Calculate the number of facts not shown
+      // calculate the number of facts not shown
       let updNotShownNum = state.notShownNum as number;
       const calcNotShownNum = factsLength - updCurrent.index - 1;
       if (updNotShownNum > calcNotShownNum) {
@@ -163,7 +163,7 @@ const Facts = () => {
       await saveFactsStateInAsyncStorage({
         facts: freshFacts,
         current: state.current,
-        favourites: state.favourites,
+        favorites: state.favorites,
         notShownNum: state.notShownNum,
       });
     }
@@ -175,7 +175,7 @@ const Facts = () => {
     console.info('Fetching facts data...');
 
     let fetchedFacts: TFactItem[] = [];
-    let fetchedFavourites: string[] = [];
+    let fetchedFavorites: string[] = [];
     let updFacts: TFactItem[] = [];
     let updFactsLength: number = 0;
     let updCurrent: TCurrentItem | null = null;
@@ -188,28 +188,28 @@ const Facts = () => {
       return;
     }
 
-    // Save facts and favourites facts to local state
+    // save facts and favorites facts to local state
     if (result?.data) {
       setIsFetching(false);
       console.info('Facts data fetched.');
       fetchedFacts = result.data.facts;
-      fetchedFavourites = result.data.favourites;
-      setState(({ facts, favourites, ...rest }) => {
+      fetchedFavorites = result.data.favorites;
+      setState(({ facts, favorites, ...rest }) => {
         updFacts = [...facts, ...fetchedFacts];
         updFactsLength = updFacts.length;
         return {
           facts: updFacts,
-          favourites: fetchedFavourites,
+          favorites: fetchedFavorites,
           ...rest,
         };
       });
       if (!fetchedFacts.length) setNoMoreFacts(true);
     }
 
-    // Save the data of the current item in the local state
+    // save the data of the current item in the local state
     // and recalculate the number of facts not shown
     if (state.current === null) {
-      // Initialize data
+      // initialize data
       updCurrent = {
         id: fetchedFacts[0].id,
         index: 0,
@@ -221,8 +221,8 @@ const Facts = () => {
         ...rest,
       }));
     } else {
-      // Refetch data
-      // Scroll to current item
+      // refetch data
+      // scroll to current item
       flatListRef.current?.scrollToIndex({
         index: state.current.index,
         animated: false,
@@ -235,49 +235,45 @@ const Facts = () => {
           ...rest,
         };
       });
-      // flatListRef.current?.scrollToIndex({
-      //   index: currentIndex,
-      //   animated: false,
-      // });
     }
 
     if (updCurrent && updNotShownNum) {
       await saveFactsStateInAsyncStorage({
         facts: updFacts,
         current: updCurrent,
-        favourites: fetchedFavourites,
+        favorites: fetchedFavorites,
         notShownNum: updNotShownNum,
       });
     }
   };
 
-  // Initialize data
+  // initialize data
   useEffect(() => {
     const init = async () => {
-      // Check if the facts data is persist in the storage
+      // check if the facts data is persist in the storage
       const factsStateFromStorage = await getFactsStateFromAsyncStorage();
       if (factsStateFromStorage !== null) {
-        const { facts, current, favourites, notShownNum } =
+        const { facts, current, favorites, notShownNum } =
           factsStateFromStorage;
         if (facts.length > FACTS_LENGTH_TO_FETCH_NEW_ITEMS) {
           setState({
             facts,
             current,
-            favourites,
+            favorites,
             notShownNum,
           });
         } else {
           fetchData();
         }
       } else {
-        // Otherwise, fetch data from server
+        // otherwise, fetch data from server
         fetchData();
       }
     };
     init();
   }, []);
 
-  // Fetch new items only if the user has not viewed the last N facts.
+  // fetch the new items only if the user has not viewed the last N facts.
   useEffect(() => {
     if (
       !isFetching &&
@@ -295,7 +291,7 @@ const Facts = () => {
   //   console.log('current      ',
   //     state.current ? state.current.index + 1 : null
   //   );
-  //   console.log('favourites        ', favourites.length);
+  //   console.log('favorites        ', favorites.length);
   //   console.log('notShownNum  ', state.notShownNum);
   // }, [state.current, factsLength, state.notShownNum]);
 
@@ -324,7 +320,7 @@ const Facts = () => {
             <FactItem
               itemData={{ index, ...item }}
               factsTotal={factsLength}
-              favourites={state.favourites}
+              favorites={state.favorites}
               onCopy={handleCopy}
               onLike={handleLike}
             />

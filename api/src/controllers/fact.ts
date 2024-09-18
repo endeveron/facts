@@ -3,7 +3,7 @@ import { NextFunction, Request, Response } from 'express';
 import { FACT_ITEMS_LIMIT, factItemProps } from '../constants/facts.js';
 import FactModel from '../models/fact.js';
 import UserModel from '../models/user.js';
-import { TFactItem } from '../types/fact.js';
+import { TFact, TFactItem } from '../types/fact.js';
 import { HttpError } from '../utils/error.js';
 import { configureFactItems } from '../utils/facts.js';
 import logger from '../utils/logger.js';
@@ -22,23 +22,25 @@ export const getFacts = async (
       return next(new HttpError('Could not fetch user data.', 500));
     }
 
-    // Get array of favourites facts
-    const favourites = user.facts.favourites;
+    // get array of favorites facts
+    const favorites = user.facts.favorites;
 
-    // Get the fact offset
+    // OLD get the fact offset
     const offset = user.facts.offset;
 
-    // Fetch fact items
+    // NEW
+
+    // fetch fact items
     const facts = await FactModel.find({})
       .skip(offset)
       .limit(FACT_ITEMS_LIMIT)
       .select(factItemProps);
 
     if (facts.length) {
-      // Serialize fact items
+      // serialize fact items
       factItems = configureFactItems(facts);
 
-      // Update fact offset value for the user
+      // update fact offset value for the user
       user.facts.offset = offset + facts.length;
       await user.save();
     }
@@ -46,7 +48,7 @@ export const getFacts = async (
     res.status(200).json({
       data: {
         facts: factItems,
-        favourites,
+        favorites,
       },
     });
   } catch (err) {
@@ -93,13 +95,13 @@ export const resetStatistics = async (
       return next(new HttpError('Could not fetch user data.', 500));
     }
 
-    // Get the fact offset
+    // get the fact offset
     const offset = user.facts.offset;
     if (offset === undefined) {
       return next(new HttpError('Could not fetch user data.', 500));
     }
 
-    // Reset fact offset value for the user
+    // reset fact offset value for the user
     user.facts.offset = 0;
     await user.save();
 
@@ -109,5 +111,68 @@ export const resetStatistics = async (
   } catch (err) {
     logger.r('getUser', err);
     return next(new HttpError('Unable to retrieve user data.', 500));
+  }
+};
+
+export const dev = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const user = await UserModel.findById('66d31140c92a696257bf4aeb');
+    if (!user) {
+      return next(new HttpError('Could not fetch user data.', 500));
+    }
+
+    // get the user's fact offset map
+    const offsetMap = user.facts.offsetMap;
+    const requestMap = new Map<string, number>();
+    const fetchedFactsMap = new Map<string, TFact[]>();
+
+    const calcProportionalDistribution = (
+      map: Map<string, number>
+    ): Map<string, number> => {
+      let resultMap = new Map<string, number>();
+      // n = ( value / sum ) * totalItems
+      const sum = [...map.values()].reduce((acc, value) => acc + value, 0);
+      const totalItems = map.size;
+      // fill out the result map
+      map.forEach((value: number, key: string) => {
+        const result = Math.round((value / sum) * totalItems);
+        resultMap.set(key, result);
+      });
+
+      // check the result
+      const resultSum = [...resultMap.values()].reduce(
+        (acc, value) => acc + value,
+        0
+      );
+      if (resultSum === sum) return resultMap;
+
+      // fix the result issue
+      const diff = sum - resultSum;
+      if (diff > 0) {
+        // add up to a greater value
+      } else {
+      }
+
+      // Temp
+      return resultMap;
+    };
+
+    const resultMap = calcProportionalDistribution(offsetMap);
+    console.log('resultMap', resultMap);
+
+    // generate the map of facts need to be fetched
+    for (let category in offsetMap) {
+    }
+
+    // update the offset map
+
+    // fetch facts by category
+
+    res.status(200).json({
+      data: { resultMap },
+    });
+  } catch (err) {
+    logger.r('getUser', err);
+    return next(new HttpError('Dev.', 500));
   }
 };

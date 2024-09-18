@@ -37,21 +37,21 @@ export const signup = async (
   const { name, email, password } = req.body;
 
   try {
-    // Check if email in use.
+    // check if email in use.
     const emailInUse = await UserModel.exists({ 'account.email': email });
 
     if (emailInUse) {
       return next(new HttpError('Email in use', 409));
     }
 
-    // Hashing the provided password.
+    // hashing the provided password.
     const hashedPassword = await bcrypt.hash(password, 12);
 
-    // Generate a category offset map
+    // generate a category offset map
     const categoryRateMap = createCategoryMap();
     const offsetMap = createCategoryMap();
 
-    // Create a new user.
+    // create a new user.
     const user = new UserModel({
       account: {
         name,
@@ -63,7 +63,7 @@ export const signup = async (
         },
       },
       facts: {
-        favourites: [],
+        favorites: [],
         categoryRateMap,
         offsetMap,
         offset: 0,
@@ -72,11 +72,11 @@ export const signup = async (
 
     await user.save();
 
-    // Generate JWT.
+    // generate JWT.
     const userId = user._id.toString();
     const token = genetrateJWToken(userId, next);
 
-    // Successfully signed up.
+    // successfully signed up.
     res.status(201).json({
       data: {
         token,
@@ -100,7 +100,7 @@ export const signin = async (
   const { email, password } = req.body;
 
   try {
-    // Get user account data from the DB.
+    // get user account data from the DB.
     const userData = await getItem<TUser>(UserModel, {
       'account.email': email,
     });
@@ -114,17 +114,17 @@ export const signin = async (
     }
     const user = userData.data;
 
-    // Check provided password.
+    // check provided password.
     let isPasswordValid = false;
     isPasswordValid = await bcrypt.compare(password, user.account.password);
     if (!isPasswordValid) {
       return next(new HttpError('Invalid password', 401));
     }
 
-    // Generate JWT
+    // generate JWT
     const token = genetrateJWToken(user._id, next);
 
-    // Successfully signed in.
+    // successfully signed in.
     res.status(200).json({
       data: {
         token,

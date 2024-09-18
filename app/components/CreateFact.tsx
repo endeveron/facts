@@ -43,7 +43,7 @@ const CreateFact = () => {
       });
       if (result?.error) showAlert(result.error.message);
       if (result?.data?.factId) {
-        // Success
+        // success
         showAlert('Fact item added to database.', 'Success!');
         reset(); // form
       }

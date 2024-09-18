@@ -1,17 +1,14 @@
 import { View } from 'react-native';
 
-import { Button } from '@/components/Button';
+import Favorites from '@/components/Favorites';
 import { NavItemName, TNavbarItem } from '@/components/Navbar';
 import ScrollScreen from '@/components/ScrollScreen';
 import CategoriesIcon from '@/components/svg/CategoriesIcon';
 import PlusSquaredIcon from '@/components/svg/PlusSquaredIcon';
 import TextFileIcon from '@/components/svg/TextFileIcon';
+import { Text } from '@/components/Text';
 import { useAppContext } from '@/core/context/AppContext';
 import { useThemeColor } from '@/core/hooks/useThemeColor';
-import { Text } from '@/components/Text';
-import Favourites from '@/components/Favourites';
-import HeartIcon from '@/components/svg/HeartIcon';
-import { heartColor } from '@/core/constants/colors';
 
 const profile = () => {
   const { auth } = useAppContext();
@@ -54,7 +51,7 @@ const profile = () => {
           </Text>
         </View>
       )}
-      <Favourites />
+      <Favorites />
     </ScrollScreen>
   );
 };

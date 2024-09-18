@@ -1,7 +1,7 @@
 import { API_BASE_URL } from '@/core/constants';
 import { commonHeaders } from '@/core/constants/api';
 import { TServiceResponse } from '@/core/types/common';
-import { TFactData, TFactItem, TFavourites } from '@/core/types/fact';
+import { TFactData, TFactItem, TFavorites } from '@/core/types/fact';
 
 export const getFacts = async ({
   userId,
@@ -12,7 +12,7 @@ export const getFacts = async ({
 }): Promise<
   | TServiceResponse<{
       facts: TFactItem[];
-      favourites: TFavourites;
+      favorites: TFavorites;
     }>
   | undefined
 > => {

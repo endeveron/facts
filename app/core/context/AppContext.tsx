@@ -65,7 +65,7 @@ export const AppContextProvider = ({ children }: PropsWithChildren) => {
     }
   };
 
-  // Try to restore auth data from SecureStore
+  // try to get auth data from SecureStore
   useEffect(() => {
     restoreAuthData();
   }, []);

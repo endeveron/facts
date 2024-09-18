@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { body } from 'express-validator';
 
 import {
-  getFavourites,
+  getFavorites,
   postEvaluateFact,
   getResetFacts,
 } from '../controllers/users.js';
@@ -12,7 +12,7 @@ import { handleHttpError } from '../utils/error.js';
 const router = Router();
 router.use(checkAuth);
 
-router.get('/:userId/favourites', getFavourites);
+router.get('/:userId/favorites', getFavorites);
 router.get('/:userId/reset-facts', getResetFacts);
 router.post(
   '/evaluate-fact',

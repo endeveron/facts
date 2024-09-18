@@ -36,7 +36,7 @@ import { factItemProps } from '../constants/facts.js';
 //   }
 // };
 
-export const getFavourites = async (
+export const getFavorites = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -49,18 +49,18 @@ export const getFavourites = async (
         new HttpError('Unable to find a user with the specified ID.', 404)
       );
     }
-    const favouriteIdArr = user.facts.favourites;
-    if (!favouriteIdArr.length) {
+    const favoriteIdArr = user.facts.favorites;
+    if (!favoriteIdArr.length) {
       return res.status(200).json({
-        data: { favourites: [] },
+        data: { favorites: [] },
       });
     }
 
-    const favouriteFacts = await FactModel.find({
-      _id: { $in: favouriteIdArr },
+    const favoriteFacts = await FactModel.find({
+      _id: { $in: favoriteIdArr },
     }).select(factItemProps);
 
-    const serializedFavourites = favouriteFacts.map(
+    const serializedFavorites = favoriteFacts.map(
       ({ _id, title, category }) => ({
         id: _id.toString(),
         title,
@@ -69,11 +69,11 @@ export const getFavourites = async (
     );
 
     res.status(200).json({
-      data: { favourites: serializedFavourites },
+      data: { favorites: serializedFavorites },
     });
   } catch (err: any) {
-    logger.r('getFavourites', err);
-    return next(new HttpError('Unable to fetch user favourites facts.', 500));
+    logger.r('getFavorites', err);
+    return next(new HttpError('Unable to fetch user favorites facts.', 500));
   }
 };
 
@@ -93,32 +93,32 @@ export const postEvaluateFact = async (
       );
     }
 
-    // Update the user's list of favourites
-    const favouritesUpd = [...user.facts.favourites];
-    const index = favouritesUpd.indexOf(factId);
+    // update the user's list of favorites
+    const favoritesUpd = [...user.facts.favorites];
+    const index = favoritesUpd.indexOf(factId);
     if (index === -1) {
-      // Like
-      favouritesUpd.push(factId);
+      // like
+      favoritesUpd.push(factId);
     } else {
-      // Dislike
-      favouritesUpd.splice(index, 1);
+      // dislike
+      favoritesUpd.splice(index, 1);
       status = 'dislike';
     }
-    user.facts.favourites = favouritesUpd;
+    user.facts.favorites = favoritesUpd;
 
-    // Update the category rate map to capture user preferences
+    // update the category rate map to capture user preferences
     const categoryRateMap = user.facts.categoryRateMap;
     if (categoryRateMap) {
       const updRateMap = new Map(categoryRateMap);
       const curCategoryRate = updRateMap.get(category) as number;
-      let newCategoryRate;
+      let newCategoryRate = -1;
       if (status === 'like') {
         newCategoryRate = curCategoryRate + 1;
       }
-      if (status === 'dislike' && curCategoryRate >= 1) {
+      if (status === 'dislike' && curCategoryRate > 0) {
         newCategoryRate = curCategoryRate - 1;
       }
-      if (newCategoryRate) {
+      if (newCategoryRate !== -1) {
         updRateMap.set(category, newCategoryRate);
         user.facts.categoryRateMap = updRateMap;
       }
