@@ -7,7 +7,7 @@ export type TFactItem = TFactData & {
   id: string;
 };
 
-export type TFavouriteArr = string[];
+export type TFavourites = string[];
 
 export type TCurrentItem = {
   id: string;
@@ -28,7 +28,7 @@ export type TcountNotShownFactsArgs = {
 
 export type TFactsStorageState = {
   facts: TFactItem[];
-  liked: TFavouriteArr;
+  favourites: TFavourites;
   current: TCurrentItem;
   notShownNum: number;
 };
@@ -45,7 +45,7 @@ export type TFactsContext = {
   countNotShownFacts: (args: TcountNotShownFactsArgs) => void;
 };
 
-export enum Categories {
+export enum FactCategory {
   nature = 'nature',
   human = 'human',
   entertainment = 'entertainment',

@@ -1,13 +1,12 @@
 import { NextFunction, Request, Response } from 'express';
 
 import { FACT_ITEMS_LIMIT, factItemProps } from '../constants/facts.js';
-
+import FactModel from '../models/fact.js';
 import UserModel from '../models/user.js';
 import { TFactItem } from '../types/fact.js';
 import { HttpError } from '../utils/error.js';
 import { configureFactItems } from '../utils/facts.js';
 import logger from '../utils/logger.js';
-import FactModel from '../models/fact.js';
 
 export const getFacts = async (
   req: Request,
@@ -23,8 +22,8 @@ export const getFacts = async (
       return next(new HttpError('Could not fetch user data.', 500));
     }
 
-    // Get array of liked facts
-    const liked = user.facts.liked;
+    // Get array of favourites facts
+    const favourites = user.facts.favourites;
 
     // Get the fact offset
     const offset = user.facts.offset;
@@ -47,7 +46,7 @@ export const getFacts = async (
     res.status(200).json({
       data: {
         facts: factItems,
-        liked,
+        favourites,
       },
     });
   } catch (err) {

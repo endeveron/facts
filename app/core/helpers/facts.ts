@@ -1,5 +1,5 @@
 import { showAlert } from '@/core/helpers/alert';
-import { TcountNotShownFactsArgs } from '@/core/types/facts';
+import { TcountNotShownFactsArgs } from '@/core/types/fact';
 
 export const updateNotShownNum = ({
   factsLength,

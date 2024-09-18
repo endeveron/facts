@@ -1,7 +1,7 @@
 import { API_BASE_URL } from '@/core/constants';
 import { commonHeaders } from '@/core/constants/api';
 import { TServiceResponse } from '@/core/types/common';
-import { TFactItem } from '@/core/types/facts';
+import { TFactItem } from '@/core/types/fact';
 
 // export const getUser = async ({ id, token }: { id: string; token: string }) => {
 //   try {
@@ -30,7 +30,7 @@ export const getFavourites = async ({
 }: {
   userId: string;
   token: string;
-}): Promise<TServiceResponse<{ liked: TFactItem[] }> | undefined> => {
+}): Promise<TServiceResponse<{ favourites: TFactItem[] }> | undefined> => {
   if (!userId)
     return { data: null, error: { message: 'No user ID provided.' } };
   try {
@@ -43,7 +43,7 @@ export const getFavourites = async ({
     if (!response.ok) {
       return {
         data: null,
-        error: { message: 'Unable to retrieve the facts user liked.' },
+        error: { message: 'Unable to retrieve the facts user favourites.' },
       };
     }
     const result = await response.json();
@@ -59,12 +59,14 @@ export const getFavourites = async ({
 export const postEvaluateFact = async ({
   factId,
   userId,
+  category,
   token,
 }: {
   factId: string;
   userId: string;
+  category: string;
   token: string;
-}): Promise<TServiceResponse<{ status: 'liked' | 'disliked' }> | undefined> => {
+}): Promise<TServiceResponse<{ status: 'like' | 'dislike' }> | undefined> => {
   try {
     const response = await fetch(`${API_BASE_URL}/users/evaluate-fact`, {
       method: 'POST',
@@ -75,6 +77,7 @@ export const postEvaluateFact = async ({
       body: JSON.stringify({
         factId,
         userId,
+        category,
       }),
     });
     if (!response.ok) {

@@ -5,7 +5,7 @@ import FavouriteItem from '@/components/FavouriteItem';
 import { useAppContext } from '@/core/context/AppContext';
 import { showAlert } from '@/core/helpers/alert';
 import { getFavourites, postEvaluateFact } from '@/core/services/user';
-import { TFactItem } from '@/core/types/facts';
+import { TFactItem } from '@/core/types/fact';
 import HeartIcon from '@/components/svg/HeartIcon';
 import { heartColor } from '@/core/constants/colors';
 import { Text } from '@/components/Text';
@@ -26,7 +26,7 @@ const Favourites = () => {
   const userId = authSession.user.id;
   const token = authSession.token;
 
-  const handleDislike = async (factId: string) => {
+  const handleDislike = async (factId: string, category: string) => {
     const updFavourites = [...state.favourites].filter(
       (data) => data.id !== factId
     );
@@ -39,6 +39,7 @@ const Favourites = () => {
     await postEvaluateFact({
       userId,
       factId,
+      category,
       token,
     });
   };
@@ -52,7 +53,7 @@ const Favourites = () => {
       showAlert(result.error.message);
     }
     if (result?.data) {
-      const fetchedFavourites = result.data.liked;
+      const fetchedFavourites = result.data.favourites;
       setState(({ favourites, ...state }) => ({
         favourites: fetchedFavourites,
         ...state,

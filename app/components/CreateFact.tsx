@@ -10,7 +10,7 @@ import { Text } from '@/components/Text';
 import { useAppContext } from '@/core/context/AppContext';
 import { showAlert } from '@/core/helpers/alert';
 import { postFact } from '@/core/services/fact';
-import { Categories } from '@/core/types/facts';
+import { FactCategory } from '@/core/types/fact';
 import { factSchema, TFactFormData } from '@/core/utils/validation';
 
 const CreateFact = () => {
@@ -57,7 +57,7 @@ const CreateFact = () => {
   return (
     <View className="px-4">
       <View className="flex-row flex-wrap -mt-2 -mx-3">
-        {Object.keys(Categories).map((name) => (
+        {Object.keys(FactCategory).map((name) => (
           <CategoryItem
             onPress={handleCategory}
             isActive={category === name}

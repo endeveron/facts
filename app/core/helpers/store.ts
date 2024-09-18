@@ -11,7 +11,7 @@ import {
 import { showAlert } from '@/core/helpers/alert';
 import { TAuthData, TUser } from '@/core/types/auth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { TFactItem, TFactsStorageState } from '@/core/types/facts';
+import { TFactItem, TFactsStorageState } from '@/core/types/fact';
 
 /**
  * Retrieves authentication data including token and user information from SecureStore.
@@ -83,17 +83,17 @@ export const deleteAuthDataFromSecureStore = async (): Promise<boolean> => {
 export const saveFactsStateInAsyncStorage = async ({
   facts,
   current,
-  liked,
+  favourites,
   notShownNum,
 }: TFactsStorageState): Promise<boolean> => {
   try {
     const factsStr = JSON.stringify(facts);
     const currentStr = JSON.stringify(current);
-    const likedStr = JSON.stringify(liked);
+    const favouritesStr = JSON.stringify(favourites);
     const notShownStr = JSON.stringify(notShownNum);
     await AsyncStorage.setItem(KEY_FACTS_ARRAY, factsStr);
     await AsyncStorage.setItem(KEY_FACTS_CURRENT, currentStr);
-    await AsyncStorage.setItem(KEY_FACTS_LIKED, likedStr);
+    await AsyncStorage.setItem(KEY_FACTS_LIKED, favouritesStr);
     await AsyncStorage.setItem(KEY_FACTS_NOT_SHOWN, notShownStr);
     console.log('Facts state saved in AsyncStorage.');
     return true;
@@ -112,25 +112,25 @@ export const getFactsStateFromAsyncStorage =
     try {
       const factsStr = await AsyncStorage.getItem(KEY_FACTS_ARRAY);
       const currentStr = await AsyncStorage.getItem(KEY_FACTS_CURRENT);
-      const likedStr = await AsyncStorage.getItem(KEY_FACTS_LIKED);
+      const favouritesStr = await AsyncStorage.getItem(KEY_FACTS_LIKED);
       const notShownStr = await AsyncStorage.getItem(KEY_FACTS_NOT_SHOWN);
       if (
         factsStr === null ||
         currentStr === null ||
-        likedStr === null ||
+        favouritesStr === null ||
         notShownStr === null
       ) {
         return null;
       }
       const facts = JSON.parse(factsStr);
       const current = JSON.parse(currentStr);
-      const liked = JSON.parse(likedStr);
+      const favourites = JSON.parse(favouritesStr);
       const notShownNum = JSON.parse(notShownStr);
       console.log('Facts state retrieved from AsyncStorage.');
       return {
         facts,
         current,
-        liked,
+        favourites,
         notShownNum,
       };
     } catch (err: any) {

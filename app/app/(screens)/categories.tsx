@@ -4,11 +4,6 @@ import TextFileIcon from '@/components/svg/TextFileIcon';
 import UserIcon from '@/components/svg/UserIcon';
 
 const navItems: TNavbarItem[] = [
-  // {
-  //   name: NavItemName.categories,
-  //   href: '/categories',
-  //   icon: <CategoriesIcon />,
-  // },
   {
     name: NavItemName.facts,
     href: '/facts',

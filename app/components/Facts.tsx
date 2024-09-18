@@ -22,7 +22,7 @@ import {
 import { useThemeColor } from '@/core/hooks/useThemeColor';
 import { getFacts } from '@/core/services/fact';
 import { postEvaluateFact } from '@/core/services/user';
-import { TCurrentItem, TFactItem } from '@/core/types/facts';
+import { TCurrentItem, TFactItem } from '@/core/types/fact';
 
 // Get the height of device window
 const windowHeight = Dimensions.get('window').height;
@@ -48,7 +48,7 @@ type TOnViewableItemsChangedArgs = {
 type TFactsState = {
   facts: TFactItem[];
   current: TCurrentItem | null;
-  liked: string[];
+  favourites: string[];
   notShownNum: number | null;
 };
 
@@ -78,7 +78,7 @@ const Facts = () => {
   const [state, setState] = useState<TFactsState>({
     facts: [],
     current: null,
-    liked: [],
+    favourites: [],
     notShownNum: null,
   });
 
@@ -93,17 +93,17 @@ const Facts = () => {
     await Clipboard.setStringAsync(text);
   };
 
-  const handleLike = async (factId: string) => {
-    const likedUpd = [...state.liked];
-    const index = likedUpd.indexOf(factId);
+  const handleLike = async (factId: string, category: string) => {
+    const favouritesUpd = [...state.favourites];
+    const index = favouritesUpd.indexOf(factId);
     if (index === -1) {
-      likedUpd.push(factId);
+      favouritesUpd.push(factId);
     } else {
-      likedUpd.splice(index, 1);
+      favouritesUpd.splice(index, 1);
     }
-    setState(({ liked, ...rest }) => {
+    setState(({ favourites, ...rest }) => {
       return {
-        liked: likedUpd,
+        favourites: favouritesUpd,
         ...rest,
       };
     });
@@ -111,6 +111,7 @@ const Facts = () => {
     await postEvaluateFact({
       userId,
       factId,
+      category,
       token,
     });
   };
@@ -162,7 +163,7 @@ const Facts = () => {
       await saveFactsStateInAsyncStorage({
         facts: freshFacts,
         current: state.current,
-        liked: state.liked,
+        favourites: state.favourites,
         notShownNum: state.notShownNum,
       });
     }
@@ -174,7 +175,7 @@ const Facts = () => {
     console.info('Fetching facts data...');
 
     let fetchedFacts: TFactItem[] = [];
-    let fetchedLiked: string[] = [];
+    let fetchedFavourites: string[] = [];
     let updFacts: TFactItem[] = [];
     let updFactsLength: number = 0;
     let updCurrent: TCurrentItem | null = null;
@@ -187,18 +188,18 @@ const Facts = () => {
       return;
     }
 
-    // Save facts and liked facts to local state
+    // Save facts and favourites facts to local state
     if (result?.data) {
       setIsFetching(false);
       console.info('Facts data fetched.');
       fetchedFacts = result.data.facts;
-      fetchedLiked = result.data.liked;
-      setState(({ facts, liked, ...rest }) => {
+      fetchedFavourites = result.data.favourites;
+      setState(({ facts, favourites, ...rest }) => {
         updFacts = [...facts, ...fetchedFacts];
         updFactsLength = updFacts.length;
         return {
           facts: updFacts,
-          liked: fetchedLiked,
+          favourites: fetchedFavourites,
           ...rest,
         };
       });
@@ -244,7 +245,7 @@ const Facts = () => {
       await saveFactsStateInAsyncStorage({
         facts: updFacts,
         current: updCurrent,
-        liked: fetchedLiked,
+        favourites: fetchedFavourites,
         notShownNum: updNotShownNum,
       });
     }
@@ -256,12 +257,13 @@ const Facts = () => {
       // Check if the facts data is persist in the storage
       const factsStateFromStorage = await getFactsStateFromAsyncStorage();
       if (factsStateFromStorage !== null) {
-        const { facts, current, liked, notShownNum } = factsStateFromStorage;
+        const { facts, current, favourites, notShownNum } =
+          factsStateFromStorage;
         if (facts.length > FACTS_LENGTH_TO_FETCH_NEW_ITEMS) {
           setState({
             facts,
             current,
-            liked,
+            favourites,
             notShownNum,
           });
         } else {
@@ -293,7 +295,7 @@ const Facts = () => {
   //   console.log('current      ',
   //     state.current ? state.current.index + 1 : null
   //   );
-  //   console.log('liked        ', liked.length);
+  //   console.log('favourites        ', favourites.length);
   //   console.log('notShownNum  ', state.notShownNum);
   // }, [state.current, factsLength, state.notShownNum]);
 
@@ -322,7 +324,7 @@ const Facts = () => {
             <FactItem
               itemData={{ index, ...item }}
               factsTotal={factsLength}
-              liked={state.liked}
+              favourites={state.favourites}
               onCopy={handleCopy}
               onLike={handleLike}
             />

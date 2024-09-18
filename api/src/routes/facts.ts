@@ -1,12 +1,11 @@
 import { Router } from 'express';
 import { body } from 'express-validator';
 
-import { getFacts, postFact, resetStatistics } from '../controllers/facts.js';
+import { getFacts, postFact, resetStatistics } from '../controllers/fact.js';
 import { checkAuth } from '../middleware/check-auth.js';
 import { handleHttpError } from '../utils/error.js';
 
 const router = Router();
-
 router.use(checkAuth);
 
 router.get('/:userId', getFacts);

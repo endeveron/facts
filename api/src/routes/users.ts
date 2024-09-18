@@ -10,7 +10,6 @@ import { checkAuth } from '../middleware/check-auth.js';
 import { handleHttpError } from '../utils/error.js';
 
 const router = Router();
-
 router.use(checkAuth);
 
 router.get('/:userId/favourites', getFavourites);

@@ -5,7 +5,7 @@ const FACTS_LENGTH_TO_FETCH_NEW_ITEMS = 2;
 const KEY_AUTH_TOKEN = 'auth_token';
 const KEY_AUTH_USER = 'auth_user';
 const KEY_FACTS_ARRAY = 'facts_array';
-const KEY_FACTS_LIKED = 'facts_liked';
+const KEY_FACTS_LIKED = 'facts_favourites';
 const KEY_FACTS_CURRENT = 'facts_current';
 const KEY_FACTS_NOT_SHOWN = 'facts_not_shown';
 

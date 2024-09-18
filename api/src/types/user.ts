@@ -1,4 +1,5 @@
 import { ObjectId } from 'mongoose';
+import { TCategoryMap } from './fact.js';
 
 type TUserAccount = {
   name: string;
@@ -10,12 +11,14 @@ type TUserAccount = {
   };
 };
 
-export type TFavouriteArr = string[];
-
 type TFacts = {
-  liked: TFavouriteArr;
+  favourites: TFavourites;
+  categoryRateMap: TCategoryMap;
+  offsetMap: TCategoryMap;
   offset: number;
 };
+
+export type TFavourites = string[];
 
 export type TUser = {
   _id: ObjectId;

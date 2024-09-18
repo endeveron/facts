@@ -12,7 +12,6 @@ const baseCredentials = [
 ];
 
 router.post('/signin', baseCredentials, signin);
-
 router.post(
   '/signup',
   [body('name').isLength({ min: 2, max: 20 }), ...baseCredentials],

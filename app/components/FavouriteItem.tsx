@@ -4,11 +4,11 @@ import { Pressable, useColorScheme, View } from 'react-native';
 import Card from '@/components/Card';
 import { Text } from '@/components/Text';
 import { factCategoryColorMap } from '@/core/constants/colors';
-import { TFactItem } from '@/core/types/facts';
+import { TFactItem } from '@/core/types/fact';
 
 type TFavouriteItemProps = {
   itemData: TFactItem;
-  onDislike: (factId: string) => void;
+  onDislike: (factId: string, category: string) => void;
 };
 
 const FavouriteItem = ({ itemData, onDislike }: TFavouriteItemProps) => {
@@ -22,7 +22,7 @@ const FavouriteItem = ({ itemData, onDislike }: TFavouriteItemProps) => {
   if (categoryInMap) categoryColor = categoryInMap[theme];
 
   const handleDislike = () => {
-    onDislike(itemData.id);
+    onDislike(itemData.id, itemData.category);
   };
 
   const handlePress = () => {

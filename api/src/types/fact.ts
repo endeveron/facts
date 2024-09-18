@@ -12,3 +12,14 @@ export type TFact = TFactData & {
 export type TFactItem = TFactData & {
   id: string;
 };
+
+export type TCategoryMap = Map<string, number>;
+
+export enum FactCategory {
+  nature = 'nature',
+  human = 'human',
+  entertainment = 'entertainment',
+  science = 'science',
+  business = 'business',
+  miscellaneous = 'miscellaneous',
+}

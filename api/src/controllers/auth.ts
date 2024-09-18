@@ -10,6 +10,7 @@ import { isReqValid } from '../utils/validateRequest.js';
 import { removeSensitiveData } from '../utils/user.js';
 import UserModel from '../models/user.js';
 import { TUser } from '../types/user.js';
+import { createCategoryMap } from '../utils/facts.js';
 
 const genetrateJWToken = (userId: Id, next: NextFunction) => {
   const jwtKey = process.env.JWT_KEY;
@@ -46,6 +47,10 @@ export const signup = async (
     // Hashing the provided password.
     const hashedPassword = await bcrypt.hash(password, 12);
 
+    // Generate a category offset map
+    const categoryRateMap = createCategoryMap();
+    const offsetMap = createCategoryMap();
+
     // Create a new user.
     const user = new UserModel({
       account: {
@@ -58,7 +63,9 @@ export const signup = async (
         },
       },
       facts: {
-        liked: [],
+        favourites: [],
+        categoryRateMap,
+        offsetMap,
         offset: 0,
       },
     });

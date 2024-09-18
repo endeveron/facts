@@ -49,29 +49,31 @@ export const getFavourites = async (
         new HttpError('Unable to find a user with the specified ID.', 404)
       );
     }
-    const likedIdArr = user.facts.liked;
-    if (!likedIdArr.length) {
+    const favouriteIdArr = user.facts.favourites;
+    if (!favouriteIdArr.length) {
       return res.status(200).json({
-        data: { liked: [] },
+        data: { favourites: [] },
       });
     }
 
-    const likedFacts = await FactModel.find({
-      _id: { $in: likedIdArr },
+    const favouriteFacts = await FactModel.find({
+      _id: { $in: favouriteIdArr },
     }).select(factItemProps);
 
-    const serializedFavourites = likedFacts.map(({ _id, title, category }) => ({
-      id: _id.toString(),
-      title,
-      category,
-    }));
+    const serializedFavourites = favouriteFacts.map(
+      ({ _id, title, category }) => ({
+        id: _id.toString(),
+        title,
+        category,
+      })
+    );
 
     res.status(200).json({
-      data: { liked: serializedFavourites },
+      data: { favourites: serializedFavourites },
     });
   } catch (err: any) {
     logger.r('getFavourites', err);
-    return next(new HttpError('Unable to fetch user liked facts.', 500));
+    return next(new HttpError('Unable to fetch user favourites facts.', 500));
   }
 };
 
@@ -80,8 +82,8 @@ export const postEvaluateFact = async (
   res: Response,
   next: NextFunction
 ) => {
-  const { factId, userId } = req.body;
-  let status = '';
+  const { factId, userId, category } = req.body;
+  let status: 'like' | 'dislike' = 'like';
 
   try {
     const user = await UserModel.findById(userId);
@@ -91,20 +93,39 @@ export const postEvaluateFact = async (
       );
     }
 
-    // Check the user's list of liked facts to like or dislike
-    const likedUpd = [...user.facts.liked];
-    const index = likedUpd.indexOf(factId);
+    // Update the user's list of favourites
+    const favouritesUpd = [...user.facts.favourites];
+    const index = favouritesUpd.indexOf(factId);
     if (index === -1) {
       // Like
-      likedUpd.push(factId);
-      status = 'liked';
+      favouritesUpd.push(factId);
     } else {
       // Dislike
-      likedUpd.splice(index, 1);
-      status = 'disliked';
+      favouritesUpd.splice(index, 1);
+      status = 'dislike';
+    }
+    user.facts.favourites = favouritesUpd;
+
+    // Update the category rate map to capture user preferences
+    const categoryRateMap = user.facts.categoryRateMap;
+    if (categoryRateMap) {
+      const updRateMap = new Map(categoryRateMap);
+      const curCategoryRate = updRateMap.get(category) as number;
+      let newCategoryRate;
+      if (status === 'like') {
+        newCategoryRate = curCategoryRate + 1;
+      }
+      if (status === 'dislike' && curCategoryRate >= 1) {
+        newCategoryRate = curCategoryRate - 1;
+      }
+      if (newCategoryRate) {
+        updRateMap.set(category, newCategoryRate);
+        user.facts.categoryRateMap = updRateMap;
+      }
+    } else {
+      logger.r('postEvaluateFact: Invalid offsetMap.');
     }
 
-    user.facts.liked = likedUpd;
     await user.save();
 
     res.status(201).json({

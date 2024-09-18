@@ -11,7 +11,7 @@ const Index = () => {
 
   return (
     <Screen>
-      <View className="h-full flex justify-center items-center px-4">
+      <View className="h-full flex justify-center items-center px-4 z-10">
         {isAuthenticated ? (
           <>
             <Button

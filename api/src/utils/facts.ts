@@ -1,4 +1,10 @@
-import { TFact, TFactItem } from '../types/fact.js';
+import { FactCategory, TFact, TFactItem } from '../types/fact.js';
+
+export const createCategoryMap = () => {
+  const map = new Map<string, number>();
+  for (let key in FactCategory) map.set(key, 0);
+  return map;
+};
 
 /**
  * Serializes an array of facts, converts the _id param, ObjectId > string

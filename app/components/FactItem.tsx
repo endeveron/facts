@@ -19,7 +19,7 @@ import MiscStrokeIcon from '@/components/svg/MiscStrokeIcon';
 import StarsStrokeIcon from '@/components/svg/StarsStrokeIcon';
 import UserStrokeIcon from '@/components/svg/UserStrokeIcon';
 import { factCategoryColorMap, heartColor } from '@/core/constants/colors';
-import { TFactItem, TFavouriteArr } from '@/core/types/facts';
+import { TFactItem, TFavourites } from '@/core/types/fact';
 import { getFullScreenHeight } from '@/core/helpers/misc';
 
 // Get the height of device screen
@@ -39,15 +39,15 @@ const categoryIconMap = new Map([
 type TFactItemProps = {
   itemData: TFactItem & { index: number | null };
   factsTotal: number | null;
-  liked: TFavouriteArr;
+  favourites: TFavourites;
   onCopy: (text: string) => void;
-  onLike: (factId: string) => void;
+  onLike: (factId: string, category: string) => void;
 };
 
 const FactItem = ({
   itemData,
   factsTotal,
-  liked,
+  favourites,
   onCopy,
   onLike,
 }: TFactItemProps) => {
@@ -58,7 +58,7 @@ const FactItem = ({
 
   const theme = useColorScheme() ?? 'light';
 
-  const [isLiked, setIsLiked] = useState(false);
+  const [isFavourites, setIsFavourites] = useState(false);
 
   const category = itemData.category;
   let categoryBgColor = '';
@@ -72,13 +72,13 @@ const FactItem = ({
   };
 
   const handleLike = async () => {
-    setIsLiked((prev) => (prev = !prev));
-    onLike(itemData.id);
+    setIsFavourites((prev) => (prev = !prev));
+    onLike(itemData.id, category);
   };
 
   useEffect(() => {
-    setIsLiked(liked.includes(itemData.id));
-  }, [liked]);
+    setIsFavourites(favourites.includes(itemData.id));
+  }, [favourites]);
 
   return (
     <View
@@ -122,7 +122,7 @@ const FactItem = ({
       <View className="mt-4 flex-row justify-center">
         <Card addClassName="flex-row p-4 rounded-full">
           <TouchableOpacity onPress={handleLike} className="mx-4">
-            <HeartIcon color={isLiked ? heartColor : undefined} />
+            <HeartIcon color={isFavourites ? heartColor : undefined} />
           </TouchableOpacity>
           <TouchableOpacity onPress={handleCopy} className="mx-4">
             <CopyIcon />
