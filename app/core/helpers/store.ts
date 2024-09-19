@@ -152,8 +152,8 @@ export const deleteFactsDataFromAsyncStorage = async (): Promise<boolean> => {
       await AsyncStorage.removeItem(KEY_FACTS_NOT_SHOWN);
     };
     const check = async (): Promise<boolean> => {
-      const currentStr = await AsyncStorage.getItem(KEY_FACTS_CURRENT);
-      return currentStr === null;
+      const itemStr = await AsyncStorage.getItem(KEY_FACTS_NOT_SHOWN);
+      return itemStr === null;
     };
 
     await clear();
@@ -161,7 +161,9 @@ export const deleteFactsDataFromAsyncStorage = async (): Promise<boolean> => {
     if (clean) {
       console.info('Facts data deleted from AsyncStorage.');
       return true;
-    } else return false;
+    } else {
+      return false;
+    }
   } catch (err: any) {
     console.error(err);
     return false;

@@ -72,33 +72,3 @@ export const postFact = async ({
     return { data: null, error: { message: err.message } };
   }
 };
-
-export const resetStatistics = async ({
-  userId,
-  token,
-}: {
-  userId: string;
-  token: string;
-}): Promise<TServiceResponse<{}> | undefined> => {
-  try {
-    const response = await fetch(
-      `${API_BASE_URL}/facts/reset-statistics/${userId}`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          ...commonHeaders,
-        },
-      }
-    );
-    if (!response.ok) {
-      return { data: null, error: { message: 'Could not reset statistics.' } };
-    }
-    const result = await response.json();
-    if (result?.data) {
-      return { data: result.data, error: null };
-    }
-  } catch (err: any) {
-    console.error(err);
-    return { data: null, error: { message: err.message } };
-  }
-};

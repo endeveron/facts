@@ -33,7 +33,7 @@ const categoryIconMap = new Map([
   ['miscellaneous', <MiscStrokeIcon opacity={iconOpacity} />],
 ]);
 
-type TFactItemProps = {
+type TFACT_PROPS = {
   itemData: TFactItem & { index: number | null };
   factsTotal: number | null;
   favorites: TFavorites;
@@ -47,7 +47,7 @@ const FactItem = ({
   favorites,
   onCopy,
   onLike,
-}: TFactItemProps) => {
+}: TFACT_PROPS) => {
   if (itemData.index === null) {
     console.error('FactItem: Invalid index.');
     return null;
@@ -86,7 +86,7 @@ const FactItem = ({
     >
       <View
         style={{ backgroundColor: categoryBgColor }}
-        className="relative min-h-[480px] -translate-y-8 flex-col justify-center rounded-3xl p-4"
+        className="relative min-h-[480px] flex-col justify-center rounded-3xl p-4"
       >
         <View className="relative z-10">
           <TextNative className="text-white text-sm uppercase font-plight opacity-50">
@@ -95,7 +95,7 @@ const FactItem = ({
             {'    '}
             {itemData.category}
           </TextNative>
-          <TextNative className="py-8 text-white text-[38px] leading-[46px] font-psemibold">
+          <TextNative className="py-8 text-white font-psemibold text-[38px] leading-[46px]">
             {itemData.title}
           </TextNative>
         </View>
@@ -116,7 +116,7 @@ const FactItem = ({
         </View>
       </View>
 
-      <View className="mt-4 flex-row justify-center">
+      <View className="mt-8 flex-row justify-center">
         <Card addClassName="flex-row p-4 rounded-full">
           <TouchableOpacity onPress={handleLike} className="mx-4">
             <HeartIcon color={isFavorites ? heartColor : undefined} />

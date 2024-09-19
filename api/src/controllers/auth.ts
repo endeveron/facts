@@ -3,14 +3,15 @@ import { NextFunction, Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 
 import { Id } from '../types/common.js';
-import { HttpError } from '../utils/error.js';
-import { getItem } from '../utils/getFromDb.js';
-import logger from '../utils/logger.js';
-import { isReqValid } from '../utils/validateRequest.js';
-import { removeSensitiveData } from '../utils/user.js';
+import { HttpError } from '../helpers/error.js';
+import { getItem } from '../helpers/getFromDb.js';
+import logger from '../helpers/logger.js';
+
+import { removeSensitiveData } from '../helpers/user.js';
 import UserModel from '../models/user.js';
 import { TUser } from '../types/user.js';
-import { createCategoryMap } from '../utils/facts.js';
+import { createCategoryMap } from '../helpers/facts.js';
+import { isReqValid } from '../helpers/http.js';
 
 const genetrateJWToken = (userId: Id, next: NextFunction) => {
   const jwtKey = process.env.JWT_KEY;
@@ -66,7 +67,6 @@ export const signup = async (
         favorites: [],
         categoryRateMap,
         offsetMap,
-        offset: 0,
       },
     });
 

@@ -15,7 +15,6 @@ type TFacts = {
   favorites: TFavorites;
   categoryRateMap: TCategoryMap;
   offsetMap: TCategoryMap;
-  offset: number;
 };
 
 export type TFavorites = string[];

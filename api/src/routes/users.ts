@@ -7,7 +7,7 @@ import {
   getResetFacts,
 } from '../controllers/users.js';
 import { checkAuth } from '../middleware/check-auth.js';
-import { handleHttpError } from '../utils/error.js';
+import { handleHttpError } from '../helpers/error.js';
 
 const router = Router();
 router.use(checkAuth);

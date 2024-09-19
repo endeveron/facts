@@ -1,6 +1,6 @@
 import mongoose, { ConnectOptions } from 'mongoose';
 
-import logger from '../utils/logger.js';
+import logger from '../helpers/logger.js';
 
 const uri = process.env.DB_CONNECTION_STRING as string;
 // const uri = 'mongodb://localhost:27017/authapi';

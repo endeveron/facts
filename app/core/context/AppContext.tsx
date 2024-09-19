@@ -112,7 +112,7 @@ export const AppContextProvider = ({ children }: PropsWithChildren) => {
       token: authSession?.token as string,
       userId: authSession?.user.id as string,
     });
-    if (!!result?.data) console.info('Facts offset is reset in DB.');
+    if (!!result?.data) console.info('Facts data is reset in DB.');
     // Dev end
 
     const isAuthDataResetSuccess = await deleteAuthDataFromSecureStore();

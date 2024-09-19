@@ -33,7 +33,6 @@ const userSchema = new Schema<TUser>(
         of: Number,
         required: true,
       },
-      offset: Num,
     },
   },
   {
