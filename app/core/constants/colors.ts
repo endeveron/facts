@@ -1,4 +1,4 @@
-export const heartColor = '#E11D48';
+export const defaultScheme = 'dark';
 
 export const colors = {
   light: {
@@ -43,6 +43,8 @@ export const factCategoryColorMap = new Map([
   ['entertainment', { light: '#c94906', dark: '#a13700' }], // orange 600~700 / 700~800
   ['miscellaneous', { light: '#c7163d', dark: '#96082f' }], // rose ~600 / 800~900
 ]);
+
+export const heartColor = '#E11D48';
 
 export const consoleClors = {
   reset: '\x1b[0m',

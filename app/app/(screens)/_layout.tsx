@@ -1,5 +1,7 @@
 import { Stack } from 'expo-router';
+import { useColorScheme } from 'react-native';
 
+import { colors, defaultScheme } from '@/core/constants/colors';
 import { TScreen } from '@/core/types/common';
 
 const screens: TScreen[] = [
@@ -10,6 +12,8 @@ const screens: TScreen[] = [
 ];
 
 const ScreensLayout = () => {
+  const scheme = useColorScheme() ?? defaultScheme;
+
   return (
     <Stack>
       {screens.map((screen: TScreen) => (
@@ -17,6 +21,9 @@ const ScreensLayout = () => {
           name={screen.name}
           options={{
             headerShown: false,
+            contentStyle: {
+              backgroundColor: colors[scheme].background,
+            },
           }}
           key={screen.name}
         />
