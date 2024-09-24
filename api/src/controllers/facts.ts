@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 
-import { FACT_PROPS } from '../constants/facts.js';
+import { FACT_ITEMS_LIMIT, FACT_PROPS } from '../constants/facts.js';
 import { HttpError } from '../helpers/error.js';
 import {
   calculateSumOfMapValues,
@@ -21,6 +21,7 @@ export const getFacts = async (
 ) => {
   if (!isReqValid(req, next)) return;
   const userId = req.params.userId;
+  const category = req.params.category === 'all' ? '' : req.params.category;
   let factItems: TFactItem[] = [];
   let factDeficitMap = new Map<string, number>();
 
@@ -32,14 +33,18 @@ export const getFacts = async (
 
     // get a copy of fact offset map
     const offsetMap = new Map(user.facts.offsetMap);
+    // get a copy of user's favorite facts
+    const favorites = [...user.facts.favorites];
 
-    // create a map of the limits for fetching facts
-    const factLimitMap = createFactLimitMap(offsetMap);
-    // console.log('factLimitMap', factLimitMap);
-    if (!factLimitMap.size) {
-      return next(new HttpError('Invalid distribution map.', 500));
-    }
-
+    /**
+     * Retrieves facts of a specified category with pagination support.
+     * @returns an object with the following properties:
+     * - `facts`: an array of fact items retrieved from the database after applying the specified limit
+     * and offset.
+     * - `length`: the number of facts retrieved in the current query.
+     * - `deficit`: the difference between the specified limit and the actual number of facts
+     * retrieved.
+     */
     const fetchCategoryFacts = async ({
       category,
       limit,
@@ -63,6 +68,7 @@ export const getFacts = async (
       if (!length)
         return {
           facts: [],
+          length: 0,
           deficit: limit,
         };
 
@@ -72,6 +78,38 @@ export const getFacts = async (
         deficit: limit - length,
       };
     };
+
+    // if the `category` url param provided, fetch facts of one category
+    if (category) {
+      const { facts, length } = await fetchCategoryFacts({
+        category,
+        limit: FACT_ITEMS_LIMIT,
+        offsetMap,
+      });
+
+      if (length) {
+        factItems = facts;
+        offsetMap.set(category, (offsetMap.get(category) as number) + length);
+
+        // update fact offset map in db
+        user.facts.offsetMap = offsetMap;
+        await user.save();
+      }
+
+      return res.status(200).json({
+        data: {
+          facts: factItems,
+          favorites,
+        },
+      });
+    }
+
+    // if the `category` url param is not provided, fetch facts for all categories
+    // create a map of the limits for fetching facts
+    const factLimitMap = createFactLimitMap(offsetMap);
+    if (!factLimitMap.size) {
+      return next(new HttpError('Invalid distribution map.', 500));
+    }
 
     // fetch facts depending on factLimitMap values
     for (let [category, limit] of factLimitMap) {
@@ -97,8 +135,8 @@ export const getFacts = async (
     // check the deficit map
     const totalDeficit = calculateSumOfMapValues(factDeficitMap);
     if (totalDeficit > 0) {
-      console.info('factDeficitMap', factDeficitMap);
-      // create a new map to fetch additional items
+      // TODO: handle the data, maybe save to statistics in db
+      // console.info('factDeficitMap', factDeficitMap);
     }
 
     if (factItems.length) {
@@ -107,11 +145,8 @@ export const getFacts = async (
       await user.save();
 
       // shuffle fact items to improve user experience
-      factItems = shuffleFactItems(factItems);
+      // factItems = shuffleFactItems(factItems);
     }
-
-    // get a copy of user's favorite facts
-    const favorites = [...user.facts.favorites];
 
     res.status(200).json({
       data: {

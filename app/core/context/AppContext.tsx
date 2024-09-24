@@ -28,6 +28,9 @@ import {
 } from 'react';
 import { getResetFacts } from '@/core/services/user';
 
+import { consoleClors } from '@/core/constants/colors';
+const { red, reset } = consoleClors;
+
 type TAppContextProps = {
   auth: TAuthContext;
 };
@@ -112,7 +115,8 @@ export const AppContextProvider = ({ children }: PropsWithChildren) => {
       token: authSession?.token as string,
       userId: authSession?.user.id as string,
     });
-    if (!!result?.data) console.info('Facts data is reset in DB.');
+    if (!!result?.data)
+      console.info(`${red}%s${reset}`, 'Facts data is reset in DB');
     // Dev end
 
     const isAuthDataResetSuccess = await deleteAuthDataFromSecureStore();

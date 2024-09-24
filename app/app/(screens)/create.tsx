@@ -4,6 +4,7 @@ import ScrollScreen from '@/components/ScrollScreen';
 import CategoriesIcon from '@/components/svg/CategoriesIcon';
 import TextFileIcon from '@/components/svg/TextFileIcon';
 import UserIcon from '@/components/svg/UserIcon';
+import { Href } from 'expo-router';
 
 const navItems: TNavbarItem[] = [
   {

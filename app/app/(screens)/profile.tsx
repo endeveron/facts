@@ -9,6 +9,7 @@ import TextFileIcon from '@/components/svg/TextFileIcon';
 import { Text } from '@/components/Text';
 import { useAppContext } from '@/core/context/AppContext';
 import { useThemeColor } from '@/core/hooks/useThemeColor';
+import { Href } from 'expo-router';
 
 const profile = () => {
   const { auth } = useAppContext();

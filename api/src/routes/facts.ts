@@ -8,7 +8,7 @@ import { handleHttpError } from '../helpers/error.js';
 const router = Router();
 router.use(checkAuth);
 
-router.get('/:userId', getFacts);
+router.get('/:category/:userId', getFacts);
 router.post(
   '/',
   [body('title').isLength({ min: 10, max: 100 }), body('category').notEmpty()],

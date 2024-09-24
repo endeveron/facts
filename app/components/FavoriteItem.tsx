@@ -16,10 +16,12 @@ const FavoriteItem = ({ itemData, onDislike }: TFavoriteItemProps) => {
 
   const [showPrompt, setShowPrompt] = useState(false);
 
-  let categoryColor = 'bg-slate-800';
+  let categoryColor = '';
   const category = itemData.category;
   const categoryInMap = factCategoryColorMap.get(category);
-  if (categoryInMap) categoryColor = categoryInMap[theme];
+  if (categoryInMap) {
+    categoryColor = categoryInMap[theme];
+  }
 
   const handleDislike = () => {
     onDislike(itemData.id, itemData.category);

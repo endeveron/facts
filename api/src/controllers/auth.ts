@@ -115,8 +115,10 @@ export const signin = async (
     const user = userData.data;
 
     // check provided password.
-    let isPasswordValid = false;
-    isPasswordValid = await bcrypt.compare(password, user.account.password);
+    const isPasswordValid = await bcrypt.compare(
+      password,
+      user.account.password
+    );
     if (!isPasswordValid) {
       return next(new HttpError('Invalid password', 401));
     }

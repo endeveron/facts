@@ -5,10 +5,12 @@ import { TFactData, TFactItem, TFavorites } from '@/core/types/fact';
 
 export const getFacts = async ({
   userId,
+  category,
   token,
 }: {
   userId: string;
   token: string;
+  category?: string;
 }): Promise<
   | TServiceResponse<{
       facts: TFactItem[];
@@ -17,12 +19,15 @@ export const getFacts = async ({
   | undefined
 > => {
   try {
-    const response = await fetch(`${API_BASE_URL}/facts/${userId}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        ...commonHeaders,
-      },
-    });
+    const response = await fetch(
+      `${API_BASE_URL}/facts/${category}/${userId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          ...commonHeaders,
+        },
+      }
+    );
     if (!response.ok) {
       return { data: null, error: { message: 'Could not fetch facts.' } };
     }

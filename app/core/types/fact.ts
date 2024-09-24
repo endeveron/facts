@@ -1,3 +1,5 @@
+import { KEY_FACTS_STATE, KEY_FACTS_STATE_CAT } from '@/core/constants/index';
+
 export type TFactData = {
   title: string;
   category: string;
@@ -26,12 +28,16 @@ export type TcountNotShownFactsArgs = {
   isRefetch?: boolean;
 };
 
-export type TFactsStorageState = {
+export type TFactsState = {
   facts: TFactItem[];
-  favorites: TFavorites;
-  current: TCurrentItem;
-  notShownNum: number;
+  current: TCurrentItem | null;
+  notShownNum: number | null;
 };
+
+export enum EFactsStateKey {
+  FACTS_STATE = KEY_FACTS_STATE,
+  FACTS_STATE_CAT = KEY_FACTS_STATE_CAT,
+}
 
 export type TFactsStorageItems = TFactItem[];
 

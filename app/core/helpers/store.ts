@@ -3,15 +3,17 @@ import * as SecureStore from 'expo-secure-store';
 import {
   KEY_AUTH_TOKEN,
   KEY_AUTH_USER,
-  KEY_FACTS_ARRAY,
-  KEY_FACTS_CURRENT,
   KEY_FACTS_FAVORITES,
-  KEY_FACTS_NOT_SHOWN,
+  KEY_FACTS_STATE,
+  KEY_FACTS_STATE_CAT,
 } from '@/core/constants';
 import { showAlert } from '@/core/helpers/alert';
 import { TAuthData, TUser } from '@/core/types/auth';
+import { EFactsStateKey, TFactsState } from '@/core/types/fact';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { TFactsStorageState } from '@/core/types/fact';
+
+import { consoleClors } from '@/core/constants/colors';
+const { gray, green, red, reset } = consoleClors;
 
 /**
  * Retrieves authentication data including token and user information from SecureStore.
@@ -52,7 +54,7 @@ export const saveAuthDataInSecureStore = async ({ token, user }: TAuthData) => {
     // add user data
     const userStr = JSON.stringify(user);
     await SecureStore.setItemAsync(KEY_AUTH_USER, userStr);
-    console.log('Auth data saved to storage.');
+    // console.log('Auth data saved to storage.');
   } catch (err: any) {
     console.error(err);
     showAlert('Could not save data to storage.');
@@ -67,7 +69,7 @@ export const deleteAuthDataFromSecureStore = async (): Promise<boolean> => {
   try {
     await SecureStore.deleteItemAsync(KEY_AUTH_TOKEN);
     await SecureStore.deleteItemAsync(KEY_AUTH_USER);
-    console.info('Auth data deleted from SecureStore.');
+    console.info(`${red}%s${reset}\n`, 'Auth data deleted from SecureStore');
     return true;
   } catch (err: any) {
     console.error(err);
@@ -77,25 +79,34 @@ export const deleteAuthDataFromSecureStore = async (): Promise<boolean> => {
 
 /**
  * Stores facts state in AsyncStorage.
- * @param {TFactsStorageState} state - object of type TFactsStorageState
+ * @param {TFactsState} state - object of type TFactsState
  * @returns a boolean indicating success or failure.
  */
 export const saveFactsStateInAsyncStorage = async ({
-  facts,
-  current,
+  stateKey,
+  state,
   favorites,
-  notShownNum,
-}: TFactsStorageState): Promise<boolean> => {
+}: {
+  stateKey: EFactsStateKey;
+  state: TFactsState;
+  favorites: string[];
+}): Promise<boolean> => {
   try {
-    const factsStr = JSON.stringify(facts);
-    const currentStr = JSON.stringify(current);
+    const stateStr = JSON.stringify(state);
+    await AsyncStorage.setItem(stateKey, stateStr);
+
     const favoritesStr = JSON.stringify(favorites);
-    const notShownStr = JSON.stringify(notShownNum);
-    await AsyncStorage.setItem(KEY_FACTS_ARRAY, factsStr);
-    await AsyncStorage.setItem(KEY_FACTS_CURRENT, currentStr);
     await AsyncStorage.setItem(KEY_FACTS_FAVORITES, favoritesStr);
-    await AsyncStorage.setItem(KEY_FACTS_NOT_SHOWN, notShownStr);
-    console.log('Facts state saved in AsyncStorage.');
+
+    console.info(
+      `${green}%s${gray}%s${reset}`,
+      `Facts state saved in AsyncStorage `,
+      `${stateKey}`
+    );
+    console.info(
+      `${gray}%s${reset}`,
+      `${state.facts[0].title.slice(0, 30)}...`
+    );
     return true;
   } catch (err: any) {
     console.error(err);
@@ -105,39 +116,39 @@ export const saveFactsStateInAsyncStorage = async ({
 
 /**
  * Retrieves facts state from AsyncStorage.
- * @returns data of type TFactsStorageState or null.
+ * @returns data of type TFactsState or null.
  */
-export const getFactsStateFromAsyncStorage =
-  async (): Promise<TFactsStorageState | null> => {
-    try {
-      const factsStr = await AsyncStorage.getItem(KEY_FACTS_ARRAY);
-      const currentStr = await AsyncStorage.getItem(KEY_FACTS_CURRENT);
-      const favoritesStr = await AsyncStorage.getItem(KEY_FACTS_FAVORITES);
-      const notShownStr = await AsyncStorage.getItem(KEY_FACTS_NOT_SHOWN);
-      if (
-        factsStr === null ||
-        currentStr === null ||
-        favoritesStr === null ||
-        notShownStr === null
-      ) {
-        return null;
-      }
-      const facts = JSON.parse(factsStr);
-      const current = JSON.parse(currentStr);
-      const favorites = JSON.parse(favoritesStr);
-      const notShownNum = JSON.parse(notShownStr);
-      console.log('Facts state retrieved from AsyncStorage.');
-      return {
-        facts,
-        current,
-        favorites,
-        notShownNum,
-      };
-    } catch (err: any) {
-      console.error(err);
-      return null;
-    }
-  };
+export const getFactsStateFromAsyncStorage = async (
+  stateKey: EFactsStateKey
+): Promise<{
+  state: TFactsState;
+  favorites: string[];
+} | null> => {
+  try {
+    const stateStr = await AsyncStorage.getItem(stateKey);
+    const favoritesStr = await AsyncStorage.getItem(KEY_FACTS_FAVORITES);
+    if (!stateStr || !favoritesStr) return null;
+
+    const state: TFactsState = JSON.parse(stateStr);
+    const favorites: string[] = JSON.parse(favoritesStr);
+    console.info(
+      `${green}%s${gray}%s${reset}`,
+      `Facts state retrieved from AsyncStorage `,
+      `${stateKey}`
+    );
+    console.info(
+      `${gray}%s${reset}`,
+      `${state.facts[0].title.slice(0, 30)}...`
+    );
+    return {
+      state,
+      favorites,
+    };
+  } catch (err: any) {
+    console.error(err);
+    return null;
+  }
+};
 
 /**
  * Deletes facts data from AsyncStorage.
@@ -146,20 +157,19 @@ export const getFactsStateFromAsyncStorage =
 export const deleteFactsDataFromAsyncStorage = async (): Promise<boolean> => {
   try {
     const clear = async () => {
-      await AsyncStorage.removeItem(KEY_FACTS_ARRAY);
-      await AsyncStorage.removeItem(KEY_FACTS_CURRENT);
+      await AsyncStorage.removeItem(KEY_FACTS_STATE);
+      await AsyncStorage.removeItem(KEY_FACTS_STATE_CAT);
       await AsyncStorage.removeItem(KEY_FACTS_FAVORITES);
-      await AsyncStorage.removeItem(KEY_FACTS_NOT_SHOWN);
     };
     const check = async (): Promise<boolean> => {
-      const itemStr = await AsyncStorage.getItem(KEY_FACTS_NOT_SHOWN);
+      const itemStr = await AsyncStorage.getItem(KEY_FACTS_FAVORITES);
       return itemStr === null;
     };
 
     await clear();
     const clean = await check();
     if (clean) {
-      console.info('Facts data deleted from AsyncStorage.');
+      console.info(`${red}%s${reset}`, 'Facts data deleted from AsyncStorage');
       return true;
     } else {
       return false;
