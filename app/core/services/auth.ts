@@ -1,14 +1,14 @@
 import { API_BASE_URL } from '@/core/constants';
 import { commonHeaders } from '@/core/constants/api';
 import { TAuthCredentials, TUser } from '@/core/types/auth';
-import { TServiceResponse } from '@/core/types/common';
+import { TResponse } from '@/core/types/common';
 
 export const postSignUp = async ({
   name,
   email,
   password,
 }: TAuthCredentials): Promise<
-  TServiceResponse<{ token: string; user: TUser }> | undefined
+  TResponse<{ token: string; user: TUser }> | undefined
 > => {
   try {
     const response = await fetch(`${API_BASE_URL}/auth/signup`, {
@@ -64,7 +64,7 @@ export const postSignIn = async ({
   email,
   password,
 }: TAuthCredentials): Promise<
-  TServiceResponse<{ token: string; user: TUser }> | undefined
+  TResponse<{ token: string; user: TUser }> | undefined
 > => {
   try {
     const response = await fetch(`${API_BASE_URL}/auth/signin`, {

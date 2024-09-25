@@ -1,6 +1,6 @@
 import { API_BASE_URL } from '@/core/constants';
 import { commonHeaders } from '@/core/constants/api';
-import { TServiceResponse } from '@/core/types/common';
+import { TResponse } from '@/core/types/common';
 import { TFactData, TFactItem, TFavorites } from '@/core/types/fact';
 
 export const getFacts = async ({
@@ -12,7 +12,7 @@ export const getFacts = async ({
   token: string;
   category?: string;
 }): Promise<
-  | TServiceResponse<{
+  | TResponse<{
       facts: TFactItem[];
       favorites: TFavorites;
     }>
@@ -48,7 +48,7 @@ export const postFact = async ({
   fact: TFactData;
   token: string;
 }): Promise<
-  | TServiceResponse<{
+  | TResponse<{
       factId: string;
     }>
   | undefined

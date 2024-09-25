@@ -7,47 +7,66 @@ import {
   KEY_FACTS_STATE,
   KEY_FACTS_STATE_CAT,
 } from '@/core/constants';
-import { showAlert } from '@/core/helpers/alert';
 import { TAuthData, TUser } from '@/core/types/auth';
 import { EFactsStateKey, TFactsState } from '@/core/types/fact';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { consoleClors } from '@/core/constants/colors';
+import { TResponse } from '@/core/types/common';
 const { gray, green, red, reset } = consoleClors;
 
 /**
  * Retrieves authentication data including token and user information from SecureStore.
- * @returns object { token, user } or null.
+ * @returns a Promise that resolves to an object of type `TResponse` { token, user }
  */
-export const getAuthDataFromSecureStore = async (): Promise<{
-  token: string;
-  user: TUser;
-} | null> => {
+export const getAuthDataFromSecureStore = async (): Promise<
+  TResponse<{
+    token: string;
+    user: TUser;
+  }>
+> => {
   try {
     const token = await SecureStore.getItemAsync(KEY_AUTH_TOKEN);
-    if (token === null) return null;
+    if (!token)
+      return {
+        data: null,
+        error: null,
+      };
     const userStr = await SecureStore.getItemAsync(KEY_AUTH_USER);
-    if (userStr === null) {
-      showAlert('Could not get user data from store.');
-      return null;
+    if (!userStr) {
+      return {
+        data: null,
+        error: { message: 'Could not get user data from store.' },
+      };
     }
     const user = JSON.parse(userStr as string);
     // console.log('Auth data retrieved from store.');
     return {
-      token,
-      user,
+      data: {
+        token,
+        user,
+      },
+      error: null,
     };
   } catch (err: any) {
     console.error(err);
-    return null;
+    return {
+      data: null,
+      error: { message: err.message ?? 'Could not get user data from store.' },
+    };
   }
 };
 
 /**
  * Stores authentication data in SecureStore
  * @param authData - { token: string; user: TUser }
+ * @returns a Promise that resolves to an object of type
+ * `TResponse` { success: boolean } indicating success or failure.
  */
-export const saveAuthDataInSecureStore = async ({ token, user }: TAuthData) => {
+export const saveAuthDataInSecureStore = async ({
+  token,
+  user,
+}: TAuthData): Promise<TResponse<{ success: boolean }>> => {
   try {
     // add auth token
     await SecureStore.setItemAsync(KEY_AUTH_TOKEN, token);
@@ -55,32 +74,49 @@ export const saveAuthDataInSecureStore = async ({ token, user }: TAuthData) => {
     const userStr = JSON.stringify(user);
     await SecureStore.setItemAsync(KEY_AUTH_USER, userStr);
     // console.log('Auth data saved to storage.');
+    return {
+      data: { success: true },
+      error: null,
+    };
   } catch (err: any) {
     console.error(err);
-    showAlert('Could not save data to storage.');
+    return {
+      data: null,
+      error: { message: 'Could not save data to storage' },
+    };
   }
 };
 
 /**
  * Deletes authentication data from SecureStore.
- * @returns a boolean indicating success or failure.
+ * @returns a Promise that resolves to an object of type
+ * `TResponse` { success: boolean } indicating success or failure.
  */
-export const deleteAuthDataFromSecureStore = async (): Promise<boolean> => {
+export const deleteAuthDataFromSecureStore = async (): Promise<
+  TResponse<{ success: boolean }>
+> => {
   try {
     await SecureStore.deleteItemAsync(KEY_AUTH_TOKEN);
     await SecureStore.deleteItemAsync(KEY_AUTH_USER);
     console.info(`${red}%s${reset}\n`, 'Auth data deleted from SecureStore');
-    return true;
+    return {
+      data: { success: true },
+      error: null,
+    };
   } catch (err: any) {
     console.error(err);
-    return false;
+    return {
+      data: null,
+      error: { message: 'Could not clear auth data' },
+    };
   }
 };
 
 /**
  * Stores facts state in AsyncStorage.
  * @param {TFactsState} state - object of type TFactsState
- * @returns a boolean indicating success or failure.
+ * @returns a Promise that resolves to an object of type
+ * `TResponse` { success: boolean } indicating success or failure.
  */
 export const saveFactsStateInAsyncStorage = async ({
   stateKey,
@@ -90,7 +126,7 @@ export const saveFactsStateInAsyncStorage = async ({
   stateKey: EFactsStateKey;
   state: TFactsState;
   favorites: string[];
-}): Promise<boolean> => {
+}): Promise<TResponse<{ success: boolean }>> => {
   try {
     const stateStr = JSON.stringify(state);
     await AsyncStorage.setItem(stateKey, stateStr);
@@ -107,27 +143,41 @@ export const saveFactsStateInAsyncStorage = async ({
       `${gray}%s${reset}`,
       `${state.facts[0].title.slice(0, 30)}...`
     );
-    return true;
+    return {
+      data: { success: true },
+      error: null,
+    };
   } catch (err: any) {
     console.error(err);
-    return false;
+    return {
+      data: null,
+      error: { message: 'Could not save facts' },
+    };
   }
 };
 
 /**
  * Retrieves facts state from AsyncStorage.
- * @returns data of type TFactsState or null.
+ * @returns a Promise that resolves to an object of type
+ * `TResponse` { state: TFactsState; favorites: string[] }
  */
 export const getFactsStateFromAsyncStorage = async (
   stateKey: EFactsStateKey
-): Promise<{
-  state: TFactsState;
-  favorites: string[];
-} | null> => {
+): Promise<
+  TResponse<{
+    state: TFactsState;
+    favorites: string[];
+  }>
+> => {
   try {
     const stateStr = await AsyncStorage.getItem(stateKey);
     const favoritesStr = await AsyncStorage.getItem(KEY_FACTS_FAVORITES);
-    if (!stateStr || !favoritesStr) return null;
+    if (!stateStr || !favoritesStr) {
+      return {
+        data: null,
+        error: null,
+      };
+    }
 
     const state: TFactsState = JSON.parse(stateStr);
     const favorites: string[] = JSON.parse(favoritesStr);
@@ -141,20 +191,30 @@ export const getFactsStateFromAsyncStorage = async (
       `${state.facts[0].title.slice(0, 30)}...`
     );
     return {
-      state,
-      favorites,
+      data: {
+        state,
+        favorites,
+      },
+      error: null,
     };
   } catch (err: any) {
     console.error(err);
-    return null;
+    return {
+      data: null,
+      error: { message: err.message ?? 'Unable to restore facts' },
+    };
   }
 };
 
 /**
  * Deletes facts data from AsyncStorage.
- * @returns a boolean indicating success or failure.
+ * @returns a Promise that resolves to an object of type
+ * `TResponse` { success: boolean } indicating success or failure.
  */
-export const deleteFactsDataFromAsyncStorage = async (): Promise<boolean> => {
+export const deleteFactsDataFromAsyncStorage = async (): Promise<
+  TResponse<{ success: boolean }>
+> => {
+  const errMessage = 'Could not clear facts data';
   try {
     const clear = async () => {
       await AsyncStorage.removeItem(KEY_FACTS_STATE);
@@ -170,12 +230,22 @@ export const deleteFactsDataFromAsyncStorage = async (): Promise<boolean> => {
     const clean = await check();
     if (clean) {
       console.info(`${red}%s${reset}`, 'Facts data deleted from AsyncStorage');
-      return true;
+      return {
+        data: { success: true },
+        error: null,
+      };
     } else {
-      return false;
+      console.error(errMessage);
+      return {
+        data: null,
+        error: { message: errMessage },
+      };
     }
   } catch (err: any) {
     console.error(err);
-    return false;
+    return {
+      data: null,
+      error: { message: err.message ?? errMessage },
+    };
   }
 };

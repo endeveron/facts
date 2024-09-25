@@ -42,7 +42,7 @@ const FavoriteItem = ({ itemData, onDislike }: TFavoriteItemProps) => {
             <View className="flex-row justify-between">
               <Text
                 onPress={handleDislike}
-                colorName="error"
+                colorName="danger"
                 className="text-sm uppercase font-pmedium tracking-wide p-2"
               >
                 Dislike and remove

@@ -1,6 +1,6 @@
 import { API_BASE_URL } from '@/core/constants';
 import { commonHeaders } from '@/core/constants/api';
-import { TServiceResponse } from '@/core/types/common';
+import { TResponse } from '@/core/types/common';
 import { TFactItem } from '@/core/types/fact';
 
 // export const getUser = async ({ id, token }: { id: string; token: string }) => {
@@ -30,7 +30,7 @@ export const getFavorites = async ({
 }: {
   userId: string;
   token: string;
-}): Promise<TServiceResponse<{ favorites: TFactItem[] }> | undefined> => {
+}): Promise<TResponse<{ favorites: TFactItem[] }> | undefined> => {
   if (!userId)
     return { data: null, error: { message: 'No user ID provided.' } };
   try {
@@ -66,7 +66,7 @@ export const postEvaluateFact = async ({
   userId: string;
   category: string;
   token: string;
-}): Promise<TServiceResponse<{ status: 'like' | 'dislike' }> | undefined> => {
+}): Promise<TResponse<{ status: 'like' | 'dislike' }> | undefined> => {
   try {
     const response = await fetch(`${API_BASE_URL}/users/evaluate-fact`, {
       method: 'POST',
@@ -99,7 +99,7 @@ export const getResetFacts = async ({
 }: {
   userId: string;
   token: string;
-}): Promise<TServiceResponse<{}> | undefined> => {
+}): Promise<TResponse<{ success: boolean }> | undefined> => {
   if (!userId)
     return { data: null, error: { message: 'No user ID provided.' } };
   try {

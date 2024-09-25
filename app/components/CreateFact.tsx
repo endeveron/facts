@@ -16,7 +16,7 @@ import { factSchema, TFactFormData } from '@/core/utils/validation';
 const CreateFact = () => {
   const { auth } = useAppContext();
   const authSession = auth.session;
-  if (authSession === null) return null;
+  if (!authSession) return null;
 
   const { control, handleSubmit, reset } = useForm<TFactFormData>({
     resolver: zodResolver(factSchema),

@@ -9,7 +9,7 @@ export const colors = {
     inversedBg: '#1E293B', // slate-800
     accent: '#38BDF8', // sky-400
     success: '#16A34A', // green-600
-    error: '#E11D48', // rose-600
+    danger: '#E11D48', // rose-600
     background: '#E2E8F0', // slate-200
     card: '#F8FAFC', // slate-50
     border: '#fcfcfc', // ~ white
@@ -25,7 +25,7 @@ export const colors = {
     inversedBg: '#F1F5F9', // slate-100
     accent: '#0369A1', // sky-700
     success: '#16A34A', // green-600
-    error: '#F43F5E', // rose-500
+    danger: '#F43F5E', // rose-500
     background: '#000', // black
     card: '#000', // black
     border: '#192230', // ~slate-800

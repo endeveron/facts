@@ -104,7 +104,7 @@ export const createFactLimitMap = (
 
   // handle the case when the total number of items doesn't equal the initial value
   const itemWithMaxValue = getMapItemWithLargestValue(resultMap);
-  if (itemWithMaxValue === null) {
+  if (!itemWithMaxValue) {
     logger.r('createFactLimitMap: invalid itemWithMaxValue.');
     return resultMap;
   }

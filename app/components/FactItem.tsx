@@ -48,13 +48,9 @@ const FactItem = ({
   onCopy,
   onLike,
 }: TFACT_PROPS) => {
-  if (itemData.index === null) {
-    console.error('FactItem: Invalid index.');
-    return null;
-  }
+  if (itemData.index === null) return null;
 
   const theme = useColorScheme() ?? 'light';
-
   const [isFavorites, setIsFavorites] = useState(false);
 
   const category = itemData.category;

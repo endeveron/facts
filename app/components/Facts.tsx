@@ -32,6 +32,9 @@ import {
 } from '@/core/types/fact';
 
 import { consoleClors } from '@/core/constants/colors';
+import Skeleton from '@/components/Skeleton';
+import { Text } from '@/components/Text';
+import { useToast } from '@/core/hooks/useToast';
 const { cyan, gray, green, yellow, reset } = consoleClors;
 
 // get the height of device window
@@ -74,12 +77,12 @@ const navItems: TNavbarItem[] = [
 ];
 
 const Facts = () => {
-  const { category } = useLocalSearchParams();
   const { auth } = useAppContext();
   const authSession = auth.session;
-  if (authSession === null) return null;
+  if (!authSession) return null;
 
-  const accentColor = useThemeColor('accent');
+  const { category } = useLocalSearchParams();
+  const { showToast } = useToast();
 
   const [isFetching, setIsFetching] = useState(false);
   const [noMoreFacts, setNoMoreFacts] = useState(false);
@@ -167,7 +170,8 @@ const Facts = () => {
   const handleNavbarPress = async (name: NavItemName) => {
     if (state.current !== null && state.notShownNum !== null) {
       const freshFacts = state.facts.slice(state.current.index);
-      await saveFactsStateInAsyncStorage({
+
+      const result = await saveFactsStateInAsyncStorage({
         stateKey,
         state: {
           facts: freshFacts,
@@ -176,7 +180,11 @@ const Facts = () => {
         },
         favorites,
       });
-      console.info(`${yellow}%s${reset}\n`, 'Leaving Facts');
+      if (result.error) {
+        showToast(result.error.message);
+      } else {
+        console.info(`${yellow}%s${reset}\n`, 'Leaving Facts');
+      }
     }
   };
 
@@ -224,7 +232,7 @@ const Facts = () => {
 
     // save the data of the current item in the local state
     // and recalculate the number of facts not shown
-    if (state.current === null) {
+    if (!state.current) {
       // initialize data
       updCurrent = {
         id: fetchedFacts[0].id,
@@ -278,33 +286,39 @@ const Facts = () => {
     // otherwise initialize the facts of all categories
     const init = async () => {
       // check whether the facts data is stored in the storage
-      const factsStateFromStorage = await getFactsStateFromAsyncStorage(
-        stateKey
-      );
+      const restoreFactsResult = await getFactsStateFromAsyncStorage(stateKey);
 
-      if (!factsStateFromStorage) {
-        // fetch data from the server
+      if (restoreFactsResult.error) {
+        showToast(restoreFactsResult.error.message);
+        return;
+      }
+
+      // if storage is empty, fetch facts data from the server
+      if (!restoreFactsResult.data) {
         await fetchData();
         return;
       }
 
-      // fetch the new facts from the server if the stored data does not meet
-      // the minimum threshold defined by `FACTS_LENGTH_TO_FETCH_NEW_ITEMS`
       const {
         state: { current, facts, notShownNum },
-      } = factsStateFromStorage;
-      // if (state.facts.length <= FACTS_LENGTH_TO_FETCH_NEW_ITEMS) {
-      //   await fetchData();
-      // }
+        favorites,
+      } = restoreFactsResult.data;
+
+      // fetch the new facts from the server if the stored data does not meet
+      // the minimum threshold defined by `FACTS_LENGTH_TO_FETCH_NEW_ITEMS`
+      if (facts.length <= FACTS_LENGTH_TO_FETCH_NEW_ITEMS) {
+        await fetchData();
+        return;
+      }
 
       // restore facts state from the storage
       setState({
-        facts,
         current,
+        facts,
         notShownNum,
       });
       // must be separated from the state
-      setFavorites(factsStateFromStorage.favorites);
+      setFavorites(favorites);
     };
     init();
   }, []);
@@ -324,9 +338,13 @@ const Facts = () => {
     <View className="h-full relative">
       <Navbar navItems={navItems} onPress={handleNavbarPress} />
 
-      {state.current === null && isFetching ? (
-        <View className="-translate-y-24 h-full items-center justify-center">
-          <ActivityIndicator size="large" color={accentColor} />
+      {!state.current && isFetching ? (
+        <View className="flex-1 items-center justify-center">
+          <Skeleton containerClassName="h-[480px] -translate-y-24 p-4">
+            <Text className="h-4 w-1/5 mt-4 rounded-full bg-slate-600"></Text>
+            <Text className="h-8 w-full mt-10 rounded-full bg-slate-600"></Text>
+            <Text className="h-8 w-3/5 mt-4 rounded-full bg-slate-600"></Text>
+          </Skeleton>
         </View>
       ) : (
         <FlatList

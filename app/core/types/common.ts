@@ -12,7 +12,7 @@ export type TStrokeIconProps = TIconProps & {
   strokeWidth?: number;
 };
 
-export type TServiceResponse<T> = {
+export type TResponse<T> = {
   data: T | null;
   error: { message: string } | null;
 };

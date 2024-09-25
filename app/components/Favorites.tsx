@@ -19,7 +19,7 @@ type TFavoritesState = {
 const Favorites = () => {
   const { auth } = useAppContext();
   const authSession = auth.session;
-  if (authSession === null) return null;
+  if (!authSession) return null;
 
   const [state, setState] = useState<TFavoritesState>({
     favorites: [],

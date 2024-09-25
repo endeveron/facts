@@ -29,6 +29,7 @@ import {
 import { getResetFacts } from '@/core/services/user';
 
 import { consoleClors } from '@/core/constants/colors';
+import { useToast } from '@/core/hooks/useToast';
 const { red, reset } = consoleClors;
 
 type TAppContextProps = {
@@ -50,22 +51,30 @@ export const useAppContext = () => {
 };
 
 export const AppContextProvider = ({ children }: PropsWithChildren) => {
+  const { showToast } = useToast();
+
   const [isAuthLoading, setIsAuthLoading] = useState(false);
   const [authSession, setAuthSession] = useState<TAuthSession>(null);
 
   /** Updates auth state, adds auth data to SecureStore. */
   const saveAuthData = async ({ token, user }: TAuthData) => {
     setAuthSession({ token, user });
-    await saveAuthDataInSecureStore({ token, user });
+    const result = await saveAuthDataInSecureStore({ token, user });
+    if (result.error) {
+      showToast(result.error.message);
+      return;
+    }
   };
 
   /** Gets auth data from SecureStore, updates auth state. */
   const restoreAuthData = async () => {
-    const authData = await getAuthDataFromSecureStore();
-    if (authData) {
-      setAuthSession(authData);
-      router.push(SIGN_IN_SUCCESS_REDIRECT_URL);
+    const result = await getAuthDataFromSecureStore();
+    if (result.error) {
+      showToast(result.error.message);
+      return;
     }
+    setAuthSession(result.data);
+    router.push(SIGN_IN_SUCCESS_REDIRECT_URL);
   };
 
   // try to get auth data from SecureStore
@@ -109,18 +118,26 @@ export const AppContextProvider = ({ children }: PropsWithChildren) => {
   };
 
   const signOut = async () => {
+    let error = false;
+
     // Dev start
-    await deleteFactsDataFromAsyncStorage();
+    const factsStorageResult = await deleteFactsDataFromAsyncStorage();
+    if (factsStorageResult.error) error = true;
     const result = await getResetFacts({
       token: authSession?.token as string,
       userId: authSession?.user.id as string,
     });
-    if (!!result?.data)
-      console.info(`${red}%s${reset}`, 'Facts data is reset in DB');
+    if (!!result?.data) {
+    }
+    console.info(`${red}%s${reset}`, 'Facts data is reset in DB');
     // Dev end
 
-    const isAuthDataResetSuccess = await deleteAuthDataFromSecureStore();
-    if (isAuthDataResetSuccess) {
+    const authResult = await deleteAuthDataFromSecureStore();
+    if (authResult.error) error = true;
+
+    if (error) {
+      showToast('Unable to clear data');
+    } else {
       setAuthSession(null);
       router.replace(SIGN_OUT_REDIRECT_URL);
     }
