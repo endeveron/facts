@@ -1,22 +1,22 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Controller, SubmitHandler, useForm } from 'react-hook-form';
 import { View } from 'react-native';
 
 import { Button } from '@/components/Button';
 import CategoryItem from '@/components/CategoryItem';
 import { FormField } from '@/components/FormField';
-import { Text } from '@/components/Text';
-import { useAppContext } from '@/core/context/AppContext';
-import { showAlert } from '@/core/helpers/alert';
+import { useSession } from '@/core/context/AuthContext';
+import { useToast } from '@/core/hooks/useToast';
 import { postFact } from '@/core/services/fact';
 import { FactCategory } from '@/core/types/fact';
 import { factSchema, TFactFormData } from '@/core/utils/validation';
 
 const CreateFact = () => {
-  const { auth } = useAppContext();
-  const authSession = auth.session;
-  if (!authSession) return null;
+  const { session } = useSession();
+  if (!session) return null;
+
+  const { showToast } = useToast();
 
   const { control, handleSubmit, reset } = useForm<TFactFormData>({
     resolver: zodResolver(factSchema),
@@ -39,16 +39,17 @@ const CreateFact = () => {
           category,
           title: data.title,
         },
-        token: authSession.token,
+        token: session.token,
       });
-      if (result?.error) showAlert(result.error.message);
+      if (result?.error) showToast(result.error.message);
       if (result?.data?.factId) {
         // success
-        showAlert('Fact item added to database.', 'Success!');
+        showToast('Fact item added to database');
         reset(); // form
       }
-    } catch (error: any) {
-      showAlert(error.message, 'Error');
+    } catch (error: unknown) {
+      console.error(error);
+      showToast('Unable to save fact in db');
     } finally {
       setIsLoading(false);
     }

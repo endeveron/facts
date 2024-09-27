@@ -6,8 +6,8 @@ import HeartIcon from '@/components/svg/HeartIcon';
 import { Text } from '@/components/Text';
 import { KEY_FACTS_FAVORITES } from '@/core/constants';
 import { heartColor } from '@/core/constants/colors';
-import { useAppContext } from '@/core/context/AppContext';
-import { showAlert } from '@/core/helpers/alert';
+import { useSession } from '@/core/context/AuthContext';
+import { useToast } from '@/core/hooks/useToast';
 import { getFavorites, postEvaluateFact } from '@/core/services/user';
 import { TFactItem } from '@/core/types/fact';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -17,16 +17,17 @@ type TFavoritesState = {
 };
 
 const Favorites = () => {
-  const { auth } = useAppContext();
-  const authSession = auth.session;
-  if (!authSession) return null;
+  const { session } = useSession();
+  if (!session) return null;
+
+  const { showToast } = useToast();
 
   const [state, setState] = useState<TFavoritesState>({
     favorites: [],
   });
 
-  const userId = authSession.user.id;
-  const token = authSession.token;
+  const userId = session.user.id;
+  const token = session.token;
 
   const handleDislike = async (factId: string, category: string) => {
     const updFavorites = [...state.favorites].filter(
@@ -58,7 +59,7 @@ const Favorites = () => {
       token,
     });
     if (result?.error) {
-      showAlert(result.error.message);
+      showToast(result.error.message);
     }
     if (result?.data) {
       const fetchedFavorites = result.data.favorites;

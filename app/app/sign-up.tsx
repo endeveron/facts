@@ -11,40 +11,41 @@ import { Text } from '@/components/Text';
 import {
   AUTH_EMAIL,
   AUTH_PASSWORD,
-  SIGN_IN_SUCCESS_REDIRECT_URL,
+  DEFAULT_REDIRECT_URL,
 } from '@/core/constants';
-import { useAppContext } from '@/core/context/AppContext';
-import { showAlert } from '@/core/helpers/alert';
-import { signInSchema, TSignInFormData } from '@/core/utils/validation';
+import { useSession } from '@/core/context/AuthContext';
+import { useToast } from '@/core/hooks/useToast';
+import { signUpSchema, TSignUpFormData } from '@/core/utils/validation';
 
-const SignIn = () => {
-  const { auth } = useAppContext();
-  const { control, handleSubmit, setValue } = useForm<TSignInFormData>({
-    resolver: zodResolver(signInSchema),
+const SignUp = () => {
+  const { isLoading, signUp } = useSession();
+  const { showToast } = useToast();
+  const { control, handleSubmit, setValue } = useForm<TSignUpFormData>({
+    resolver: zodResolver(signUpSchema),
   });
-
-  // leads to unnecessary rerenders
-  // if (session?.token) router.replace(SIGN_IN_SUCCESS_REDIRECT_URL);
 
   // fill out the form
   useEffect(() => {
-    setValue('email', AUTH_EMAIL ?? '');
-    setValue('password', AUTH_PASSWORD ?? '');
+    setValue('name', 'Admin');
+    setValue('email', AUTH_EMAIL);
+    setValue('password', AUTH_PASSWORD);
   }, []);
 
-  const onSubmit: SubmitHandler<TSignInFormData> = async (
-    data: TSignInFormData
+  const onSubmit: SubmitHandler<TSignUpFormData> = async (
+    data: TSignUpFormData
   ) => {
     try {
-      const loggedIn = await auth.signIn({
+      const registered = await signUp({
+        name: data.name,
         email: data.email,
         password: data.password,
       });
-      if (loggedIn) {
-        router.replace(SIGN_IN_SUCCESS_REDIRECT_URL);
+      if (registered) {
+        router.replace(DEFAULT_REDIRECT_URL);
       }
-    } catch (error: any) {
-      showAlert(error.message, 'Error');
+    } catch (error: unknown) {
+      console.error(error);
+      showToast('Unable to register');
     }
   };
 
@@ -56,7 +57,26 @@ const SignIn = () => {
         }}
       >
         <View className="h-full flex justify-center p-4">
-          <Text className="text-3xl font-pbold mb-6">Sign In</Text>
+          <Text className="text-3xl font-pbold mb-6">Sign Up</Text>
+
+          <Controller
+            control={control}
+            render={({
+              field: { onChange, onBlur, value },
+              fieldState: { error },
+            }) => (
+              <FormField
+                name="name"
+                label="Name"
+                value={value}
+                onBlur={onBlur}
+                handleChangeText={onChange}
+                containerClassName="mt-6"
+                error={error}
+              />
+            )}
+            name="name"
+          />
 
           <Controller
             control={control}
@@ -98,17 +118,17 @@ const SignIn = () => {
           />
 
           <Button
-            title="Sign In"
+            title="Sign Up"
             handlePress={handleSubmit(onSubmit)}
             containerClassName="mt-8"
-            isLoading={auth.isLoading}
+            isLoading={isLoading}
           />
           <View className="flex justify-center py-12 flex-row gap-3">
             <Text colorName="muted" className="font-pmedium">
-              Don't have an account?
+              Have an account already?
             </Text>
-            <Link href="/sign-up">
-              <Text className="ml-4 font-psemibold">Signup</Text>
+            <Link href="/sign-in">
+              <Text className="ml-4 font-psemibold">Signin</Text>
             </Link>
           </View>
         </View>
@@ -117,4 +137,4 @@ const SignIn = () => {
   );
 };
 
-export default SignIn;
+export default SignUp;

@@ -2,18 +2,16 @@ import bcrypt from 'bcryptjs';
 import { NextFunction, Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 
-import { Id } from '../types/common.js';
 import { HttpError } from '../helpers/error.js';
+import { createCategoryMap } from '../helpers/facts.js';
 import { getItem } from '../helpers/getFromDb.js';
+import { isReqValid } from '../helpers/http.js';
 import logger from '../helpers/logger.js';
-
-import { removeSensitiveData } from '../helpers/user.js';
+import { configureUserData } from '../helpers/user.js';
 import UserModel from '../models/user.js';
 import { TUser } from '../types/user.js';
-import { createCategoryMap } from '../helpers/facts.js';
-import { isReqValid } from '../helpers/http.js';
 
-const genetrateJWToken = (userId: Id, next: NextFunction) => {
+const genetrateJWToken = (userId: string, next: NextFunction) => {
   const jwtKey = process.env.JWT_KEY;
 
   const handleJWTException = () =>
@@ -68,6 +66,7 @@ export const signup = async (
         categoryRateMap,
         offsetMap,
       },
+      notificationsSubscr: null,
     });
 
     await user.save();
@@ -80,7 +79,7 @@ export const signup = async (
     res.status(201).json({
       data: {
         token,
-        user: removeSensitiveData(user),
+        user: configureUserData(user),
       },
     });
   } catch (err) {
@@ -124,13 +123,14 @@ export const signin = async (
     }
 
     // generate JWT
-    const token = genetrateJWToken(user._id, next);
+    const userId = user._id.toString();
+    const token = genetrateJWToken(userId, next);
 
     // successfully signed in.
     res.status(200).json({
       data: {
         token,
-        user: removeSensitiveData(user),
+        user: configureUserData(user),
       },
     });
   } catch (err) {

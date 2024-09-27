@@ -6,6 +6,7 @@ import {
   KEY_FACTS_FAVORITES,
   KEY_FACTS_STATE,
   KEY_FACTS_STATE_CAT,
+  KEY_SUBSCR_NOTIF,
 } from '@/core/constants';
 import { TAuthData, TUser } from '@/core/types/auth';
 import { EFactsStateKey, TFactsState } from '@/core/types/fact';
@@ -108,6 +109,71 @@ export const deleteAuthDataFromSecureStore = async (): Promise<
     return {
       data: null,
       error: { message: 'Could not clear auth data' },
+    };
+  }
+};
+
+/**
+ * Stores notification subscription data in SecureStore
+ * @param expoPushToken - subscription token
+ * @returns a Promise that resolves to an object of type
+ * `TResponse` { success: boolean } indicating success or failure.
+ */
+export const saveNotifSubscrDataInSecureStore = async ({
+  expoPushToken,
+}: {
+  expoPushToken: string;
+}): Promise<TResponse<{ success: boolean }>> => {
+  try {
+    await SecureStore.setItemAsync(KEY_SUBSCR_NOTIF, expoPushToken);
+    console.info(
+      `${gray}%s${reset}\n`,
+      'Notification subscription data saved to secure store'
+    );
+    return {
+      data: { success: true },
+      error: null,
+    };
+  } catch (err: any) {
+    console.error(err);
+    return {
+      data: null,
+      error: { message: 'Could not save subscription data to storage' },
+    };
+  }
+};
+
+/**
+ * Retrieves notification subscription data from SecureStore.
+ * @returns a Promise that resolves to an object of type `TResponse` { expoPushToken }
+ */
+export const getNotifSubscrDataFromSecureStore = async (): Promise<
+  TResponse<{
+    expoPushToken: string;
+  }>
+> => {
+  try {
+    const expoPushToken = await SecureStore.getItemAsync(KEY_SUBSCR_NOTIF);
+    if (!expoPushToken)
+      return {
+        data: null,
+        error: null,
+      };
+    console.info(
+      `${gray}%s${reset}\n`,
+      'Notification subscription data retrieved from secure store'
+    );
+    return {
+      data: {
+        expoPushToken,
+      },
+      error: null,
+    };
+  } catch (err: any) {
+    console.error(err);
+    return {
+      data: null,
+      error: { message: err.message ?? 'Could not get user data from store.' },
     };
   }
 };

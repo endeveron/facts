@@ -15,13 +15,11 @@ import CategoriesIcon from '@/components/svg/CategoriesIcon';
 import TextFileIcon from '@/components/svg/TextFileIcon';
 import UserIcon from '@/components/svg/UserIcon';
 import { FACTS_LENGTH_TO_FETCH_NEW_ITEMS } from '@/core/constants/facts';
-import { useAppContext } from '@/core/context/AppContext';
-import { showAlert } from '@/core/helpers/alert';
+import { useSession } from '@/core/context/AuthContext';
 import {
   getFactsStateFromAsyncStorage,
   saveFactsStateInAsyncStorage,
 } from '@/core/helpers/store';
-import { useThemeColor } from '@/core/hooks/useThemeColor';
 import { getFacts } from '@/core/services/fact';
 import { postEvaluateFact } from '@/core/services/user';
 import {
@@ -35,7 +33,8 @@ import { consoleClors } from '@/core/constants/colors';
 import Skeleton from '@/components/Skeleton';
 import { Text } from '@/components/Text';
 import { useToast } from '@/core/hooks/useToast';
-const { cyan, gray, green, yellow, reset } = consoleClors;
+
+const { cyan, yellow, reset } = consoleClors;
 
 // get the height of device window
 const windowHeight = Dimensions.get('window').height;
@@ -77,9 +76,8 @@ const navItems: TNavbarItem[] = [
 ];
 
 const Facts = () => {
-  const { auth } = useAppContext();
-  const authSession = auth.session;
-  if (!authSession) return null;
+  const { session } = useSession();
+  if (!session) return null;
 
   const { category } = useLocalSearchParams();
   const { showToast } = useToast();
@@ -101,8 +99,8 @@ const Facts = () => {
 
   const flatListRef = useRef<FlatList<TFactItem>>(null);
 
-  const userId = authSession.user.id;
-  const token = authSession.token;
+  const userId = session.user.id;
+  const token = session.token;
   const factsLength = state.facts.length;
 
   const handleCopy = async (text: string) => {
@@ -207,7 +205,7 @@ const Facts = () => {
     });
     if (result?.error) {
       setIsFetching(false);
-      showAlert(result.error.message);
+      showToast(result.error.message);
       return;
     }
 
@@ -340,8 +338,8 @@ const Facts = () => {
 
       {!state.current && isFetching ? (
         <View className="flex-1 items-center justify-center">
-          <Skeleton containerClassName="h-[480px] -translate-y-24 p-4">
-            <Text className="h-4 w-1/5 mt-4 rounded-full bg-slate-600"></Text>
+          <Skeleton containerClassName="h-[480px] -translate-y-16 p-4">
+            <Text className="h-4 w-1/5 -mt-4 rounded-full bg-slate-600"></Text>
             <Text className="h-8 w-full mt-10 rounded-full bg-slate-600"></Text>
             <Text className="h-8 w-3/5 mt-4 rounded-full bg-slate-600"></Text>
           </Skeleton>

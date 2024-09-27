@@ -1,8 +1,15 @@
-import { Stack } from 'expo-router';
+import { Redirect, Stack } from 'expo-router';
 import { useColorScheme } from 'react-native';
 
 import { colors, defaultScheme } from '@/core/constants/colors';
 import { TScreen } from '@/core/types/common';
+import { useSession } from '@/core/context/AuthContext';
+
+/**
+ * This layout checks whether users are authenticated before
+ * rendering the child route components and redirects users
+ * to the sign-in screen if they are not authenticated.
+ */
 
 const screens: TScreen[] = [
   { name: 'categories' },
@@ -11,8 +18,13 @@ const screens: TScreen[] = [
   { name: 'profile' },
 ];
 
-const ScreensLayout = () => {
+const AppLayout = () => {
   const scheme = useColorScheme() ?? defaultScheme;
+  const { session } = useSession();
+
+  if (!session) {
+    return <Redirect href="/sign-in" />;
+  }
 
   return (
     <Stack>
@@ -32,4 +44,4 @@ const ScreensLayout = () => {
   );
 };
 
-export default ScreensLayout;
+export default AppLayout;

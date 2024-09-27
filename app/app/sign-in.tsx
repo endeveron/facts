@@ -11,39 +11,39 @@ import { Text } from '@/components/Text';
 import {
   AUTH_EMAIL,
   AUTH_PASSWORD,
-  SIGN_IN_SUCCESS_REDIRECT_URL,
+  DEFAULT_REDIRECT_URL,
 } from '@/core/constants';
-import { useAppContext } from '@/core/context/AppContext';
-import { showAlert } from '@/core/helpers/alert';
-import { signUpSchema, TSignUpFormData } from '@/core/utils/validation';
+import { useSession } from '@/core/context/AuthContext';
+import { useToast } from '@/core/hooks/useToast';
+import { signInSchema, TSignInFormData } from '@/core/utils/validation';
 
-const SignUp = () => {
-  const { auth } = useAppContext();
-  const { control, handleSubmit, setValue } = useForm<TSignUpFormData>({
-    resolver: zodResolver(signUpSchema),
+const SignIn = () => {
+  const { isLoading, signIn } = useSession();
+  const { showToast } = useToast();
+  const { control, handleSubmit, setValue } = useForm<TSignInFormData>({
+    resolver: zodResolver(signInSchema),
   });
 
   // fill out the form
   useEffect(() => {
-    setValue('name', 'Admin');
-    setValue('email', AUTH_EMAIL ?? '');
-    setValue('password', AUTH_PASSWORD ?? '');
+    setValue('email', AUTH_EMAIL);
+    setValue('password', AUTH_PASSWORD);
   }, []);
 
-  const onSubmit: SubmitHandler<TSignUpFormData> = async (
-    data: TSignUpFormData
+  const onSubmit: SubmitHandler<TSignInFormData> = async (
+    data: TSignInFormData
   ) => {
     try {
-      const registered = await auth.signUp({
-        name: data.name,
+      const loggedIn = await signIn({
         email: data.email,
         password: data.password,
       });
-      if (registered) {
-        router.replace(SIGN_IN_SUCCESS_REDIRECT_URL);
+      if (loggedIn) {
+        router.replace(DEFAULT_REDIRECT_URL);
       }
     } catch (error: any) {
-      showAlert(error.message, 'Error');
+      console.error(error);
+      showToast('Unable to login');
     }
   };
 
@@ -55,26 +55,7 @@ const SignUp = () => {
         }}
       >
         <View className="h-full flex justify-center p-4">
-          <Text className="text-3xl font-pbold mb-6">Sign Up</Text>
-
-          <Controller
-            control={control}
-            render={({
-              field: { onChange, onBlur, value },
-              fieldState: { error },
-            }) => (
-              <FormField
-                name="name"
-                label="Name"
-                value={value}
-                onBlur={onBlur}
-                handleChangeText={onChange}
-                containerClassName="mt-6"
-                error={error}
-              />
-            )}
-            name="name"
-          />
+          <Text className="text-3xl font-pbold mb-6">Sign In</Text>
 
           <Controller
             control={control}
@@ -116,17 +97,17 @@ const SignUp = () => {
           />
 
           <Button
-            title="Sign Up"
+            title="Sign In"
             handlePress={handleSubmit(onSubmit)}
             containerClassName="mt-8"
-            isLoading={auth.isLoading}
+            isLoading={isLoading}
           />
           <View className="flex justify-center py-12 flex-row gap-3">
             <Text colorName="muted" className="font-pmedium">
-              Have an account already?
+              Don't have an account?
             </Text>
-            <Link href="/sign-in">
-              <Text className="ml-4 font-psemibold">Signin</Text>
+            <Link href="/sign-up">
+              <Text className="ml-4 font-psemibold">Signup</Text>
             </Link>
           </View>
         </View>
@@ -135,4 +116,4 @@ const SignUp = () => {
   );
 };
 
-export default SignUp;
+export default SignIn;

@@ -1,14 +1,14 @@
 import { useFonts } from 'expo-font';
-import { SplashScreen, Stack } from 'expo-router';
+import { SplashScreen, Slot } from 'expo-router';
 import * as SystemUI from 'expo-system-ui';
 import { useEffect } from 'react';
 import { useColorScheme } from 'react-native';
 
-import { AppContextProvider } from '@/core/context/AppContext';
-import { TScreen } from '@/core/types/common';
 import { colors, defaultScheme } from '@/core/constants/colors';
+import { SessionProvider } from '@/core/context/AuthContext';
+import { NotificationsProvider } from '@/core/context/NotificationsContext';
 
-// prevent the splash screen from auto-hiding before asset loading is complete.
+// prevent the splash screen from auto-hiding before asset loading is complete
 SplashScreen.preventAutoHideAsync();
 
 const RootLayout = () => {
@@ -30,44 +30,28 @@ const RootLayout = () => {
   }, [error]);
 
   useEffect(() => {
-    const appReady = async () => {
+    const prepareApp = async () => {
       // change the root view background color
       await SystemUI.setBackgroundColorAsync(colors[scheme].background);
 
-      if (loaded) {
-        SplashScreen.hideAsync();
-      }
+      // app is ready, hide splash screen
+      await SplashScreen.hideAsync();
     };
-    appReady();
+
+    loaded && prepareApp();
   }, [loaded]);
 
-  if (!loaded) {
+  if (!loaded && !error) {
     return null;
   }
 
-  const screens: TScreen[] = [
-    { name: 'index' },
-    { name: '(auth)' },
-    { name: '(screens)' },
-  ];
-
   return (
-    <AppContextProvider>
-      <Stack>
-        {screens.map((screen: TScreen) => (
-          <Stack.Screen
-            name={screen.name}
-            options={{
-              headerShown: false,
-              contentStyle: {
-                backgroundColor: colors[scheme].background,
-              },
-            }}
-            key={screen.name}
-          />
-        ))}
-      </Stack>
-    </AppContextProvider>
+    <SessionProvider>
+      {/* push notifications provider */}
+      <NotificationsProvider>
+        <Slot />
+      </NotificationsProvider>
+    </SessionProvider>
   );
 };
 

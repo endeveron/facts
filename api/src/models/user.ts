@@ -1,38 +1,74 @@
 import { Schema, model } from 'mongoose';
 
-import { Num, NumReq, Str, StrReq } from '../types/common.js';
 import { TUser } from '../types/user.js';
 
 const userSchema = new Schema<TUser>(
   {
     account: {
       name: {
-        minlength: 2,
-        maxlength: 20,
-        ...StrReq,
+        type: String,
+        required: [true, 'User name is required'],
+        minlength: [2, 'User name cannot contain less than 2 characters'],
+        maxlength: [20, 'User name cannot contain more than 20 characters'],
       },
-      email: StrReq,
+      email: {
+        type: String,
+        required: [true, 'User email is required'],
+      },
       password: {
-        minlength: 6,
-        ...StrReq,
+        minlength: [6, 'Password cannot contain less than 6 characters'],
+        type: String,
+        required: [true, 'Password is required'],
       },
       role: {
-        index: NumReq,
-        name: StrReq,
+        index: {
+          type: Number,
+          required: [true, 'User role index is required'],
+        },
+        name: {
+          type: String,
+          required: [true, 'User role name is required'],
+        },
       },
     },
     facts: {
-      favorites: [Str],
+      favorites: [
+        {
+          type: String,
+        },
+      ],
       categoryRateMap: {
         type: Map,
         of: Number,
-        required: true,
+        required: [true, 'Fact category rate map is required'],
       },
       offsetMap: {
         type: Map,
         of: Number,
-        required: true,
+        required: [true, 'Fact category offset map is required'],
       },
+    },
+    notificationsSubscr: {
+      type: {
+        token: {
+          type: {
+            data: {
+              type: String,
+            },
+            iv: {
+              type: String,
+            },
+          },
+          default: null,
+          _id: false,
+        },
+        isActive: {
+          type: Boolean,
+          default: false,
+        },
+      },
+      default: null,
+      _id: false,
     },
   },
   {

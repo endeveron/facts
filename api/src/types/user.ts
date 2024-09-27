@@ -17,12 +17,23 @@ type TFacts = {
   offsetMap: TCategoryMap;
 };
 
+type TNotificationsSubscription = {
+  token: {
+    iv: string;
+    data: string;
+  } | null;
+  isActive: boolean;
+};
+
+export type TEncryptedData = { iv: string; data: string };
+
 export type TFavorites = string[];
 
 export type TUser = {
   _id: ObjectId;
   account: TUserAccount;
   facts: TFacts;
+  notificationsSubscr: TNotificationsSubscription | null;
 };
 
 export type TAuthData = {

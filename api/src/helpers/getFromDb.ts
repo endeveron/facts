@@ -1,6 +1,5 @@
-import { FilterQuery, Model } from 'mongoose';
+import { FilterQuery, Model, Types } from 'mongoose';
 
-import { Id } from '../types/common.js';
 import { HttpError } from './error.js';
 import logger from './logger.js';
 
@@ -47,7 +46,7 @@ const getItem = async <T>(
 
 const getItemById = async <T>(
   itemModel: Model<T>,
-  id: Id,
+  id: Types.ObjectId | string,
   notFoundMsg?: string
 ) => {
   try {

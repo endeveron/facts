@@ -1,5 +1,7 @@
+import { useEffect } from 'react';
 import { View } from 'react-native';
 
+import { Button } from '@/components/Button';
 import Favorites from '@/components/Favorites';
 import { NavItemName, TNavbarItem } from '@/components/Navbar';
 import ScrollScreen from '@/components/ScrollScreen';
@@ -7,16 +9,24 @@ import CategoriesIcon from '@/components/svg/CategoriesIcon';
 import PlusSquaredIcon from '@/components/svg/PlusSquaredIcon';
 import TextFileIcon from '@/components/svg/TextFileIcon';
 import { Text } from '@/components/Text';
-import { useAppContext } from '@/core/context/AppContext';
+import { useSession } from '@/core/context/AuthContext';
+import { useNotifications } from '@/core/context/NotificationsContext';
 import { useThemeColor } from '@/core/hooks/useThemeColor';
-import { Href } from 'expo-router';
 
 const profile = () => {
-  const { auth } = useAppContext();
+  const { session, signOut } = useSession();
   const accentColor = useThemeColor('accent');
 
-  const title = auth.session?.user.account.name ?? 'Profile';
-  const email = auth.session?.user.account.email;
+  const { expoPushToken, response, sendNotification, saveSubscription } =
+    useNotifications();
+
+  // useEffect(() => {
+  //   console.info('expoPushToken', expoPushToken);
+  //   console.log('response', response);
+  // }, [expoPushToken, response]);
+
+  const title = session?.user.account.name ?? 'Profile';
+  const email = session?.user.account.email;
 
   const navItems: TNavbarItem[] = [
     {
@@ -44,7 +54,7 @@ const profile = () => {
             {email}
           </Text>
           <Text
-            onPress={auth.signOut}
+            onPress={signOut}
             colorName="muted"
             className="text-base -translate-y-12"
           >
@@ -52,6 +62,26 @@ const profile = () => {
           </Text>
         </View>
       )}
+      <View className="flex-row justify-center">
+        <Button
+          title="Push"
+          containerClassName="w-40"
+          handlePress={() =>
+            sendNotification({
+              title: 'Super title',
+              body: 'Sheamless and positive body',
+              data: { secretMessage: 'oki-doki' },
+            })
+          }
+        />
+      </View>
+      <View className="flex-row justify-center">
+        <Button
+          title="Send"
+          containerClassName="w-40"
+          handlePress={() => saveSubscription()}
+        />
+      </View>
       <Favorites />
     </ScrollScreen>
   );

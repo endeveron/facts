@@ -16,3 +16,9 @@ export type TResponse<T> = {
   data: T | null;
   error: { message: string } | null;
 };
+
+export type TNotificationConfig = {
+  title: string;
+  body: string;
+  data?: object;
+};
