@@ -1,7 +1,7 @@
 import Facts from '@/components/Facts';
 import Screen from '@/components/Screen';
 
-const Home = () => {
+const facts = () => {
   return (
     <Screen>
       <Facts />
@@ -9,4 +9,4 @@ const Home = () => {
   );
 };
 
-export default Home;
+export default facts;

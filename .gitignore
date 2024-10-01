@@ -1,12 +1,14 @@
-# Common
+# common
 node_modules/
 
-# API
+# api
 api/build/
 api/nodemon.json
 
-# App
+# app
 app/.expo/
+app/.env*
+app/eas.json
 app/google-services.json
 app/dist/
 app/npm-debug.*
@@ -18,4 +20,3 @@ app/*.mobileprovision
 app/*.orig.*
 app/web-build/
 app/expo-env.d.ts
-app/.env.local

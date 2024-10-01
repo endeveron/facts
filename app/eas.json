@@ -9,7 +9,13 @@
       "distribution": "internal"
     },
     "preview": {
-      "distribution": "internal"
+      "env": {
+        "EXPO_PUBLIC_API_BASE_URL": "https://softest-server-003.lm.r.appspot.com/api",
+        "EXPO_PUBLIC_NOTIFICATIONS_KEY": "726e58c3a29a9ff07ecacf53776142d6"
+      },
+      "android": {
+        "buildType": "apk"
+      }
     },
     "production": {
       "autoIncrement": true

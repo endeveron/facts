@@ -6,7 +6,7 @@ import { View } from 'react-native';
 import { Button } from '@/components/Button';
 import CategoryItem from '@/components/CategoryItem';
 import { FormField } from '@/components/FormField';
-import { useSession } from '@/core/context/AuthContext';
+import { useSession } from '@/core/context/SessionContext';
 import { useToast } from '@/core/hooks/useToast';
 import { postFact } from '@/core/services/fact';
 import { FactCategory } from '@/core/types/fact';

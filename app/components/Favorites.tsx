@@ -6,7 +6,7 @@ import HeartIcon from '@/components/svg/HeartIcon';
 import { Text } from '@/components/Text';
 import { KEY_FACTS_FAVORITES } from '@/core/constants';
 import { heartColor } from '@/core/constants/colors';
-import { useSession } from '@/core/context/AuthContext';
+import { useSession } from '@/core/context/SessionContext';
 import { useToast } from '@/core/hooks/useToast';
 import { getFavorites, postEvaluateFact } from '@/core/services/user';
 import { TFactItem } from '@/core/types/fact';

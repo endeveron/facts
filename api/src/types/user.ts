@@ -23,6 +23,9 @@ type TNotificationsSubscription = {
     data: string;
   } | null;
   isActive: boolean;
+  schedule?: {
+    hour: number;
+  };
 };
 
 export type TEncryptedData = { iv: string; data: string };

@@ -13,7 +13,7 @@ import {
   AUTH_PASSWORD,
   DEFAULT_REDIRECT_URL,
 } from '@/core/constants';
-import { useSession } from '@/core/context/AuthContext';
+import { useSession } from '@/core/context/SessionContext';
 import { useToast } from '@/core/hooks/useToast';
 import { signInSchema, TSignInFormData } from '@/core/utils/validation';
 

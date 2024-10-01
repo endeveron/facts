@@ -22,3 +22,7 @@ export type TNotificationConfig = {
   body: string;
   data?: object;
 };
+
+export type TAppStateContext = {
+  appState: string;
+};

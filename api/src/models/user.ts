@@ -66,6 +66,19 @@ const userSchema = new Schema<TUser>(
           type: Boolean,
           default: false,
         },
+        schedule: [
+          {
+            type: {
+              hour: {
+                type: Number,
+              },
+              minutes: {
+                type: Number,
+              },
+            },
+            _id: false,
+          },
+        ],
       },
       default: null,
       _id: false,

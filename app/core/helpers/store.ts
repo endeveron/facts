@@ -4,16 +4,19 @@ import {
   KEY_AUTH_TOKEN,
   KEY_AUTH_USER,
   KEY_FACTS_FAVORITES,
+  KEY_FACTS_NEXT_ITEM,
   KEY_FACTS_STATE,
   KEY_FACTS_STATE_CAT,
+  KEY_NOTIF_SCHEDULE,
   KEY_SUBSCR_NOTIF,
 } from '@/core/constants';
 import { TAuthData, TUser } from '@/core/types/auth';
-import { EFactsStateKey, TFactsState } from '@/core/types/fact';
+import { EFactsStateKey, TFactItem, TFactsState } from '@/core/types/fact';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { consoleClors } from '@/core/constants/colors';
 import { TResponse } from '@/core/types/common';
+import { TNotifSchedule } from '@/core/types/notification';
 const { gray, green, red, reset } = consoleClors;
 
 /**
@@ -99,7 +102,7 @@ export const deleteAuthDataFromSecureStore = async (): Promise<
   try {
     await SecureStore.deleteItemAsync(KEY_AUTH_TOKEN);
     await SecureStore.deleteItemAsync(KEY_AUTH_USER);
-    console.info(`${red}%s${reset}\n`, 'Auth data deleted from SecureStore');
+    console.info(`${red}%s${reset}`, 'Auth data deleted from SecureStore');
     return {
       data: { success: true },
       error: null,
@@ -127,7 +130,7 @@ export const saveNotifSubscrDataInSecureStore = async ({
   try {
     await SecureStore.setItemAsync(KEY_SUBSCR_NOTIF, expoPushToken);
     console.info(
-      `${gray}%s${reset}\n`,
+      `${gray}%s${reset}`,
       'Notification subscription data saved to secure store'
     );
     return {
@@ -159,10 +162,10 @@ export const getNotifSubscrDataFromSecureStore = async (): Promise<
         data: null,
         error: null,
       };
-    console.info(
-      `${gray}%s${reset}\n`,
-      'Notification subscription data retrieved from secure store'
-    );
+    // console.info(
+    //   `${gray}%s${reset}`,
+    //   'Notification subscription data retrieved from secure store'
+    // );
     return {
       data: {
         expoPushToken,
@@ -174,6 +177,146 @@ export const getNotifSubscrDataFromSecureStore = async (): Promise<
     return {
       data: null,
       error: { message: err.message ?? 'Could not get user data from store.' },
+    };
+  }
+};
+
+/**
+ * Stores notifications schedule in AsyncStorage.
+ * @param args - object of type { hour: number }
+ * @returns a Promise that resolves to an object of type
+ * `TResponse` { success: boolean } indicating success or failure.
+ */
+export const saveNotifScheduleInAsyncStorage = async (
+  schedule: TNotifSchedule
+): Promise<TResponse<{ success: boolean }>> => {
+  try {
+    const scheduleStr = JSON.stringify(schedule);
+    await AsyncStorage.setItem(KEY_NOTIF_SCHEDULE, scheduleStr);
+    console.info(
+      `${green}%s${reset}`,
+      `Notifications schedule saved in AsyncStorage`
+    );
+    return {
+      data: { success: true },
+      error: null,
+    };
+  } catch (err: any) {
+    console.error(err);
+    return {
+      data: null,
+      error: { message: 'Could not save schedule' },
+    };
+  }
+};
+
+/**
+ * Retrieves notifications schedule from AsyncStorage.
+ * @returns a Promise that resolves to an object of type
+ * `TResponse` { hour: number }
+ */
+export const getNotifScheduleFromAsyncStorage = async (): Promise<
+  TResponse<TNotifSchedule>
+> => {
+  try {
+    const scheduleStr = await AsyncStorage.getItem(KEY_NOTIF_SCHEDULE);
+    if (!scheduleStr) {
+      return {
+        data: null,
+        error: null,
+      };
+    }
+
+    const schedule: TNotifSchedule = JSON.parse(scheduleStr);
+    if (!schedule) {
+      return {
+        data: null,
+        error: { message: 'Unable to restore schedule' },
+      };
+    }
+
+    // console.info(
+    //   `${green}%s${reset}`,
+    //   `Notifications schedule retrieved from AsyncStorage `
+    // );
+    return {
+      data: {
+        id: schedule.id,
+        hour: schedule.hour,
+        minute: schedule.minute,
+      },
+      error: null,
+    };
+  } catch (err: any) {
+    console.error(err);
+    return {
+      data: null,
+      error: { message: err.message ?? 'Unable to restore schedule' },
+    };
+  }
+};
+
+/**
+ * Stores facts state in AsyncStorage.
+ * @param factItem - object of type TFactItem
+ * @returns a Promise that resolves to an object of type
+ * `TResponse` { success: boolean } indicating success or failure.
+ */
+export const saveNextFactInAsyncStorage = async (
+  factItem: TFactItem
+): Promise<TResponse<{ success: boolean }>> => {
+  try {
+    const nextFactItemStr = JSON.stringify(factItem);
+    await AsyncStorage.setItem(KEY_FACTS_NEXT_ITEM, nextFactItemStr);
+    // console.info(
+    //   `${green}%s${gray}%s${reset}`,
+    //   `The next fact item saved in AsyncStorage `,
+    //   `${factItem.title.slice(0, 30)}...`
+    // );
+    return {
+      data: { success: true },
+      error: null,
+    };
+  } catch (err: any) {
+    console.error(err);
+    return {
+      data: null,
+      error: { message: 'Could not save the fact item' },
+    };
+  }
+};
+
+/**
+ * Retrieves the next fact item from AsyncStorage.
+ * @returns a Promise that resolves to an object of type
+ * `TResponse` { nextFactItem: TFactItem }
+ */
+export const getNextFactFromAsyncStorage = async (): Promise<
+  TResponse<TFactItem>
+> => {
+  let data = null;
+  try {
+    const nextFactItemStr = await AsyncStorage.getItem(KEY_FACTS_NEXT_ITEM);
+
+    if (nextFactItemStr) {
+      const nextFactItem: TFactItem = JSON.parse(nextFactItemStr);
+      data = nextFactItem;
+      console.info(
+        `${green}%s${gray}%s${reset}`,
+        `The next fact item fetched from AsyncStorage `,
+        `${nextFactItem.title.slice(0, 30)}...`
+      );
+    }
+
+    return {
+      data,
+      error: null,
+    };
+  } catch (err: any) {
+    console.error(err);
+    return {
+      data: null,
+      error: { message: err.message ?? 'Unable to restore the next fact item' },
     };
   }
 };
@@ -200,15 +343,15 @@ export const saveFactsStateInAsyncStorage = async ({
     const favoritesStr = JSON.stringify(favorites);
     await AsyncStorage.setItem(KEY_FACTS_FAVORITES, favoritesStr);
 
-    console.info(
-      `${green}%s${gray}%s${reset}`,
-      `Facts state saved in AsyncStorage `,
-      `${stateKey}`
-    );
-    console.info(
-      `${gray}%s${reset}`,
-      `${state.facts[0].title.slice(0, 30)}...`
-    );
+    // console.info(
+    //   `${green}%s${gray}%s${reset}`,
+    //   `Facts state saved in AsyncStorage `,
+    //   `${stateKey}`
+    // );
+    // console.info(
+    //   `${gray}%s${reset}`,
+    //   `${state.facts[0].title.slice(0, 30)}...`
+    // );
     return {
       data: { success: true },
       error: null,
@@ -247,15 +390,15 @@ export const getFactsStateFromAsyncStorage = async (
 
     const state: TFactsState = JSON.parse(stateStr);
     const favorites: string[] = JSON.parse(favoritesStr);
-    console.info(
-      `${green}%s${gray}%s${reset}`,
-      `Facts state retrieved from AsyncStorage `,
-      `${stateKey}`
-    );
-    console.info(
-      `${gray}%s${reset}`,
-      `${state.facts[0].title.slice(0, 30)}...`
-    );
+    // console.info(
+    //   `${green}%s${gray}%s${reset}`,
+    //   `Facts state retrieved from AsyncStorage `,
+    //   `${stateKey}`
+    // );
+    // console.info(
+    //   `${gray}%s${reset}`,
+    //   `${state.facts[0].title.slice(0, 30)}...`
+    // );
     return {
       data: {
         state,

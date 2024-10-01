@@ -1,13 +1,12 @@
 import { NextFunction, Request, Response } from 'express';
 
-import UserModel from '../models/user.js';
-import { HttpError } from '../helpers/error.js';
-import logger from '../helpers/logger.js';
-import FactModel from '../models/fact.js';
 import { FACT_PROPS } from '../constants/facts.js';
+import { HttpError } from '../helpers/error.js';
 import { createCategoryMap } from '../helpers/facts.js';
 import { isReqValid } from '../helpers/http.js';
-import { decryptText, encryptText } from '../helpers/crypto.js';
+import logger from '../helpers/logger.js';
+import FactModel from '../models/fact.js';
+import UserModel from '../models/user.js';
 
 export const getFavorites = async (
   req: Request,
@@ -134,79 +133,6 @@ export const evaluateFact = async (
 
     res.status(201).json({
       data: { status },
-    });
-  } catch (err) {
-    logger.r('postEvaluateFact', err);
-    return next(new HttpError('Unable to evaluate fact.', 500));
-  }
-};
-
-export const createNotificationsSubscription = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  if (!isReqValid(req, next)) return;
-  const { expoPushToken, userId } = req.body;
-
-  try {
-    const user = await UserModel.findById(userId);
-    if (!user) {
-      return next(
-        new HttpError('Unable to find a user with the specified ID.', 404)
-      );
-    }
-
-    // check if a subscription already exists
-    if (user.notificationsSubscr !== null) {
-      return next(new HttpError('Subscription already exists', 409));
-    }
-
-    // encrypt the token
-    const { data, iv } = encryptText(expoPushToken);
-    const notificationsSubscr = {
-      token: {
-        data,
-        iv,
-      },
-      isActive: true,
-    };
-    user.notificationsSubscr = notificationsSubscr;
-    // const decrypted = decryptText(encryptedData);
-
-    await user.save();
-
-    res.status(200).json({
-      data: { success: true },
-    });
-  } catch (err) {
-    logger.r('postEvaluateFact', err);
-    return next(new HttpError('Unable to evaluate fact.', 500));
-  }
-};
-
-export const getNotificationsSubscriptionStatus = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  const userId = req.params.userId;
-
-  try {
-    const user = await UserModel.findById(userId);
-    if (!user) {
-      return next(
-        new HttpError('Unable to find a user with the specified ID.', 404)
-      );
-    }
-
-    const subscription = user.notificationsSubscr;
-
-    res.status(201).json({
-      data: {
-        isToken: !!subscription?.token?.data,
-        isActive: !!subscription?.isActive,
-      },
     });
   } catch (err) {
     logger.r('postEvaluateFact', err);

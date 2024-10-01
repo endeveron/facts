@@ -2,7 +2,7 @@ import { router } from 'expo-router';
 
 import { DEFAULT_REDIRECT_URL } from '@/core/constants';
 import {
-  TAuthContext,
+  TSessionContext,
   TAuthCredentials,
   TAuthData,
   TAuthSession,
@@ -28,7 +28,7 @@ import { consoleClors } from '@/core/constants/colors';
 import { useToast } from '@/core/hooks/useToast';
 const { red, reset } = consoleClors;
 
-const AuthContext = createContext<TAuthContext>({
+const SessionContext = createContext<TSessionContext>({
   session: null,
   isLoading: false,
   signUp: async (args: TAuthCredentials) => false,
@@ -37,7 +37,7 @@ const AuthContext = createContext<TAuthContext>({
 });
 
 export const useSession = () => {
-  const value = useContext(AuthContext);
+  const value = useContext(SessionContext);
   if (process.env.NODE_ENV !== 'production') {
     if (!value) {
       throw new Error('useSession must be wrapped in a <SessionProvider />');
@@ -51,6 +51,7 @@ export const SessionProvider = ({ children }: PropsWithChildren) => {
 
   const [isLoading, setIsLoading] = useState(false);
   const [session, setSession] = useState<TAuthSession>(null);
+  // console.log('session.token', session?.token);
 
   /** Updates auth state, adds auth data to SecureStore. */
   const saveAuthData = async ({ token, user }: TAuthData) => {
@@ -148,5 +149,7 @@ export const SessionProvider = ({ children }: PropsWithChildren) => {
     signOut,
   };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <SessionContext.Provider value={value}>{children}</SessionContext.Provider>
+  );
 };

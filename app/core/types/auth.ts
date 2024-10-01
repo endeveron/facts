@@ -25,7 +25,7 @@ export type TAuthData = {
 
 export type TAuthSession = TAuthData | null;
 
-export type TAuthContext = {
+export type TSessionContext = {
   session: TAuthSession;
   isLoading: boolean;
   signUp: (args: TAuthCredentials) => Promise<boolean | undefined>;

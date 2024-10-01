@@ -1,13 +1,7 @@
 import * as Clipboard from 'expo-clipboard';
 import { useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import {
-  ActivityIndicator,
-  Dimensions,
-  FlatList,
-  View,
-  ViewToken,
-} from 'react-native';
+import { Dimensions, FlatList, View, ViewToken } from 'react-native';
 
 import FactItem from '@/components/FactItem';
 import Navbar, { NavItemName, TNavbarItem } from '@/components/Navbar';
@@ -15,10 +9,11 @@ import CategoriesIcon from '@/components/svg/CategoriesIcon';
 import TextFileIcon from '@/components/svg/TextFileIcon';
 import UserIcon from '@/components/svg/UserIcon';
 import { FACTS_LENGTH_TO_FETCH_NEW_ITEMS } from '@/core/constants/facts';
-import { useSession } from '@/core/context/AuthContext';
+import { useSession } from '@/core/context/SessionContext';
 import {
   getFactsStateFromAsyncStorage,
   saveFactsStateInAsyncStorage,
+  saveNextFactInAsyncStorage,
 } from '@/core/helpers/store';
 import { getFacts } from '@/core/services/fact';
 import { postEvaluateFact } from '@/core/services/user';
@@ -29,12 +24,13 @@ import {
   TFactsState,
 } from '@/core/types/fact';
 
-import { consoleClors } from '@/core/constants/colors';
 import Skeleton from '@/components/Skeleton';
 import { Text } from '@/components/Text';
+import { consoleClors } from '@/core/constants/colors';
 import { useToast } from '@/core/hooks/useToast';
+import { logItem } from '@/core/helpers/misc';
 
-const { cyan, yellow, reset } = consoleClors;
+const { cyan, gray, yellow, reset } = consoleClors;
 
 // get the height of device window
 const windowHeight = Dimensions.get('window').height;
@@ -91,8 +87,7 @@ const Facts = () => {
     notShownNum: null,
   });
 
-  // init the facts state key for the AsyncStorage
-  // if the category
+  // define the facts state key for the AsyncStorage
   const stateKey = category
     ? EFactsStateKey.FACTS_STATE_CAT
     : EFactsStateKey.FACTS_STATE;
@@ -126,27 +121,51 @@ const Facts = () => {
     });
   };
 
+  /** Saves the next fact item in AsyncStorage to handle the daily notification */
+  const storeNextFactItem = async (
+    facts: TFactItem[],
+    currentItem: TCurrentItem
+  ) => {
+    const index = facts.findIndex((item) => item.id === currentItem.id);
+    if (index === -1) return;
+    const nextItem = facts[currentItem.index + 1];
+    const result = await saveNextFactInAsyncStorage(nextItem);
+    logItem('NXT STORE', facts, nextItem.id);
+    if (result.error) showToast(result.error.message);
+  };
+
+  /** Scrolls the FlatList to a specific element */
+  const scrollToItem = (index: number) => {
+    flatListRef.current?.scrollToIndex({
+      index,
+      animated: true,
+    });
+  };
+
   const onViewableItemsChanged = async ({
     viewableItems,
   }: TOnViewableItemsChangedArgs) => {
     if (viewableItems.length && viewableItems[0]) {
       const item = viewableItems[0];
       if (item.index == null) return;
-      const updCurrent = {
+      const currentUpd = {
         id: item.item.id,
         index: item.index,
       };
 
       // calculate the number of facts not shown
       let updNotShownNum = state.notShownNum as number;
-      const calcNotShownNum = factsLength - updCurrent.index - 1;
+      const calcNotShownNum = factsLength - currentUpd.index - 1;
       if (updNotShownNum > calcNotShownNum) {
         updNotShownNum = calcNotShownNum;
       }
 
+      // save the next fact item in AsyncStorage
+      await storeNextFactItem(state.facts, currentUpd);
+
       setState(({ current, notShownNum, ...rest }) => {
         return {
-          current: updCurrent,
+          current: currentUpd,
           notShownNum: updNotShownNum,
           ...rest,
         };
@@ -167,22 +186,20 @@ const Facts = () => {
 
   const handleNavbarPress = async (name: NavItemName) => {
     if (state.current !== null && state.notShownNum !== null) {
-      const freshFacts = state.facts.slice(state.current.index);
+      // const slicedFacts = state.facts.slice(state.current.index);
 
       const result = await saveFactsStateInAsyncStorage({
         stateKey,
-        state: {
-          facts: freshFacts,
-          current: state.current,
-          notShownNum: state.notShownNum,
-        },
+        // state: {
+        //   facts: slicedFacts,
+        //   current: state.current,
+        //   notShownNum: state.notShownNum,
+        // },
+        state,
         favorites,
       });
-      if (result.error) {
-        showToast(result.error.message);
-      } else {
-        console.info(`${yellow}%s${reset}\n`, 'Leaving Facts');
-      }
+      if (result.error) return showToast(result.error.message);
+      // console.info(`${yellow}%s${reset}\n`, 'Leaving Facts');
     }
   };
 
@@ -195,7 +212,7 @@ const Facts = () => {
     let fetchedFavorites: string[] = [];
     let updFacts: TFactItem[] = [];
     let updFactsLength: number = 0;
-    let updCurrent: TCurrentItem | null = null;
+    let currentUpd: TCurrentItem | null = null;
     let updNotShownNum: number | null = null;
 
     const result = await getFacts({
@@ -232,23 +249,20 @@ const Facts = () => {
     // and recalculate the number of facts not shown
     if (!state.current) {
       // initialize data
-      updCurrent = {
+      currentUpd = {
         id: fetchedFacts[0].id,
         index: 0,
       };
       updNotShownNum = updFactsLength - 1;
       setState(({ current, notShownNum, ...rest }) => ({
-        current: updCurrent,
+        current: currentUpd,
         notShownNum: updNotShownNum,
         ...rest,
       }));
     } else {
       // refetch data
       // scroll to current item
-      flatListRef.current?.scrollToIndex({
-        index: state.current.index,
-        animated: false,
-      });
+      scrollToItem(state.current.index);
 
       updNotShownNum = updFactsLength - state.current.index - 1;
       setState(({ notShownNum, ...rest }) => {
@@ -259,20 +273,22 @@ const Facts = () => {
       });
     }
 
-    if (updCurrent && updNotShownNum) {
+    // save data in AsyncStorage
+    if (currentUpd && updNotShownNum) {
       await saveFactsStateInAsyncStorage({
         stateKey,
         state: {
           facts: updFacts,
-          current: updCurrent,
+          current: currentUpd,
           notShownNum: updNotShownNum,
         },
         favorites: fetchedFavorites,
       });
+      await storeNextFactItem(updFacts, currentUpd);
     }
   };
 
-  // initialize data
+  // initialize data or fetch if `category` provided
   useEffect(() => {
     // if the url contains `category` prop in the search parameters
     // fetch facts for a certain category from the server
@@ -298,25 +314,40 @@ const Facts = () => {
       }
 
       const {
-        state: { current, facts, notShownNum },
-        favorites,
+        state: {
+          current: curFromStorage,
+          facts: factsFromStorage,
+          notShownNum: notShownNumFromStorage,
+        },
+        favorites: favoritesFromStorage,
       } = restoreFactsResult.data;
+
+      // update the next fact item in AsyncStorage
+      if (curFromStorage) {
+        await storeNextFactItem(factsFromStorage, curFromStorage);
+      }
 
       // fetch the new facts from the server if the stored data does not meet
       // the minimum threshold defined by `FACTS_LENGTH_TO_FETCH_NEW_ITEMS`
-      if (facts.length <= FACTS_LENGTH_TO_FETCH_NEW_ITEMS) {
+      if (factsFromStorage.length <= FACTS_LENGTH_TO_FETCH_NEW_ITEMS) {
         await fetchData();
         return;
       }
 
-      // restore facts state from the storage
+      // update the current item
+      let currentUpd = curFromStorage ?? {
+        id: factsFromStorage[0].id,
+        index: 0,
+      };
+
       setState({
-        current,
-        facts,
-        notShownNum,
+        current: currentUpd,
+        facts: factsFromStorage,
+        notShownNum: notShownNumFromStorage,
       });
       // must be separated from the state
-      setFavorites(favorites);
+      setFavorites(favoritesFromStorage);
+      scrollToItem(currentUpd.index);
     };
     init();
   }, []);
@@ -331,6 +362,11 @@ const Facts = () => {
       fetchData();
     }
   }, [state.notShownNum]);
+
+  // DEV
+  useEffect(() => {
+    logItem('CUR STATE', state.facts, state.current?.id);
+  }, [state.current]);
 
   return (
     <View className="h-full relative">

@@ -5,8 +5,9 @@ import { useEffect } from 'react';
 import { useColorScheme } from 'react-native';
 
 import { colors, defaultScheme } from '@/core/constants/colors';
-import { SessionProvider } from '@/core/context/AuthContext';
-import { NotificationsProvider } from '@/core/context/NotificationsContext';
+import { SessionProvider } from '@/core/context/SessionContext';
+import { PushNotificationsProvider } from '@/core/context/PushNotificationsContext';
+import { AppStateProvider } from '@/core/context/AppStateProvider';
 
 // prevent the splash screen from auto-hiding before asset loading is complete
 SplashScreen.preventAutoHideAsync();
@@ -46,12 +47,13 @@ const RootLayout = () => {
   }
 
   return (
-    <SessionProvider>
-      {/* push notifications provider */}
-      <NotificationsProvider>
-        <Slot />
-      </NotificationsProvider>
-    </SessionProvider>
+    <AppStateProvider>
+      <SessionProvider>
+        <PushNotificationsProvider>
+          <Slot />
+        </PushNotificationsProvider>
+      </SessionProvider>
+    </AppStateProvider>
   );
 };
 

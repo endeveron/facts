@@ -107,41 +107,6 @@ export const getResetFacts = async ({
   }
 };
 
-export const getNotificationsSubscriptionStatus = async ({
-  userId,
-  token,
-}: {
-  userId: string;
-  token: string;
-}): Promise<TResponse<{ isToken: boolean; isActive: boolean }> | undefined> => {
-  if (!userId)
-    return { data: null, error: { message: 'No user ID provided.' } };
-  try {
-    const response = await fetch(
-      `${API_BASE_URL}/users/${userId}/notifications-subscription-status`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          ...commonHeaders,
-        },
-      }
-    );
-    if (!response.ok) {
-      return {
-        data: null,
-        error: { message: 'Unable to reset facts.' },
-      };
-    }
-    const result = await response.json();
-    if (result?.data) {
-      return { data: result.data, error: null };
-    }
-  } catch (err: any) {
-    console.error(err);
-    return { data: null, error: { message: err.message } };
-  }
-};
-
 export const postNotificationsSubscription = async ({
   userId,
   token,
@@ -154,20 +119,17 @@ export const postNotificationsSubscription = async ({
   if (!userId)
     return { data: null, error: { message: 'No user ID provided.' } };
   try {
-    const response = await fetch(
-      `${API_BASE_URL}/users/notifications-subscription`,
-      {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          ...commonHeaders,
-        },
-        body: JSON.stringify({
-          expoPushToken,
-          userId,
-        }),
-      }
-    );
+    const response = await fetch(`${API_BASE_URL}/notifications/subscription`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        ...commonHeaders,
+      },
+      body: JSON.stringify({
+        expoPushToken,
+        userId,
+      }),
+    });
     if (!response.ok) {
       return {
         data: null,
