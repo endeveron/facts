@@ -12,32 +12,34 @@ import {
 import { consoleClors } from '@/core/constants/colors';
 import { useSession } from '@/core/context/SessionContext';
 import {
+  handleBackgroundNotification,
   handleNotificationClick,
   logNotificationData,
   registerPushNotificationsService,
   sendPushNotification,
 } from '@/core/helpers/notification';
 import { TNotificationConfig } from '@/core/types/common';
+import { NOTIFICATION_BACKGROUND_TASK } from '@/core/constants';
 
 const { cyan, green, gray, red, yellow, reset } = consoleClors;
 
 // when app is foregrounded - handle the behavior when notifications are received
-// Notifications.setNotificationHandler({
-//   handleNotification: async () => ({
-//     shouldShowAlert: true,
-//     shouldPlaySound: false,
-//     shouldSetBadge: false,
-//   }),
-// });
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: false,
+    shouldSetBadge: false,
+  }),
+});
 
-// // when app is backgrounded - define a task to handle the behavior when notifications are received
-// // ! background event listeners are not supported in Expo Go
-// // see https://docs.expo.dev/versions/latest/sdk/notifications/#notification-events-listeners
-// TaskManager.defineTask(
-//   NOTIFICATION_BACKGROUND_TASK,
-//   handleBackgroundNotification
-// );
-// Notifications.registerTaskAsync(NOTIFICATION_BACKGROUND_TASK);
+// when app is backgrounded - define a task to handle the behavior when notifications are received
+// ! background event listeners are not supported in Expo Go
+// see https://docs.expo.dev/versions/latest/sdk/notifications/#notification-events-listeners
+TaskManager.defineTask(
+  NOTIFICATION_BACKGROUND_TASK,
+  handleBackgroundNotification
+);
+Notifications.registerTaskAsync(NOTIFICATION_BACKGROUND_TASK);
 
 export type TNotifications = typeof Notifications;
 
@@ -127,11 +129,11 @@ export const PushNotificationsProvider = ({ children }: PropsWithChildren) => {
       responseListener.current &&
         Notifications.removeNotificationSubscription(responseListener.current);
 
-      TaskManager.unregisterAllTasksAsync();
+      // TaskManager.unregisterAllTasksAsync();
     };
   }, []);
 
-  // // Dev
+  // // dev
   // useEffect(() => {
   //   const getTasks = async () => {
   //     const tasks = await TaskManager.getRegisteredTasksAsync();

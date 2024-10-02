@@ -1,10 +1,12 @@
+const brandFlatColor = '#ff4810';
+
 export default {
   expo: {
     name: 'facts',
     slug: 'facts',
     version: '1.0.0',
     orientation: 'portrait',
-    icon: './assets/images/icon.png',
+    icon: './assets/icons/icon.png',
     scheme: 'myapp',
     userInterfaceStyle: 'automatic',
     splash: {
@@ -12,25 +14,28 @@ export default {
       resizeMode: 'contain',
       backgroundColor: '#000000',
     },
-    ios: {
-      supportsTablet: true,
-    },
     android: {
       adaptiveIcon: {
-        foregroundImage: './assets/images/adaptive-icon.png',
-        backgroundColor: '#000000',
+        backgroundColor: brandFlatColor,
+        monochromeImage: './assets/icons/adaptive_icon/foreground_image.png',
+        foregroundImage: './assets/icons/adaptive_icon/foreground_image.png',
+        backgroundImage: './assets/icons/adaptive_icon/background_image.png',
       },
       package: 'com.softest.facts',
-      googleServicesFile: './google-services.json',
+      googleServicesFile:
+        process.env.GOOGLE_SERVICES_JSON || './google-services.json',
       notifications: {
         androidMode: 'collapse',
       },
-      // process.env.GOOGLE_SERVICES_JSON || './google-services.json',
     },
-    web: {
-      bundler: 'metro',
-      output: 'static',
-      favicon: './assets/images/favicon.png',
+    notification: {
+      icon: './assets/icons/notification_icon.png',
+      color: brandFlatColor,
+      androidMode: 'collapse',
+      androidCollapsedTitle: '#{unread_notifications} new facts for you',
+    },
+    ios: {
+      supportsTablet: true,
     },
     plugins: ['expo-router', 'expo-secure-store'],
     experiments: {

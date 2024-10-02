@@ -16,6 +16,7 @@ import {
 import { useSession } from '@/core/context/SessionContext';
 import { useToast } from '@/core/hooks/useToast';
 import { signUpSchema, TSignUpFormData } from '@/core/utils/validation';
+import AuthScreen from '@/components/AuthScreen';
 
 const SignUp = () => {
   const { isLoading, signUp } = useSession();
@@ -50,90 +51,84 @@ const SignUp = () => {
   };
 
   return (
-    <SafeAreaView className="h-full">
-      <ScrollView
-        contentContainerStyle={{
-          height: '100%',
-        }}
-      >
-        <View className="h-full flex justify-center p-4">
-          <Text className="text-3xl font-pbold mb-6">Sign Up</Text>
+    <AuthScreen>
+      <>
+        <Text className="text-3xl font-pbold mb-6">Sign Up</Text>
 
-          <Controller
-            control={control}
-            render={({
-              field: { onChange, onBlur, value },
-              fieldState: { error },
-            }) => (
-              <FormField
-                name="name"
-                label="Name"
-                value={value}
-                onBlur={onBlur}
-                handleChangeText={onChange}
-                containerClassName="mt-6"
-                error={error}
-              />
-            )}
-            name="name"
-          />
+        <Controller
+          control={control}
+          render={({
+            field: { onChange, onBlur, value },
+            fieldState: { error },
+          }) => (
+            <FormField
+              name="name"
+              label="Name"
+              value={value}
+              onBlur={onBlur}
+              handleChangeText={onChange}
+              containerClassName="mt-6"
+              error={error}
+            />
+          )}
+          name="name"
+        />
 
-          <Controller
-            control={control}
-            render={({
-              field: { onChange, onBlur, value },
-              fieldState: { error },
-            }) => (
-              <FormField
-                name="email"
-                label="Email"
-                value={value}
-                onBlur={onBlur}
-                handleChangeText={onChange}
-                containerClassName="mt-6"
-                error={error}
-                keyboardType="email-address"
-              />
-            )}
-            name="email"
-          />
+        <Controller
+          control={control}
+          render={({
+            field: { onChange, onBlur, value },
+            fieldState: { error },
+          }) => (
+            <FormField
+              name="email"
+              label="Email"
+              value={value}
+              onBlur={onBlur}
+              handleChangeText={onChange}
+              containerClassName="mt-6"
+              error={error}
+              keyboardType="email-address"
+            />
+          )}
+          name="email"
+        />
 
-          <Controller
-            control={control}
-            render={({
-              field: { onChange, onBlur, value },
-              fieldState: { error },
-            }) => (
-              <FormField
-                name="password"
-                label="Password"
-                value={value}
-                onBlur={onBlur}
-                handleChangeText={onChange}
-                containerClassName="mt-6"
-                error={error}
-              />
-            )}
-            name="password"
-          />
+        <Controller
+          control={control}
+          render={({
+            field: { onChange, onBlur, value },
+            fieldState: { error },
+          }) => (
+            <FormField
+              name="password"
+              label="Password"
+              value={value}
+              onBlur={onBlur}
+              handleChangeText={onChange}
+              containerClassName="mt-6"
+              error={error}
+            />
+          )}
+          name="password"
+        />
 
-          <Button
-            title="Sign Up"
-            handlePress={handleSubmit(onSubmit)}
-            containerClassName="mt-8"
-            isLoading={isLoading}
-          />
-          <View className="flex justify-center py-12 flex-row gap-3">
-            <Text colorName="muted" className="font-pmedium">
-              Have an account already?
-            </Text>
-            <Link href="/sign-in">
-              <Text className="ml-4 font-psemibold">Signin</Text>
-            </Link>
-          </View>
+        <Button
+          title="Sign Up"
+          handlePress={handleSubmit(onSubmit)}
+          containerClassName="mt-8"
+          isLoading={isLoading}
+        />
+        <View className="flex justify-center py-12 flex-row gap-3">
+          <Text colorName="muted" className="font-pmedium">
+            Have an account already?
+          </Text>
+          <Link href="/sign-in">
+            <Text className="ml-4 font-psemibold">Signin</Text>
+          </Link>
         </View>
-      </ScrollView>
-    </SafeAreaView>
+      </>
+    </AuthScreen>
   );
 };
 

@@ -241,7 +241,6 @@ export const getNotifScheduleFromAsyncStorage = async (): Promise<
     // );
     return {
       data: {
-        id: schedule.id,
         hour: schedule.hour,
         minute: schedule.minute,
       },

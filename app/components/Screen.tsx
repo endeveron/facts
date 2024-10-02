@@ -1,6 +1,12 @@
 import { StatusBar } from 'expo-status-bar';
-import { PropsWithChildren } from 'react';
-import { Image, useColorScheme, View } from 'react-native';
+import { PropsWithChildren, useEffect, useRef } from 'react';
+import {
+  Animated,
+  Image,
+  ScrollView,
+  useColorScheme,
+  View,
+} from 'react-native';
 
 import Navbar, { Tnavbar } from '@/components/Navbar';
 import { Text } from '@/components/Text';
@@ -11,9 +17,30 @@ export type TScreenProps = PropsWithChildren & {
   navbar?: Tnavbar;
 };
 
+const baseAnimConfig = {
+  duration: 250,
+  useNativeDriver: true,
+};
+
 const Screen = ({ title, navbar, children }: TScreenProps) => {
   const backgroundColor = useThemeColor('background');
   const theme = useColorScheme() ?? 'light';
+
+  const opacity = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.timing(opacity, {
+      toValue: 1,
+      ...baseAnimConfig,
+    }).start();
+
+    return () => {
+      Animated.timing(opacity, {
+        toValue: 0,
+        ...baseAnimConfig,
+      }).start();
+    };
+  }, []);
 
   const renderNavbar = () => {
     if (navbar) {
@@ -45,13 +72,13 @@ const Screen = ({ title, navbar, children }: TScreenProps) => {
   return (
     <View style={{ backgroundColor }} className="relative h-full">
       <StatusBar backgroundColor="transparent" />
-      <View className="relative h-full z-10">
+      <Animated.View className="relative h-full z-10" style={{ opacity }}>
         {navbarEl}
         {title && (
           <Text className="px-4 pt-16 pb-6 text-2xl font-pbold">{title}</Text>
         )}
         {children}
-      </View>
+      </Animated.View>
       {bgImage}
     </View>
   );

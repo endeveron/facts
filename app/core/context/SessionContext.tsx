@@ -116,9 +116,16 @@ export const SessionProvider = ({ children }: PropsWithChildren) => {
   };
 
   const signOut = async () => {
+    // // prod
+    // setSession(null);
+    // router.replace('/sign-in');
+
+    ////////////////////////////
+
+    // dev
+
     let error = false;
 
-    // Dev start
     const factsStorageResult = await deleteFactsDataFromAsyncStorage();
     if (factsStorageResult.error) error = true;
     const result = await getResetFacts({
@@ -128,7 +135,6 @@ export const SessionProvider = ({ children }: PropsWithChildren) => {
     if (!!result?.data) {
     }
     console.info(`${red}%s${reset}`, 'Facts data is reset in DB');
-    // Dev end
 
     const authResult = await deleteAuthDataFromSecureStore();
     if (authResult.error) error = true;

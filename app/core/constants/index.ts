@@ -45,4 +45,4 @@ export {
 };
 
 export const HOUR = 14;
-export const MINUTE = 26;
+export const MINUTE = 0;

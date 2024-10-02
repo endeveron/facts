@@ -133,7 +133,7 @@ export const postNotificationsSubscription = async ({
     if (!response.ok) {
       return {
         data: null,
-        error: { message: 'Unable to save subscription.' },
+        error: { message: 'Unable to save subscription' },
       };
     }
     const result = await response.json();

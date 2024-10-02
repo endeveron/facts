@@ -11,8 +11,8 @@ type TSkeletonProps = PropsWithChildren & {
   containerClassName?: string;
 };
 
-const OPACITY_FROM_VALUE = 0.2;
-const OPACITY_TO_VALUE = 0.4;
+const OPACITY_FROM_VALUE = 0.1;
+const OPACITY_TO_VALUE = 0.25;
 const ANIM_DURATION = 500; // ms
 
 const Skeleton = ({ containerClassName, children }: TSkeletonProps) => {

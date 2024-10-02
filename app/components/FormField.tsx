@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { FieldError } from 'react-hook-form';
 import {
   KeyboardTypeOptions,
@@ -58,6 +58,10 @@ export const FormField = ({
         heightClassName = 'h-24';
     }
   }
+
+  useEffect(() => {
+    error && console.log('error', error);
+  }, [error]);
 
   return (
     <View className={`space-y-2 ${containerClassName}`}>

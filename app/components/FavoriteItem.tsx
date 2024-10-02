@@ -1,9 +1,8 @@
 import React, { memo, useState } from 'react';
-import { Pressable, useColorScheme, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 
 import Card from '@/components/Card';
 import { Text } from '@/components/Text';
-import { factCategoryColorMap } from '@/core/constants/colors';
 import { TFactItem } from '@/core/types/fact';
 
 type TFavoriteItemProps = {
@@ -12,16 +11,7 @@ type TFavoriteItemProps = {
 };
 
 const FavoriteItem = ({ itemData, onDislike }: TFavoriteItemProps) => {
-  const theme = useColorScheme() ?? 'light';
-
   const [showPrompt, setShowPrompt] = useState(false);
-
-  let categoryColor = '';
-  const category = itemData.category;
-  const categoryInMap = factCategoryColorMap.get(category);
-  if (categoryInMap) {
-    categoryColor = categoryInMap[theme];
-  }
 
   const handleDislike = () => {
     onDislike(itemData.id, itemData.category);
@@ -57,10 +47,6 @@ const FavoriteItem = ({ itemData, onDislike }: TFavoriteItemProps) => {
             </View>
           ) : (
             <View className="flex-row items-center gap-x-2 p-2">
-              {/* <View
-                style={{ backgroundColor: categoryColor }}
-                className="w-3 h-3 rounded-full opacity-80"
-              ></View> */}
               <Text colorName="muted" className="text-sm uppercase font-plight">
                 {itemData.category}
               </Text>

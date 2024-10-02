@@ -16,6 +16,7 @@ import { TNotifications } from '@/core/context/PushNotificationsContext';
 import {
   getNotifScheduleFromAsyncStorage,
   getNotifSubscrDataFromSecureStore,
+  saveNotifScheduleInAsyncStorage,
   saveNotifSubscrDataInSecureStore,
 } from '@/core/helpers/store';
 import { handleServiceResult } from '@/core/services/handler';
@@ -32,7 +33,7 @@ export const handleBackgroundNotification: TaskManagerTaskExecutor = ({
   // executionInfo,
 }) => {
   if (error) console.error(error);
-  if (data) console.log('RR', data);
+  if (data) console.log('Background Notification', data);
 };
 
 export const logNotificationData = (
@@ -61,7 +62,7 @@ export const handleNotificationClick = (
   if (response.actionIdentifier === Notifications.DEFAULT_ACTION_IDENTIFIER) {
     console.info(`${cyan}%s${reset}`, 'User tapped notification');
 
-    // console.log('content', response.notification.request.content);
+    console.log('content', response.notification.request.content);
     // console.log('trigger', response.notification.request.trigger);
 
     // const data = response.notification.request.content.data;
@@ -211,14 +212,14 @@ export const scheduleReminderNotification = async ({
     success: boolean;
   }>
 > => {
-  // check if the expo token saved in the storage
+  // check if the schedule saved in the storage
   const storeRes = await getNotifScheduleFromAsyncStorage();
   if (
     storeRes.data &&
     storeRes.data.hour === hour &&
     storeRes.data?.minute === minute
   ) {
-    // schedule from storage is relevant, nothing to save
+    // schedule from the storage is relevant, nothing to save
     return { data: { success: true }, error: null };
   }
 
@@ -243,6 +244,8 @@ export const scheduleReminderNotification = async ({
         error: { message: defaultErrMsg },
       };
     }
+
+    await saveNotifScheduleInAsyncStorage({ hour, minute });
 
     return {
       data: { success: true },

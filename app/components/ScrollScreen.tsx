@@ -1,14 +1,42 @@
 import { StatusBar } from 'expo-status-bar';
-import { Image, ScrollView, useColorScheme, View } from 'react-native';
+import { useEffect, useRef } from 'react';
+import {
+  Animated,
+  Image,
+  ScrollView,
+  useColorScheme,
+  View,
+} from 'react-native';
 
 import Navbar from '@/components/Navbar';
 import { TScreenProps } from '@/components/Screen';
 import { Text } from '@/components/Text';
 import { useThemeColor } from '@/core/hooks/useThemeColor';
 
+const baseAnimConfig = {
+  duration: 250,
+  useNativeDriver: true,
+};
+
 const ScrollScreen = ({ title, navbar, children }: TScreenProps) => {
   const backgroundColor = useThemeColor('background');
   const theme = useColorScheme() ?? 'light';
+
+  const opacity = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.timing(opacity, {
+      toValue: 1,
+      ...baseAnimConfig,
+    }).start();
+
+    return () => {
+      Animated.timing(opacity, {
+        toValue: 0,
+        ...baseAnimConfig,
+      }).start();
+    };
+  }, []);
 
   const renderNavbar = () => {
     if (navbar) {
@@ -40,7 +68,7 @@ const ScrollScreen = ({ title, navbar, children }: TScreenProps) => {
   return (
     <View style={{ backgroundColor }} className="relative h-full">
       <StatusBar backgroundColor="transparent" />
-      <View className="relative h-full z-10">
+      <Animated.View className="relative h-full z-10" style={{ opacity }}>
         {navbarEl}
         <ScrollView>
           {title && (
@@ -48,7 +76,7 @@ const ScrollScreen = ({ title, navbar, children }: TScreenProps) => {
           )}
           {children}
         </ScrollView>
-      </View>
+      </Animated.View>
       {bgImage}
     </View>
   );

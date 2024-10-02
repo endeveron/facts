@@ -11,10 +11,10 @@ export type TUser = {
   account: {
     name: string;
     email: string;
-  };
-  role: {
-    index: number;
-    name: string;
+    role: {
+      index: number;
+      name: string;
+    };
   };
 };
 

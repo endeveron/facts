@@ -1,7 +1,8 @@
 import * as Clipboard from 'expo-clipboard';
 import { useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Dimensions, FlatList, View, ViewToken } from 'react-native';
+import { Animated, Dimensions, FlatList, View, ViewToken } from 'react-native';
+// import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 
 import FactItem from '@/components/FactItem';
 import Navbar, { NavItemName, TNavbarItem } from '@/components/Navbar';
@@ -27,8 +28,8 @@ import {
 import Skeleton from '@/components/Skeleton';
 import { Text } from '@/components/Text';
 import { consoleClors } from '@/core/constants/colors';
-import { useToast } from '@/core/hooks/useToast';
 import { logItem } from '@/core/helpers/misc';
+import { useToast } from '@/core/hooks/useToast';
 
 const { cyan, gray, yellow, reset } = consoleClors;
 
@@ -78,8 +79,7 @@ const Facts = () => {
   const { category } = useLocalSearchParams();
   const { showToast } = useToast();
 
-  const [isFetching, setIsFetching] = useState(false);
-  const [noMoreFacts, setNoMoreFacts] = useState(false);
+  // const [noMoreFacts, setNoMoreFacts] = useState(false);
   const [favorites, setFavorites] = useState<string[]>([]);
   const [state, setState] = useState<TFactsState>({
     facts: [],
@@ -93,10 +93,37 @@ const Facts = () => {
     : EFactsStateKey.FACTS_STATE;
 
   const flatListRef = useRef<FlatList<TFactItem>>(null);
+  const fadeList = useRef(new Animated.Value(0)).current;
+  const fadeSkeleton = useRef(new Animated.Value(0)).current;
 
   const userId = session.user.id;
   const token = session.token;
   const factsLength = state.facts.length;
+
+  const fadeInList = () => {
+    Animated.timing(fadeList, {
+      toValue: 1,
+      duration: 200,
+      useNativeDriver: true,
+      delay: 400,
+    }).start();
+  };
+
+  const fadeInSkeleton = () => {
+    Animated.timing(fadeSkeleton, {
+      toValue: 1,
+      duration: 1000,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const fadeOutList = () => {
+    Animated.timing(fadeList, {
+      toValue: 0,
+      duration: 500,
+      useNativeDriver: true,
+    }).start();
+  };
 
   const handleCopy = async (text: string) => {
     if (!text) return;
@@ -138,6 +165,7 @@ const Facts = () => {
   const scrollToItem = (index: number) => {
     flatListRef.current?.scrollToIndex({
       index,
+      // animated: false,
       animated: true,
     });
   };
@@ -185,18 +213,19 @@ const Facts = () => {
   );
 
   const handleNavbarPress = async (name: NavItemName) => {
+    fadeOutList();
     if (state.current !== null && state.notShownNum !== null) {
       // const slicedFacts = state.facts.slice(state.current.index);
 
       const result = await saveFactsStateInAsyncStorage({
         stateKey,
+        state,
+        favorites,
         // state: {
         //   facts: slicedFacts,
         //   current: state.current,
         //   notShownNum: state.notShownNum,
         // },
-        state,
-        favorites,
       });
       if (result.error) return showToast(result.error.message);
       // console.info(`${yellow}%s${reset}\n`, 'Leaving Facts');
@@ -204,8 +233,7 @@ const Facts = () => {
   };
 
   const fetchData = async () => {
-    if (isFetching || noMoreFacts) return;
-    setIsFetching(true);
+    // if (isFetching || noMoreFacts) return;
     console.info(`${cyan}%s${reset}`, 'Fetching facts data...');
 
     let fetchedFacts: TFactItem[] = [];
@@ -221,14 +249,12 @@ const Facts = () => {
       token,
     });
     if (result?.error) {
-      setIsFetching(false);
       showToast(result.error.message);
       return;
     }
 
     // save facts and favorites in the local state
     if (result?.data) {
-      setIsFetching(false);
       // console.info('Facts data fetched.');
       fetchedFacts = result.data.facts;
       setState(({ facts, ...rest }) => {
@@ -239,10 +265,10 @@ const Facts = () => {
           ...rest,
         };
       });
-
+      // fadeInList();
       fetchedFavorites = result.data.favorites;
       setFavorites(fetchedFavorites);
-      if (!fetchedFacts.length) setNoMoreFacts(true);
+      // if (!fetchedFacts.length) setNoMoreFacts(true);
     }
 
     // save the data of the current item in the local state
@@ -288,7 +314,7 @@ const Facts = () => {
     }
   };
 
-  // initialize data or fetch if `category` provided
+  // initialize data or fetch if `category` url search param provided
   useEffect(() => {
     // if the url contains `category` prop in the search parameters
     // fetch facts for a certain category from the server
@@ -312,6 +338,8 @@ const Facts = () => {
         await fetchData();
         return;
       }
+
+      // fadeInList();
 
       const {
         state: {
@@ -355,7 +383,6 @@ const Facts = () => {
   // fetch the new items only if the user has not viewed the last N facts.
   useEffect(() => {
     if (
-      !isFetching &&
       state.notShownNum &&
       state.notShownNum <= FACTS_LENGTH_TO_FETCH_NEW_ITEMS
     ) {
@@ -363,46 +390,61 @@ const Facts = () => {
     }
   }, [state.notShownNum]);
 
-  // DEV
+  // fade list
   useEffect(() => {
-    logItem('CUR STATE', state.facts, state.current?.id);
+    if (state.current) fadeInList();
+    // if (!state.current) fadeInSkeleton();
   }, [state.current]);
+
+  // fade in skeleton
+  useEffect(() => {
+    if (!state.current) fadeInSkeleton();
+  }, [state.current]);
+
+  // // dev
+  // useEffect(() => {
+  //   logItem('CUR STATE', state.facts, state.current?.id);
+  // }, [state.current]);
 
   return (
     <View className="h-full relative">
       <Navbar navItems={navItems} onPress={handleNavbarPress} />
-
-      {!state.current && isFetching ? (
-        <View className="flex-1 items-center justify-center">
-          <Skeleton containerClassName="h-[480px] -translate-y-16 p-4">
-            <Text className="h-4 w-1/5 -mt-4 rounded-full bg-slate-600"></Text>
-            <Text className="h-8 w-full mt-10 rounded-full bg-slate-600"></Text>
-            <Text className="h-8 w-3/5 mt-4 rounded-full bg-slate-600"></Text>
-          </Skeleton>
-        </View>
+      {state.current ? (
+        <Animated.View style={{ opacity: fadeList }}>
+          <FlatList
+            ref={flatListRef}
+            data={state.facts}
+            className="relative"
+            snapToAlignment="start" // 'start' - important to avoid item displacement on lazy load
+            decelerationRate="normal"
+            snapToInterval={windowHeight}
+            keyExtractor={(item) => item.id}
+            getItemLayout={getItemLayout}
+            disableIntervalMomentum={true}
+            viewabilityConfig={viewabilityConfig}
+            onViewableItemsChanged={onViewableItemsChanged}
+            renderItem={({ item, index }) => (
+              <FactItem
+                itemData={{ index, ...item }}
+                factsTotal={factsLength}
+                favorites={favorites}
+                onCopy={handleCopy}
+                onLike={handleLike}
+              />
+            )}
+          />
+        </Animated.View>
       ) : (
-        <FlatList
-          ref={flatListRef}
-          data={state.facts}
-          className="relative"
-          snapToAlignment="start" // 'start' - important to avoid item displacement on lazy load
-          decelerationRate="normal"
-          snapToInterval={windowHeight}
-          keyExtractor={(item) => item.id}
-          getItemLayout={getItemLayout}
-          disableIntervalMomentum={true}
-          viewabilityConfig={viewabilityConfig}
-          onViewableItemsChanged={onViewableItemsChanged}
-          renderItem={({ item, index }) => (
-            <FactItem
-              itemData={{ index, ...item }}
-              factsTotal={factsLength}
-              favorites={favorites}
-              onCopy={handleCopy}
-              onLike={handleLike}
-            />
-          )}
-        />
+        <Animated.View
+          className="flex-1 items-center justify-center"
+          style={{ opacity: fadeSkeleton }}
+        >
+          <Skeleton containerClassName="h-[480px] -translate-y-16 p-4">
+            <Text className="h-4 w-1/5 -mt-4 rounded-full bg-slate-600 opacity-80"></Text>
+            <Text className="h-8 w-full mt-10 rounded-full bg-slate-600 opacity-80"></Text>
+            <Text className="h-8 w-3/5 mt-4 rounded-full bg-slate-600 opacity-80"></Text>
+          </Skeleton>
+        </Animated.View>
       )}
     </View>
   );

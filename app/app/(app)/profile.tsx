@@ -14,6 +14,9 @@ const profile = () => {
   const { session, signOut } = useSession();
   const accentColor = useThemeColor('accent');
 
+  // only admin can create a new fact
+  const isAdmin = session?.user.account.role.index === 3;
+
   // const { expoPushToken, response, sendNotification } = useNotifications();
 
   // useEffect(() => {
@@ -31,16 +34,19 @@ const profile = () => {
       icon: <CategoriesIcon />,
     },
     {
-      name: NavItemName.create,
-      href: '/create',
-      icon: <PlusSquaredIcon color={accentColor} />,
-    },
-    {
       name: NavItemName.facts,
       href: '/facts',
       icon: <TextFileIcon />,
     },
   ];
+
+  if (isAdmin) {
+    navItems.splice(1, 0, {
+      name: NavItemName.create,
+      href: '/create',
+      icon: <PlusSquaredIcon color={accentColor} />,
+    });
+  }
 
   return (
     <ScrollScreen title={title} navbar={{ navItems }}>
