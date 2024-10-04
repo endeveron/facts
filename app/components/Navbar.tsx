@@ -11,6 +11,7 @@ export enum NavItemName {
   facts = 'facts',
   home = 'home',
   profile = 'profile',
+  dev = 'dev',
 }
 
 export type TNavbarItem = {

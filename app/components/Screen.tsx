@@ -74,9 +74,9 @@ const Screen = ({ title, navbar, children }: TScreenProps) => {
       <StatusBar backgroundColor="transparent" />
       <Animated.View className="relative h-full z-10" style={{ opacity }}>
         {navbarEl}
-        {title && (
+        {!!title ? (
           <Text className="px-4 pt-16 pb-6 text-2xl font-pbold">{title}</Text>
-        )}
+        ) : null}
         {children}
       </Animated.View>
       {bgImage}

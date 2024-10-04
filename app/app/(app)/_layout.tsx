@@ -16,6 +16,7 @@ const screens: TScreen[] = [
   { name: 'create' },
   { name: 'facts' },
   { name: 'profile' },
+  { name: 'dev' },
 ];
 
 const AppLayout = () => {

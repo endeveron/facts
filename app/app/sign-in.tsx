@@ -16,6 +16,7 @@ import {
 import { useSession } from '@/core/context/SessionContext';
 import { useToast } from '@/core/hooks/useToast';
 import { signInSchema, TSignInFormData } from '@/core/utils/validation';
+import { writeLog } from '@/core/context/LoggingProvider';
 
 const SignIn = () => {
   const { isLoading, signIn } = useSession();
@@ -44,6 +45,8 @@ const SignIn = () => {
     } catch (error: any) {
       console.error(error);
       showToast('Unable to login');
+      writeLog(`Login error: ${error.message || JSON.stringify(error)}`);
+      router.push('/dev-logs');
     }
   };
 
@@ -97,12 +100,12 @@ const SignIn = () => {
           containerClassName="mt-8"
           isLoading={isLoading}
         />
-        <View className="flex justify-center py-12 flex-row gap-3">
-          <Text colorName="muted" className="font-pmedium">
+        <View className="flex justify-center py-6 flex-row gap-3">
+          <Text colorName="muted" className="font-pmedium py-4">
             Don't have an account?
           </Text>
-          <Link href="/sign-up">
-            <Text className="ml-4 font-psemibold">Signup</Text>
+          <Link href="/sign-up" className="ml-4 py-4 pr-4">
+            <Text className="font-psemibold">Signup</Text>
           </Link>
         </View>
       </>

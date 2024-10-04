@@ -119,12 +119,12 @@ const SignUp = () => {
           containerClassName="mt-8"
           isLoading={isLoading}
         />
-        <View className="flex justify-center py-12 flex-row gap-3">
-          <Text colorName="muted" className="font-pmedium">
+        <View className="flex justify-center py-6 flex-row gap-3">
+          <Text colorName="muted" className="font-pmedium py-4">
             Have an account already?
           </Text>
-          <Link href="/sign-in">
-            <Text className="ml-4 font-psemibold">Signin</Text>
+          <Link href="/sign-in" className="ml-4 py-4 pr-4">
+            <Text className="font-psemibold">Signin</Text>
           </Link>
         </View>
       </>

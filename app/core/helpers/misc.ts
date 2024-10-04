@@ -2,8 +2,9 @@ import { Dimensions, Platform, StatusBar } from 'react-native';
 
 import { consoleClors } from '@/core/constants/colors';
 import { TFactItem } from '@/core/types/fact';
+import { TLogType, writeLog } from '@/core/context/LoggingProvider';
 
-const { cyan, gray, reset } = consoleClors;
+const { cyan, green, gray, red, reset } = consoleClors;
 
 export const getFullScreenHeight = () => {
   const { height: windowHeight } = Dimensions.get('window');
@@ -17,6 +18,9 @@ export const getFullScreenHeight = () => {
 
   return windowHeight + statusBarHeight;
 };
+
+export const sleep = (ms: number) =>
+  new Promise((resolve) => setTimeout(resolve, ms));
 
 export const logItem = (title: string, items: TFactItem[], itemId?: string) => {
   if (!items.length || !itemId) return;
@@ -35,20 +39,21 @@ export const logItem = (title: string, items: TFactItem[], itemId?: string) => {
   );
 };
 
-// export const subtractMinute = ([hours, minutes]: number[]): number[] => {
-//   if (hours === 0 && minutes === 0) return [23, 59];
-
-//   // calculate total minutes
-//   let totalMinutes = hours * 60 + minutes;
-//   // subtract one minute
-//   totalMinutes -= 1;
-
-//   // calculate new hours and minutes
-//   const newHours = Math.floor(totalMinutes / 60);
-//   const newMinutes = totalMinutes % 60;
-
-//   return [newHours, newMinutes];
-// };
-
-// export const sleep = (ms: number) =>
-//   new Promise((resolve) => setTimeout(resolve, ms));
+export const logMessage = (message: string, type?: TLogType) => {
+  switch (type) {
+    case 'error': {
+      console.info(`${red}%s${reset}`, message);
+      writeLog(message, 'error');
+      break;
+    }
+    case 'success': {
+      console.info(`${green}%s${reset}`, message);
+      writeLog(message, 'success');
+      break;
+    }
+    default: {
+      console.info(`${cyan}%s${reset}`, message);
+      writeLog(message);
+    }
+  }
+};

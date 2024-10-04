@@ -1,4 +1,5 @@
 import * as SecureStore from 'expo-secure-store';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import {
   KEY_AUTH_TOKEN,
@@ -12,11 +13,11 @@ import {
 } from '@/core/constants';
 import { TAuthData, TUser } from '@/core/types/auth';
 import { EFactsStateKey, TFactItem, TFactsState } from '@/core/types/fact';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { consoleClors } from '@/core/constants/colors';
 import { TResponse } from '@/core/types/common';
-import { TNotifSchedule } from '@/core/types/notification';
+import { writeLog } from '@/core/context/LoggingProvider';
+import { logMessage } from '@/core/helpers/misc';
 const { gray, green, red, reset } = consoleClors;
 
 /**
@@ -102,7 +103,6 @@ export const deleteAuthDataFromSecureStore = async (): Promise<
   try {
     await SecureStore.deleteItemAsync(KEY_AUTH_TOKEN);
     await SecureStore.deleteItemAsync(KEY_AUTH_USER);
-    console.info(`${red}%s${reset}`, 'Auth data deleted from SecureStore');
     return {
       data: { success: true },
       error: null,
@@ -112,36 +112,6 @@ export const deleteAuthDataFromSecureStore = async (): Promise<
     return {
       data: null,
       error: { message: 'Could not clear auth data' },
-    };
-  }
-};
-
-/**
- * Stores notification subscription data in SecureStore
- * @param expoPushToken - subscription token
- * @returns a Promise that resolves to an object of type
- * `TResponse` { success: boolean } indicating success or failure.
- */
-export const saveNotifSubscrDataInSecureStore = async ({
-  expoPushToken,
-}: {
-  expoPushToken: string;
-}): Promise<TResponse<{ success: boolean }>> => {
-  try {
-    await SecureStore.setItemAsync(KEY_SUBSCR_NOTIF, expoPushToken);
-    console.info(
-      `${gray}%s${reset}`,
-      'Notification subscription data saved to secure store'
-    );
-    return {
-      data: { success: true },
-      error: null,
-    };
-  } catch (err: any) {
-    console.error(err);
-    return {
-      data: null,
-      error: { message: 'Could not save subscription data to storage' },
     };
   }
 };
@@ -188,15 +158,15 @@ export const getNotifSubscrDataFromSecureStore = async (): Promise<
  * `TResponse` { success: boolean } indicating success or failure.
  */
 export const saveNotifScheduleInAsyncStorage = async (
-  schedule: TNotifSchedule
+  schedule: string
 ): Promise<TResponse<{ success: boolean }>> => {
   try {
-    const scheduleStr = JSON.stringify(schedule);
-    await AsyncStorage.setItem(KEY_NOTIF_SCHEDULE, scheduleStr);
-    console.info(
-      `${green}%s${reset}`,
-      `Notifications schedule saved in AsyncStorage`
-    );
+    await AsyncStorage.setItem(KEY_NOTIF_SCHEDULE, schedule);
+    // console.info(
+    //   `${green}%s${reset}`,
+    //   `Notifications schedule saved in AsyncStorage`
+    // );
+    // writeLog('Notifications schedule saved in AsyncStorage', 'success');
     return {
       data: { success: true },
       error: null,
@@ -216,43 +186,16 @@ export const saveNotifScheduleInAsyncStorage = async (
  * `TResponse` { hour: number }
  */
 export const getNotifScheduleFromAsyncStorage = async (): Promise<
-  TResponse<TNotifSchedule>
+  TResponse<string | null>
 > => {
-  try {
-    const scheduleStr = await AsyncStorage.getItem(KEY_NOTIF_SCHEDULE);
-    if (!scheduleStr) {
-      return {
-        data: null,
-        error: null,
-      };
-    }
-
-    const schedule: TNotifSchedule = JSON.parse(scheduleStr);
-    if (!schedule) {
-      return {
-        data: null,
-        error: { message: 'Unable to restore schedule' },
-      };
-    }
-
-    // console.info(
-    //   `${green}%s${reset}`,
-    //   `Notifications schedule retrieved from AsyncStorage `
-    // );
-    return {
-      data: {
-        hour: schedule.hour,
-        minute: schedule.minute,
-      },
-      error: null,
-    };
-  } catch (err: any) {
-    console.error(err);
-    return {
-      data: null,
-      error: { message: err.message ?? 'Unable to restore schedule' },
-    };
-  }
+  const schedule = await AsyncStorage.getItem(KEY_NOTIF_SCHEDULE);
+  return {
+    data: schedule,
+    error: null,
+  };
+};
+export const removeNotifScheduleFromAsyncStorage = async (): Promise<void> => {
+  await AsyncStorage.removeItem(KEY_NOTIF_SCHEDULE);
 };
 
 /**
@@ -281,41 +224,6 @@ export const saveNextFactInAsyncStorage = async (
     return {
       data: null,
       error: { message: 'Could not save the fact item' },
-    };
-  }
-};
-
-/**
- * Retrieves the next fact item from AsyncStorage.
- * @returns a Promise that resolves to an object of type
- * `TResponse` { nextFactItem: TFactItem }
- */
-export const getNextFactFromAsyncStorage = async (): Promise<
-  TResponse<TFactItem>
-> => {
-  let data = null;
-  try {
-    const nextFactItemStr = await AsyncStorage.getItem(KEY_FACTS_NEXT_ITEM);
-
-    if (nextFactItemStr) {
-      const nextFactItem: TFactItem = JSON.parse(nextFactItemStr);
-      data = nextFactItem;
-      console.info(
-        `${green}%s${gray}%s${reset}`,
-        `The next fact item fetched from AsyncStorage `,
-        `${nextFactItem.title.slice(0, 30)}...`
-      );
-    }
-
-    return {
-      data,
-      error: null,
-    };
-  } catch (err: any) {
-    console.error(err);
-    return {
-      data: null,
-      error: { message: err.message ?? 'Unable to restore the next fact item' },
     };
   }
 };
@@ -437,7 +345,7 @@ export const deleteFactsDataFromAsyncStorage = async (): Promise<
     await clear();
     const clean = await check();
     if (clean) {
-      console.info(`${red}%s${reset}`, 'Facts data deleted from AsyncStorage');
+      // console.info(`${red}%s${reset}`, 'Facts data deleted from AsyncStorage');
       return {
         data: { success: true },
         error: null,
@@ -457,3 +365,38 @@ export const deleteFactsDataFromAsyncStorage = async (): Promise<
     };
   }
 };
+
+// /**
+//  * Retrieves the next fact item from AsyncStorage.
+//  * @returns a Promise that resolves to an object of type
+//  * `TResponse` { nextFactItem: TFactItem }
+//  */
+// export const getNextFactFromAsyncStorage = async (): Promise<
+//   TResponse<TFactItem>
+// > => {
+//   let data = null;
+//   try {
+//     const nextFactItemStr = await AsyncStorage.getItem(KEY_FACTS_NEXT_ITEM);
+
+//     if (nextFactItemStr) {
+//       const nextFactItem: TFactItem = JSON.parse(nextFactItemStr);
+//       data = nextFactItem;
+//       console.info(
+//         `${green}%s${gray}%s${reset}`,
+//         `The next fact item fetched from AsyncStorage `,
+//         `${nextFactItem.title.slice(0, 30)}...`
+//       );
+//     }
+
+//     return {
+//       data,
+//       error: null,
+//     };
+//   } catch (err: any) {
+//     console.error(err);
+//     return {
+//       data: null,
+//       error: { message: err.message ?? 'Unable to restore the next fact item' },
+//     };
+//   }
+// };

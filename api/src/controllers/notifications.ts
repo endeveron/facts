@@ -4,13 +4,10 @@ import { decryptText, encryptText } from '../helpers/crypto.js';
 import { HttpError } from '../helpers/error.js';
 import { isReqValid } from '../helpers/http.js';
 import logger from '../helpers/logger.js';
-import {
-  sendNotificationToClients,
-  sendNotificationToSingleClient,
-} from '../helpers/notifications.js';
+import { sendNotificationToSingleClient } from '../helpers/notifications.js';
 import UserModel from '../models/user.js';
 
-export const createNotificationsSubscription = async (
+export const createNotificationSubscription = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -39,10 +36,9 @@ export const createNotificationsSubscription = async (
         iv,
       },
       isActive: true,
+      schedule: null,
     };
     user.notificationsSubscr = notificationsSubscr;
-    // const decrypted = decryptText(encryptedData);
-
     await user.save();
 
     res.status(200).json({
@@ -54,34 +50,72 @@ export const createNotificationsSubscription = async (
   }
 };
 
-// export const getNotificationsSubscriptionStatus = async (
-//   req: Request,
-//   res: Response,
-//   next: NextFunction
-// ) => {
-//   const userId = req.params.userId;
+export const createNotificationSchedule = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  if (!isReqValid(req, next)) return;
+  const { schedule, userId } = req.body;
 
-//   try {
-//     const user = await UserModel.findById(userId);
-//     if (!user) {
-//       return next(
-//         new HttpError('Unable to find a user with the specified ID.', 404)
-//       );
-//     }
+  try {
+    const user = await UserModel.findById(userId);
+    if (!user) {
+      return next(
+        new HttpError('Unable to find a user with the specified ID.', 404)
+      );
+    }
 
-//     const subscription = user.notificationsSubscr;
+    // check if the subscription exist
+    if (user.notificationsSubscr === null) {
+      return next(new HttpError('No subscription exists', 404));
+    }
 
-//     res.status(201).json({
-//       data: {
-//         isToken: !!subscription?.token?.data,
-//         isActive: !!subscription?.isActive,
-//       },
-//     });
-//   } catch (err) {
-//     logger.r('postEvaluateFact', err);
-//     return next(new HttpError('Unable to evaluate fact.', 500));
-//   }
-// };
+    user.notificationsSubscr.schedule = schedule;
+    await user.save();
+
+    res.status(201).json({
+      data: { success: true },
+    });
+  } catch (err) {
+    logger.r('createNotificationSchedule', err);
+    return next(new HttpError('Unable to update notification schedule', 500));
+  }
+};
+
+export const deleteNotificationSchedule = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  if (!isReqValid(req, next)) return;
+  const { schedule, userId } = req.body;
+
+  try {
+    const user = await UserModel.findById(userId);
+    if (!user) {
+      return next(
+        new HttpError('Unable to find a user with the specified ID.', 404)
+      );
+    }
+
+    // check if the subscription exist
+    if (user.notificationsSubscr === null) {
+      return next(new HttpError('No subscription exists', 404));
+    }
+
+    // update user data
+    user.notificationsSubscr.schedule = null;
+    await user.save();
+
+    res.status(201).json({
+      data: { success: true },
+    });
+  } catch (err) {
+    logger.r('createNotificationSchedule', err);
+    return next(new HttpError('Unable to update notification schedule', 500));
+  }
+};
 
 export const sendNotification = async (
   req: Request,

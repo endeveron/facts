@@ -65,11 +65,11 @@ export const FormField = ({
 
   return (
     <View className={`space-y-2 ${containerClassName}`}>
-      {label && (
+      {!!label ? (
         <Text colorName="muted" className="font-pmedium">
           {label}
         </Text>
-      )}
+      ) : null}
 
       <View
         style={{
@@ -93,7 +93,7 @@ export const FormField = ({
           keyboardType={keyboardType}
         />
 
-        {name === 'password' && (
+        {name === 'password' ? (
           <TouchableOpacity
             className="opacity-40 px-2 py-4"
             onPress={() => setShowPassword(!showPassword)}
@@ -104,9 +104,9 @@ export const FormField = ({
               <EyeIcon color={mutedColor} />
             )}
           </TouchableOpacity>
-        )}
+        ) : null}
       </View>
-      {error && <FormErrorMessage>{error.message}</FormErrorMessage>}
+      {!!error ? <FormErrorMessage>{error.message}</FormErrorMessage> : null}
     </View>
   );
 };

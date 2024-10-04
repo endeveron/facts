@@ -52,12 +52,8 @@ const userSchema = new Schema<TUser>(
       type: {
         token: {
           type: {
-            data: {
-              type: String,
-            },
-            iv: {
-              type: String,
-            },
+            data: String,
+            iv: String,
           },
           default: null,
           _id: false,
@@ -66,19 +62,10 @@ const userSchema = new Schema<TUser>(
           type: Boolean,
           default: false,
         },
-        schedule: [
-          {
-            type: {
-              hour: {
-                type: Number,
-              },
-              minutes: {
-                type: Number,
-              },
-            },
-            _id: false,
-          },
-        ],
+        schedule: {
+          type: String || null,
+          default: null,
+        },
       },
       default: null,
       _id: false,

@@ -16,10 +16,9 @@ export default {
     },
     android: {
       adaptiveIcon: {
-        backgroundColor: brandFlatColor,
-        monochromeImage: './assets/icons/adaptive_icon/foreground_image.png',
+        backgroundColor: '#ffffff',
         foregroundImage: './assets/icons/adaptive_icon/foreground_image.png',
-        backgroundImage: './assets/icons/adaptive_icon/background_image.png',
+        monochromeImage: './assets/icons/adaptive_icon/monochrome_image.png',
       },
       package: 'com.softest.facts',
       googleServicesFile:

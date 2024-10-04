@@ -71,9 +71,9 @@ const ScrollScreen = ({ title, navbar, children }: TScreenProps) => {
       <Animated.View className="relative h-full z-10" style={{ opacity }}>
         {navbarEl}
         <ScrollView>
-          {title && (
+          {!!title ? (
             <Text className="px-4 pt-16 pb-6 text-2xl font-pbold">{title}</Text>
-          )}
+          ) : null}
           {children}
         </ScrollView>
       </Animated.View>

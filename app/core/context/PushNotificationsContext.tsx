@@ -9,37 +9,35 @@ import {
   useState,
 } from 'react';
 
+import { HOUR, MINUTE, NOTIFICATION_BACKGROUND_TASK } from '@/core/constants';
 import { consoleClors } from '@/core/constants/colors';
+import { useLogging } from '@/core/context/LoggingProvider';
 import { useSession } from '@/core/context/SessionContext';
 import {
-  handleBackgroundNotification,
+  handleNotificationBackgroundTask,
+  handleForegroundNotification,
   handleNotificationClick,
   logNotificationData,
-  registerPushNotificationsService,
-  sendPushNotification,
+  registerPushNotificationService,
+  scheduleNotification,
+  unscheduleNotification,
 } from '@/core/helpers/notification';
+import { useToast } from '@/core/hooks/useToast';
 import { TNotificationConfig } from '@/core/types/common';
-import { NOTIFICATION_BACKGROUND_TASK } from '@/core/constants';
 
 const { cyan, green, gray, red, yellow, reset } = consoleClors;
 
-// when app is foregrounded - handle the behavior when notifications are received
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: false,
-    shouldSetBadge: false,
-  }),
-});
-
-// when app is backgrounded - define a task to handle the behavior when notifications are received
+// define a task to handle the behavior when notifications are received when app is backgrounded
 // ! background event listeners are not supported in Expo Go
-// see https://docs.expo.dev/versions/latest/sdk/notifications/#notification-events-listeners
 TaskManager.defineTask(
   NOTIFICATION_BACKGROUND_TASK,
-  handleBackgroundNotification
+  handleNotificationBackgroundTask
 );
-Notifications.registerTaskAsync(NOTIFICATION_BACKGROUND_TASK);
+
+// handle the behavior when notifications are received when app is foregrounded
+Notifications.setNotificationHandler({
+  handleNotification: handleForegroundNotification,
+});
 
 export type TNotifications = typeof Notifications;
 
@@ -48,6 +46,14 @@ type TPushNotificationsContextProps = {
   notification: Notifications.Notification | undefined;
   response: Notifications.NotificationResponse | null;
   sendNotification: (config: TNotificationConfig) => Promise<void>;
+  scheduleDailyNotification: ({
+    hour,
+    minute,
+  }: {
+    hour?: number;
+    minute?: number;
+  }) => Promise<void>;
+  unscheduleDailyNotification: () => Promise<void>;
 };
 
 const PushNotificationsContext = createContext<TPushNotificationsContextProps>({
@@ -55,6 +61,8 @@ const PushNotificationsContext = createContext<TPushNotificationsContextProps>({
   notification: undefined,
   response: null,
   sendNotification: async () => {},
+  scheduleDailyNotification: async () => {},
+  unscheduleDailyNotification: async () => {},
 });
 
 export const useNotifications = () => {
@@ -63,6 +71,8 @@ export const useNotifications = () => {
 
 export const PushNotificationsProvider = ({ children }: PropsWithChildren) => {
   const { session } = useSession();
+  const { addLog } = useLogging();
+  const { showToast } = useToast();
 
   const [expoPushToken, setExpoPushToken] = useState('');
   const [notification, setNotification] = useState<
@@ -77,10 +87,10 @@ export const PushNotificationsProvider = ({ children }: PropsWithChildren) => {
   const registerService = async () => {
     try {
       // get the token for expo push notifications
-      const expoToken = await registerPushNotificationsService({
+      const expoToken = await registerPushNotificationService({
         token: session?.token as string,
         userId: session?.user.id as string,
-        Notifications,
+        // Notifications,
       });
       expoToken && setExpoPushToken(expoToken);
 
@@ -89,14 +99,16 @@ export const PushNotificationsProvider = ({ children }: PropsWithChildren) => {
         Notifications.addNotificationReceivedListener((notification) => {
           setNotification(notification);
           logNotificationData(notification);
+          addLog(
+            `New notification [ ${notification.request.content.title} ] ${notification.request.content.body}`
+          );
         });
 
       // create a listener for notification click
-      // not supported in Expo Go
       responseListener.current =
         Notifications.addNotificationResponseReceivedListener((response) => {
           handleNotificationClick(response);
-          setResponse(response);
+          // setResponse(response);
         });
     } catch (err: any) {
       console.error(err);
@@ -106,11 +118,47 @@ export const PushNotificationsProvider = ({ children }: PropsWithChildren) => {
 
   const sendNotification = async (notification: TNotificationConfig) => {
     // await sendPushNotificationUsingExpo({ config, expoPushToken });
-    await sendPushNotification({
-      notification,
-      token: session?.token as string,
-      userId: session?.user.id as string,
+    // await sendPushNotification({
+    //   notification,
+    //   token: session?.token as string,
+    //   userId: session?.user.id as string,
+    // });
+  };
+
+  const scheduleDailyNotification = async ({
+    hour = HOUR,
+    minute = MINUTE,
+  }: {
+    hour?: number;
+    minute?: number;
+  }) => {
+    if (!session?.token || !session.user.id) {
+      showToast('Not authenticated');
+      return;
+    }
+
+    const scheduleRes = await scheduleNotification({
+      hour,
+      minute,
+      token: session.token,
+      userId: session.user.id,
     });
+    if (scheduleRes.error) showToast(scheduleRes.error.message);
+    if (scheduleRes.data?.success) showToast('Notification scheduled');
+  };
+
+  const unscheduleDailyNotification = async () => {
+    if (!session?.token || !session.user.id) {
+      showToast('Not authenticated');
+      return;
+    }
+
+    const scheduleRes = await unscheduleNotification({
+      token: session.token,
+      userId: session.user.id,
+    });
+    if (scheduleRes.error) showToast(scheduleRes.error.message);
+    if (scheduleRes.data?.success) showToast('Notification unscheduled');
   };
 
   // register service
@@ -128,35 +176,36 @@ export const PushNotificationsProvider = ({ children }: PropsWithChildren) => {
         );
       responseListener.current &&
         Notifications.removeNotificationSubscription(responseListener.current);
-
-      // TaskManager.unregisterAllTasksAsync();
     };
   }, []);
 
-  // // dev
-  // useEffect(() => {
-  //   const getTasks = async () => {
-  //     const tasks = await TaskManager.getRegisteredTasksAsync();
-  //     if (tasks.length) {
-  //       const formatedTasks = tasks.reduce((acc: string[], cur) => {
-  //         acc.push(`[ ${cur.taskName}, type: ${cur.taskType} ]`);
-  //         return acc;
-  //       }, []);
-  //       console.info(
-  //         `${cyan}%s${gray}%s${reset}`,
-  //         'Registered tasks: ',
-  //         formatedTasks.join(', ')
-  //       );
-  //     }
-  //   };
-  //   getTasks();
-  // }, []);
+  // dev
+  useEffect(() => {
+    const getTasks = async () => {
+      const tasks = await TaskManager.getRegisteredTasksAsync();
+      if (tasks.length) {
+        const formatedTasks = tasks.reduce((acc: string[], cur) => {
+          acc.push(cur.taskName);
+          return acc;
+        }, []);
+        console.info(
+          `${cyan}%s${gray}%s${reset}`,
+          'Registered tasks: ',
+          formatedTasks.join(', ')
+        );
+        addLog(`Tasks: ${formatedTasks.join(', ')}`);
+      }
+    };
+    getTasks();
+  }, []);
 
   const value = {
     expoPushToken,
     notification,
     response,
     sendNotification,
+    scheduleDailyNotification,
+    unscheduleDailyNotification,
   };
 
   return (

@@ -10,6 +10,7 @@ const NOTIFICATIONS_KEY =
   '';
 
 const DEFAULT_REDIRECT_URL = '/facts';
+// const DEFAULT_REDIRECT_URL = '/dev';
 // const DEFAULT_REDIRECT_URL = '/profile';
 
 const NOTIFICATION_BACKGROUND_TASK = 'notification_background_task';
@@ -45,4 +46,4 @@ export {
 };
 
 export const HOUR = 14;
-export const MINUTE = 0;
+export const MINUTE = 5;

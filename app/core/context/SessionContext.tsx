@@ -1,11 +1,12 @@
 import { router } from 'expo-router';
+import * as TaskManager from 'expo-task-manager';
 
 import { DEFAULT_REDIRECT_URL } from '@/core/constants';
 import {
-  TSessionContext,
   TAuthCredentials,
   TAuthData,
   TAuthSession,
+  TSessionContext,
 } from '@/core/types/auth';
 
 import {
@@ -15,7 +16,7 @@ import {
   saveAuthDataInSecureStore,
 } from '@/core/helpers/store';
 import { postSignIn, postSignUp } from '@/core/services/auth';
-import { getResetFacts } from '@/core/services/user';
+import { getResetFacts } from '@/core/services/users';
 import {
   createContext,
   PropsWithChildren,
@@ -25,8 +26,10 @@ import {
 } from 'react';
 
 import { consoleClors } from '@/core/constants/colors';
+import { useLogging, writeLog } from '@/core/context/LoggingProvider';
 import { useToast } from '@/core/hooks/useToast';
-const { red, reset } = consoleClors;
+import { logMessage } from '@/core/helpers/misc';
+const { green, red, reset } = consoleClors;
 
 const SessionContext = createContext<TSessionContext>({
   session: null,
@@ -48,6 +51,7 @@ export const useSession = () => {
 
 export const SessionProvider = ({ children }: PropsWithChildren) => {
   const { showToast } = useToast();
+  const { addLog } = useLogging();
 
   const [isLoading, setIsLoading] = useState(false);
   const [session, setSession] = useState<TAuthSession>(null);
@@ -84,16 +88,23 @@ export const SessionProvider = ({ children }: PropsWithChildren) => {
     email,
     password,
   }: TAuthCredentials): Promise<boolean | undefined> => {
-    setIsLoading(true);
-    const result = await postSignUp({ name, email, password });
-    setIsLoading(false);
-    if (result?.error) {
-      showToast(result.error.message);
+    try {
+      setIsLoading(true);
+      const result = await postSignUp({ name, email, password });
+      setIsLoading(false);
+      if (result?.error) {
+        showToast(result.error.message);
+        logMessage(result.error.message, 'error');
+        return false;
+      }
+      if (result?.data) {
+        await saveAuthData(result.data);
+        return true;
+      }
+    } catch (error: any) {
+      showToast(error.message);
+      logMessage(error.message, 'error');
       return false;
-    }
-    if (result?.data) {
-      await saveAuthData(result.data);
-      return true;
     }
   };
 
@@ -101,49 +112,61 @@ export const SessionProvider = ({ children }: PropsWithChildren) => {
     email,
     password,
   }: TAuthCredentials): Promise<boolean | undefined> => {
-    setIsLoading(true);
-    const result = await postSignIn({ email, password });
-    setIsLoading(false);
+    try {
+      setIsLoading(true);
+      const result = await postSignIn({ email, password });
+      setIsLoading(false);
 
-    if (result?.error) {
-      showToast(result.error.message);
+      if (result?.error) {
+        showToast(result.error.message);
+        logMessage(result.error.message, 'error');
+        return false;
+      }
+      if (result?.data) {
+        await saveAuthData(result.data);
+        return true;
+      }
+    } catch (error: any) {
+      showToast(error.message);
+      logMessage(error.message, 'error');
       return false;
-    }
-    if (result?.data) {
-      await saveAuthData(result.data);
-      return true;
     }
   };
 
   const signOut = async () => {
-    // // prod
-    // setSession(null);
-    // router.replace('/sign-in');
+    try {
+      // clear storage
+      const factsStorageResult = await deleteFactsDataFromAsyncStorage();
+      if (factsStorageResult.error) {
+        throw new Error(factsStorageResult.error.message);
+      }
+      logMessage('Facts data removed from storage', 'success');
 
-    ////////////////////////////
+      // reset facts data in db
+      const resetFactsRes = await getResetFacts({
+        token: session?.token as string,
+        userId: session?.user.id as string,
+      });
+      if (resetFactsRes?.error) {
+        throw new Error(resetFactsRes.error.message);
+      }
+      logMessage('Facts data is reset in DB', 'success');
 
-    // dev
+      const authRes = await deleteAuthDataFromSecureStore();
+      if (authRes?.error) {
+        throw new Error(authRes.error.message);
+      }
+      logMessage('Auth data removed from storage', 'success');
 
-    let error = false;
+      await TaskManager.unregisterAllTasksAsync();
+      logMessage('All tasks unregistered', 'success');
 
-    const factsStorageResult = await deleteFactsDataFromAsyncStorage();
-    if (factsStorageResult.error) error = true;
-    const result = await getResetFacts({
-      token: session?.token as string,
-      userId: session?.user.id as string,
-    });
-    if (!!result?.data) {
-    }
-    console.info(`${red}%s${reset}`, 'Facts data is reset in DB');
-
-    const authResult = await deleteAuthDataFromSecureStore();
-    if (authResult.error) error = true;
-
-    if (error) {
-      showToast('Unable to clear data');
-    } else {
       setSession(null);
+      logMessage('Signing out');
       router.replace('/sign-in');
+    } catch (error: any) {
+      showToast('Unable to sign out');
+      logMessage(`Unable to clear data. ${error.message}`, 'error');
     }
   };
 

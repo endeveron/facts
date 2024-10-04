@@ -17,15 +17,13 @@ type TFacts = {
   offsetMap: TCategoryMap;
 };
 
-type TNotificationsSubscription = {
+export type TNotificationsSubscription = {
   token: {
     iv: string;
     data: string;
   } | null;
   isActive: boolean;
-  schedule?: {
-    hour: number;
-  };
+  schedule: string | null;
 };
 
 export type TEncryptedData = { iv: string; data: string };

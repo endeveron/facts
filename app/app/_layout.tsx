@@ -1,13 +1,14 @@
 import { useFonts } from 'expo-font';
-import { SplashScreen, Slot } from 'expo-router';
+import { Slot, SplashScreen } from 'expo-router';
 import * as SystemUI from 'expo-system-ui';
 import { useEffect } from 'react';
 import { useColorScheme } from 'react-native';
 
 import { colors, defaultScheme } from '@/core/constants/colors';
-import { SessionProvider } from '@/core/context/SessionContext';
-import { PushNotificationsProvider } from '@/core/context/PushNotificationsContext';
 import { AppStateProvider } from '@/core/context/AppStateProvider';
+import { LoggingProvider } from '@/core/context/LoggingProvider';
+import { PushNotificationsProvider } from '@/core/context/PushNotificationsContext';
+import { SessionProvider } from '@/core/context/SessionContext';
 
 // prevent the splash screen from auto-hiding before asset loading is complete
 SplashScreen.preventAutoHideAsync();
@@ -47,13 +48,15 @@ const RootLayout = () => {
   }
 
   return (
-    <AppStateProvider>
-      <SessionProvider>
-        <PushNotificationsProvider>
-          <Slot />
-        </PushNotificationsProvider>
-      </SessionProvider>
-    </AppStateProvider>
+    <LoggingProvider>
+      <AppStateProvider>
+        <SessionProvider>
+          <PushNotificationsProvider>
+            <Slot />
+          </PushNotificationsProvider>
+        </SessionProvider>
+      </AppStateProvider>
+    </LoggingProvider>
   );
 };
 

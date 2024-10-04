@@ -8,7 +8,7 @@ import CategoryItem from '@/components/CategoryItem';
 import { FormField } from '@/components/FormField';
 import { useSession } from '@/core/context/SessionContext';
 import { useToast } from '@/core/hooks/useToast';
-import { postFact } from '@/core/services/fact';
+import { postFact } from '@/core/services/facts';
 import { FactCategory } from '@/core/types/fact';
 import { factSchema, TFactFormData } from '@/core/utils/validation';
 

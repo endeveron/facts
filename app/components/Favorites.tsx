@@ -8,7 +8,7 @@ import { KEY_FACTS_FAVORITES } from '@/core/constants';
 import { heartColor } from '@/core/constants/colors';
 import { useSession } from '@/core/context/SessionContext';
 import { useToast } from '@/core/hooks/useToast';
-import { getFavorites, postEvaluateFact } from '@/core/services/user';
+import { getFavorites, postEvaluateFact } from '@/core/services/users';
 import { TFactItem } from '@/core/types/fact';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 

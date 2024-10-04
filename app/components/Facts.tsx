@@ -16,8 +16,8 @@ import {
   saveFactsStateInAsyncStorage,
   saveNextFactInAsyncStorage,
 } from '@/core/helpers/store';
-import { getFacts } from '@/core/services/fact';
-import { postEvaluateFact } from '@/core/services/user';
+import { getFacts } from '@/core/services/facts';
+import { postEvaluateFact } from '@/core/services/users';
 import {
   EFactsStateKey,
   TCurrentItem,
@@ -28,7 +28,8 @@ import {
 import Skeleton from '@/components/Skeleton';
 import { Text } from '@/components/Text';
 import { consoleClors } from '@/core/constants/colors';
-import { logItem } from '@/core/helpers/misc';
+import { useLogging } from '@/core/context/LoggingProvider';
+import { logItem, logMessage } from '@/core/helpers/misc';
 import { useToast } from '@/core/hooks/useToast';
 
 const { cyan, gray, yellow, reset } = consoleClors;
@@ -78,6 +79,7 @@ const Facts = () => {
 
   const { category } = useLocalSearchParams();
   const { showToast } = useToast();
+  const { addLog } = useLogging();
 
   // const [noMoreFacts, setNoMoreFacts] = useState(false);
   const [favorites, setFavorites] = useState<string[]>([]);
@@ -228,13 +230,12 @@ const Facts = () => {
         // },
       });
       if (result.error) return showToast(result.error.message);
-      // console.info(`${yellow}%s${reset}\n`, 'Leaving Facts');
+      logMessage('Leaving Facts');
     }
   };
 
   const fetchData = async () => {
-    // if (isFetching || noMoreFacts) return;
-    console.info(`${cyan}%s${reset}`, 'Fetching facts data...');
+    logMessage('Fetching facts data...');
 
     let fetchedFacts: TFactItem[] = [];
     let fetchedFavorites: string[] = [];
@@ -255,7 +256,6 @@ const Facts = () => {
 
     // save facts and favorites in the local state
     if (result?.data) {
-      // console.info('Facts data fetched.');
       fetchedFacts = result.data.facts;
       setState(({ facts, ...rest }) => {
         updFacts = [...facts, ...fetchedFacts];
