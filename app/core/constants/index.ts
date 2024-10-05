@@ -20,7 +20,7 @@ const NOTIFICATION_REMINDER_TITLE = 'Facts';
 const KEY_AUTH_TOKEN = 'auth_token';
 const KEY_AUTH_USER = 'auth_user';
 const KEY_FACTS_FAVORITES = 'facts_favorites';
-const KEY_FACTS_NEXT_ITEM = 'facts_next_item';
+// const KEY_FACTS_NEXT_ITEM = 'facts_next_item';
 const KEY_FACTS_STATE = 'facts_state';
 const KEY_FACTS_STATE_CAT = 'facts_state_cat';
 const KEY_NOTIF_SCHEDULE = 'notif_schedule';
@@ -34,7 +34,7 @@ export {
   KEY_AUTH_TOKEN,
   KEY_AUTH_USER,
   KEY_FACTS_FAVORITES,
-  KEY_FACTS_NEXT_ITEM,
+  // KEY_FACTS_NEXT_ITEM,
   KEY_FACTS_STATE,
   KEY_FACTS_STATE_CAT,
   KEY_NOTIF_SCHEDULE,

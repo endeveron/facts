@@ -7,7 +7,7 @@ import {
   useState,
 } from 'react';
 
-export const DEV_LOGS_KEY = 'dev_logs_key';
+export const DEV_LOGS_KEY = 'dev_logs';
 
 export type TLogType = 'info' | 'success' | 'error';
 
@@ -21,12 +21,14 @@ export type TLogItem = {
 type TLoggingContext = {
   logs: TLogItem[];
   addLog: (message: string, type?: TLogType) => void;
+  getLogs: () => Promise<TLogItem[]>;
   clearLogs: () => void;
 };
 
 const LoggingContext = createContext<TLoggingContext>({
   logs: [],
   addLog: () => {},
+  getLogs: async () => [],
   clearLogs: () => {},
 });
 
@@ -50,6 +52,12 @@ export const LoggingProvider = ({ children }: PropsWithChildren) => {
     setLogs(newLogs);
   };
 
+  const getLogs = async () => {
+    const logsStr = await AsyncStorage.getItem(DEV_LOGS_KEY);
+    if (logsStr === null) return [];
+    return JSON.parse(logsStr);
+  };
+
   const clearLogs = async () => {
     await AsyncStorage.removeItem(DEV_LOGS_KEY);
     setLogs([]);
@@ -58,6 +66,7 @@ export const LoggingProvider = ({ children }: PropsWithChildren) => {
   const value = {
     logs,
     addLog,
+    getLogs,
     clearLogs,
   };
 

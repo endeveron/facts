@@ -1,5 +1,5 @@
 import crypto from 'crypto';
-import { TEncryptedData } from '../types/user.js';
+import { TEncryptedData } from '../types/user';
 
 const algorithm = 'aes-256-cbc';
 const key = process.env.NOTIFICATIONS_KEY;

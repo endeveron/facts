@@ -1,13 +1,9 @@
 import { Router } from 'express';
 import { body } from 'express-validator';
 
-import {
-  evaluateFact,
-  getFavorites,
-  resetFacts,
-} from '../controllers/users.js';
-import { handleHttpError } from '../helpers/error.js';
-import { checkAuth } from '../middleware/check-auth.js';
+import { evaluateFact, getFavorites, resetFacts } from '../controllers/users';
+import { handleHttpError } from '../helpers/error';
+import { checkAuth } from '../middleware/check-auth';
 
 const router = Router();
 router.use(checkAuth);

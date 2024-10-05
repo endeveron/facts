@@ -1,7 +1,7 @@
 import { FilterQuery, Model, Types } from 'mongoose';
 
-import { HttpError } from './error.js';
-import logger from './logger.js';
+import { HttpError } from './error';
+import logger from './logger';
 
 const handleResData = <T>(
   resData: any,

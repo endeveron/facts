@@ -6,9 +6,9 @@ import {
   sendNotification,
   createNotificationSchedule,
   deleteNotificationSchedule,
-} from '../controllers/notifications.js';
-import { handleHttpError } from '../helpers/error.js';
-import { checkAuth } from '../middleware/check-auth.js';
+} from '../controllers/notifications';
+import { handleHttpError } from '../helpers/error';
+import { checkAuth } from '../middleware/check-auth';
 
 const router = Router();
 router.use(checkAuth);

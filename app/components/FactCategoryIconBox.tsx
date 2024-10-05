@@ -8,7 +8,7 @@ import EarthStrokeIcon from '@/components/svg/EarthStrokeIcon';
 import MiscStrokeIcon from '@/components/svg/MiscStrokeIcon';
 import StarsStrokeIcon from '@/components/svg/StarsStrokeIcon';
 import UserStrokeIcon from '@/components/svg/UserStrokeIcon';
-import { factCategoryIconBoxGradient } from '@/core/constants/colors';
+import { useThemeGradient } from '@/core/hooks/useThemeColor';
 
 const iconOpacity = 0.5;
 
@@ -31,6 +31,7 @@ const FactCategoryIconBox = ({
   containerClassName,
 }: TFactCategoryIconBoxProps) => {
   const fade = useRef(new Animated.Value(0)).current;
+  const iconBoxGradient = useThemeGradient('factIconBox');
 
   useEffect(() => {
     Animated.timing(fade, {
@@ -47,7 +48,7 @@ const FactCategoryIconBox = ({
       className={`relative w-20 h-20 rounded-full items-center justify-center ${containerClassName}`}
     >
       <LinearGradient
-        colors={factCategoryIconBoxGradient}
+        colors={iconBoxGradient}
         className="absolute rounded-full h-20 w-20 border-[#ffffff25] border-[1px]"
       />
       {categoryIconMap.get(category) ?? null}

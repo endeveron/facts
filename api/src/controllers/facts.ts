@@ -1,18 +1,18 @@
 import { NextFunction, Request, Response } from 'express';
 
-import { FACT_ITEMS_LIMIT, FACT_PROPS } from '../constants/facts.js';
-import { HttpError } from '../helpers/error.js';
+import { FACT_ITEMS_LIMIT, FACT_PROPS } from '../constants/facts';
+import { HttpError } from '../helpers/error';
 import {
   calculateSumOfMapValues,
   configureFactItems,
   createFactLimitMap,
   shuffleFactItems,
-} from '../helpers/facts.js';
-import { isReqValid } from '../helpers/http.js';
-import logger from '../helpers/logger.js';
-import FactModel from '../models/fact.js';
-import UserModel from '../models/user.js';
-import { TCategoryMap, TFactItem } from '../types/fact.js';
+} from '../helpers/facts';
+import { isReqValid } from '../helpers/http';
+import logger from '../helpers/logger';
+import FactModel from '../models/fact';
+import UserModel from '../models/user';
+import { TCategoryMap, TFactItem } from '../types/fact';
 
 export const getFacts = async (
   req: Request,
@@ -96,12 +96,13 @@ export const getFacts = async (
         await user.save();
       }
 
-      return res.status(200).json({
+      res.status(200).json({
         data: {
           facts: factItems,
           favorites,
         },
       });
+      return;
     }
 
     // if the `category` url param is not provided, fetch facts for all categories

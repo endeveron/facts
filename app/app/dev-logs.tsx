@@ -67,7 +67,7 @@ const devlogs = () => {
 
   useEffect(() => {
     (async () => {
-      await sleep(1000);
+      await sleep(500);
       const logsStr = await AsyncStorage.getItem(DEV_LOGS_KEY);
       if (logsStr) setLogs(JSON.parse(logsStr));
     })();

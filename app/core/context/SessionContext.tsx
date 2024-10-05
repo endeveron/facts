@@ -135,7 +135,7 @@ export const SessionProvider = ({ children }: PropsWithChildren) => {
 
   const signOut = async () => {
     try {
-      // clear storage
+      // delete facts data from storage
       const factsStorageResult = await deleteFactsDataFromAsyncStorage();
       if (factsStorageResult.error) {
         throw new Error(factsStorageResult.error.message);
@@ -152,15 +152,18 @@ export const SessionProvider = ({ children }: PropsWithChildren) => {
       }
       logMessage('Facts data is reset in DB', 'success');
 
+      // delete auth data from storage
       const authRes = await deleteAuthDataFromSecureStore();
       if (authRes?.error) {
         throw new Error(authRes.error.message);
       }
       logMessage('Auth data removed from storage', 'success');
 
+      // unregister tasts
       await TaskManager.unregisterAllTasksAsync();
       logMessage('All tasks unregistered', 'success');
 
+      // reset auth session
       setSession(null);
       logMessage('Signing out');
       router.replace('/sign-in');

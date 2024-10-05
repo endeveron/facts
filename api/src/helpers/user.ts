@@ -1,4 +1,4 @@
-import { TAuthData, TUser } from '../types/user.js';
+import { TAuthData, TUser } from '../types/user';
 
 export const configureUserData = (user: TUser): TAuthData => {
   const { password, ...safeAccountData } = user.account!;

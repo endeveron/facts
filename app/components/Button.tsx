@@ -1,3 +1,4 @@
+import { useThemeGradient } from '@/core/hooks/useThemeColor';
 import classNames from 'classnames';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Text, TouchableOpacity } from 'react-native';
@@ -15,6 +16,8 @@ export const Button = ({
   textClassName?: string;
   isLoading?: boolean;
 }) => {
+  const brandButtonGradient = useThemeGradient('brandButton');
+
   return (
     <TouchableOpacity
       onPress={handlePress}
@@ -34,7 +37,7 @@ export const Button = ({
       </Text>
       <LinearGradient
         className="absolute inset-x-0 inset-y-0 h-full z-0"
-        colors={['#ef5d0c', '#eb1059']}
+        colors={brandButtonGradient}
         start={[0, 1]}
         end={[1, 0]}
       />

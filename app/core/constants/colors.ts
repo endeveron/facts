@@ -1,12 +1,6 @@
 export const defaultScheme = 'dark';
-
 export const brandFlatColor = '#ff4810';
-
-export const heartColor = '#d4004b';
-
-export const brandGradient = ['#F69D11', '#B10141'];
-export const factCategoryIconBoxGradient = ['#c12437', '#b60b3f'];
-export const buttonBrandGradient = ['#F69D11', '#B10141'];
+// export const factCategoryIconBoxGradient = ['#c12437', '#b60b3f'];
 
 export const colors = {
   light: {
@@ -23,7 +17,7 @@ export const colors = {
     border: '#fcfcfc', // ~ white
     input: '#F8FAFC', // slate-50
     icon: '#abb8c9', // ~ slate-300
-    iconActive: '#1E293B', // slate-800
+    heartIcon: '#eb0c5b',
   },
   dark: {
     text: '#F8FAFC', // slate-50
@@ -39,7 +33,20 @@ export const colors = {
     border: '#192230', // ~slate-800
     input: '#000', // black
     icon: '#334155', // slate-700
-    iconActive: '#94A3B8', // !slate-400
+    heartIcon: '#d4004b',
+  },
+};
+
+export const gradients = {
+  light: {
+    brand: ['#F69D11', '#d90751'],
+    brandButton: ['#ef5d0c', '#f71a64'],
+    factIconBox: ['#df2844', '#dc104d'],
+  },
+  dark: {
+    brand: ['#F69D11', '#B10141'],
+    brandButton: ['#ef5d0c', '#eb1059'],
+    factIconBox: ['#c12437', '#b60b3f'],
   },
 };
 

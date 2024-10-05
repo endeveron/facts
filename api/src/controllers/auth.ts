@@ -2,14 +2,14 @@ import bcrypt from 'bcryptjs';
 import { NextFunction, Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 
-import { HttpError } from '../helpers/error.js';
-import { createCategoryMap } from '../helpers/facts.js';
-import { getItem } from '../helpers/getFromDb.js';
-import { isReqValid } from '../helpers/http.js';
-import logger from '../helpers/logger.js';
-import { configureUserData } from '../helpers/user.js';
-import UserModel from '../models/user.js';
-import { TUser } from '../types/user.js';
+import { HttpError } from '../helpers/error';
+import { createCategoryMap } from '../helpers/facts';
+import { getItem } from '../helpers/getFromDb';
+import { isReqValid } from '../helpers/http';
+import logger from '../helpers/logger';
+import { configureUserData } from '../helpers/user';
+import UserModel from '../models/user';
+import { TUser } from '../types/user';
 
 const genetrateJWToken = (userId: string, next: NextFunction) => {
   const jwtKey = process.env.JWT_KEY;

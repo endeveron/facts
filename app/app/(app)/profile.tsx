@@ -13,6 +13,10 @@ import { Text } from '@/components/Text';
 import { useNotifications } from '@/core/context/PushNotificationsContext';
 import { useSession } from '@/core/context/SessionContext';
 import { useThemeColor } from '@/core/hooks/useThemeColor';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { consoleClors } from '@/core/constants/colors';
+
+const { cyan, green, gray, red, reset } = consoleClors;
 
 const profile = () => {
   const { session, signOut } = useSession();
@@ -63,6 +67,15 @@ const profile = () => {
     });
   };
 
+  const logStorageItems = async () => {
+    const asyncKeys = await AsyncStorage.getAllKeys();
+
+    for (let key of asyncKeys) {
+      const isExists = await AsyncStorage.getItem(key);
+      console.info(`${cyan}%s${reset}`, `AsyncStorage: ${key} : ${!!isExists}`);
+    }
+  };
+
   return (
     <ScrollScreen title={title} navbar={{ navItems }}>
       <View className="flex-row justify-between px-4">
@@ -80,7 +93,7 @@ const profile = () => {
         </Text>
       </View>
 
-      <View className="flex-col items-center">
+      <View className="flex-col items-center mb-4">
         <Button
           title="Send one-time notification"
           containerClassName="mb-4 w-80"
@@ -93,8 +106,13 @@ const profile = () => {
         />
         <Button
           title="Unschedule notification"
-          containerClassName="mb-8 w-80"
+          containerClassName="mb-4 w-80"
           handlePress={async () => unscheduleDailyNotification()}
+        />
+        <Button
+          title="Show storage"
+          containerClassName="mb-4 w-80"
+          handlePress={async () => logStorageItems()}
         />
       </View>
       <Favorites />

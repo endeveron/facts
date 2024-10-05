@@ -1,9 +1,9 @@
 import {
   FACT_CATEGORIES_DIST_RATE,
   FACT_ITEMS_LIMIT,
-} from '../constants/facts.js';
-import { FactCategory, TFact, TFactItem } from '../types/fact.js';
-import logger from './logger.js';
+} from '../constants/facts';
+import { FactCategory, TFact, TFactItem } from '../types/fact';
+import logger from './logger';
 
 /**
  * Creates a new Map object with keys from the FactCategory enum set to 0.

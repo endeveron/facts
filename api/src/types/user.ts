@@ -1,5 +1,5 @@
 import { ObjectId } from 'mongoose';
-import { TCategoryMap } from './fact.js';
+import { TCategoryMap } from './fact';
 
 type TUserAccount = {
   name: string;

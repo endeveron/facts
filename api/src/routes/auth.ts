@@ -1,8 +1,8 @@
 import { Router } from 'express';
 import { body } from 'express-validator';
 
-import { signup, signin } from '../controllers/auth.js';
-import { handleHttpError } from '../helpers/error.js';
+import { signup, signin } from '../controllers/auth';
+import { handleHttpError } from '../helpers/error';
 
 const router = Router();
 

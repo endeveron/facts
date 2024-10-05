@@ -32,9 +32,9 @@ const dev = () => {
   const { logs, clearLogs } = useLogging();
   const [prompt, setPrompt] = useState(false);
 
-  useEffect(() => {
-    console.log('logs changed');
-  }, [logs]);
+  // useEffect(() => {
+  //   console.log('logs changed');
+  // }, [logs]);
 
   return (
     <ScrollScreen title="Logs" navbar={{ navItems }}>

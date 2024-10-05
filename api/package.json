@@ -1,10 +1,9 @@
 {
-  "name": "auth-api",
+  "name": "express-ts",
   "version": "1.0.0",
-  "main": "index.js",
-  "type": "module",
+  "main": "build/server.js",
   "scripts": {
-    "start": "nodemon -I --exec node --experimental-specifier-resolution=node --loader ts-node/esm ./src/index.ts",
+    "start": "nodemon --exec ts-node src/server.ts",
     "build": "rimraf ./build && npx tsc"
   },
   "keywords": [],
@@ -15,20 +14,22 @@
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "expo-server-sdk": "^3.11.0",
-    "express": "^4.19.2",
+    "express": "^4.21.0",
     "express-validator": "^7.2.0",
     "jsonwebtoken": "^9.0.2",
-    "mongoose": "^8.6.0"
+    "mongoose": "^8.7.0"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
     "@types/cors": "^2.8.17",
-    "@types/express": "^4.17.21",
-    "@types/jsonwebtoken": "^9.0.6",
-    "@types/node": "^22.5.1",
-    "nodemon": "^3.1.4",
+    "@types/express": "^5.0.0",
+    "@types/jsonwebtoken": "^9.0.7",
+    "@types/node": "^22.7.4",
+    "eslint": "^9.11.1",
+    "globals": "^15.10.0",
+    "nodemon": "^3.1.7",
     "rimraf": "^6.0.1",
     "ts-node": "^10.9.2",
-    "typescript": "^5.5.4"
+    "typescript": "^5.6.2"
   }
 }

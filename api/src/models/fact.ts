@@ -1,6 +1,6 @@
 import { Schema, model } from 'mongoose';
 
-import { TFact } from '../types/fact.js';
+import { TFact } from '../types/fact';
 
 const factSchema = new Schema<TFact>(
   {

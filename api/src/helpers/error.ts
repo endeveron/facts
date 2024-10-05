@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 
-import logger from './logger.js';
+import logger from './logger';
 
 export interface IHttpError extends Error {
   code: number;

@@ -2,20 +2,24 @@ import * as Clipboard from 'expo-clipboard';
 import { useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Animated, Dimensions, FlatList, View, ViewToken } from 'react-native';
-// import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 
 import FactItem from '@/components/FactItem';
 import Navbar, { NavItemName, TNavbarItem } from '@/components/Navbar';
+import Skeleton from '@/components/Skeleton';
 import CategoriesIcon from '@/components/svg/CategoriesIcon';
 import TextFileIcon from '@/components/svg/TextFileIcon';
 import UserIcon from '@/components/svg/UserIcon';
+import { Text } from '@/components/Text';
+import { consoleClors } from '@/core/constants/colors';
 import { FACTS_LENGTH_TO_FETCH_NEW_ITEMS } from '@/core/constants/facts';
+import { useLogging } from '@/core/context/LoggingProvider';
 import { useSession } from '@/core/context/SessionContext';
+import { logMessage } from '@/core/helpers/misc';
 import {
   getFactsStateFromAsyncStorage,
   saveFactsStateInAsyncStorage,
-  saveNextFactInAsyncStorage,
 } from '@/core/helpers/store';
+import { useToast } from '@/core/hooks/useToast';
 import { getFacts } from '@/core/services/facts';
 import { postEvaluateFact } from '@/core/services/users';
 import {
@@ -24,13 +28,6 @@ import {
   TFactItem,
   TFactsState,
 } from '@/core/types/fact';
-
-import Skeleton from '@/components/Skeleton';
-import { Text } from '@/components/Text';
-import { consoleClors } from '@/core/constants/colors';
-import { useLogging } from '@/core/context/LoggingProvider';
-import { logItem, logMessage } from '@/core/helpers/misc';
-import { useToast } from '@/core/hooks/useToast';
 
 const { cyan, gray, yellow, reset } = consoleClors;
 
@@ -150,18 +147,18 @@ const Facts = () => {
     });
   };
 
-  /** Saves the next fact item in AsyncStorage to handle the daily notification */
-  const storeNextFactItem = async (
-    facts: TFactItem[],
-    currentItem: TCurrentItem
-  ) => {
-    const index = facts.findIndex((item) => item.id === currentItem.id);
-    if (index === -1) return;
-    const nextItem = facts[currentItem.index + 1];
-    const result = await saveNextFactInAsyncStorage(nextItem);
-    logItem('NXT STORE', facts, nextItem.id);
-    if (result.error) showToast(result.error.message);
-  };
+  // /** Saves the next fact item in AsyncStorage to handle the daily notification */
+  // const storeNextFactItem = async (
+  //   facts: TFactItem[],
+  //   currentItem: TCurrentItem
+  // ) => {
+  //   const index = facts.findIndex((item) => item.id === currentItem.id);
+  //   if (index === -1) return;
+  //   const nextItem = facts[currentItem.index + 1];
+  //   const result = await saveNextFactInAsyncStorage(nextItem);
+  //   logItem('NXT STORE', facts, nextItem.id);
+  //   if (result.error) showToast(result.error.message);
+  // };
 
   /** Scrolls the FlatList to a specific element */
   const scrollToItem = (index: number) => {
@@ -190,8 +187,8 @@ const Facts = () => {
         updNotShownNum = calcNotShownNum;
       }
 
-      // save the next fact item in AsyncStorage
-      await storeNextFactItem(state.facts, currentUpd);
+      // // save the next fact item in AsyncStorage
+      // await storeNextFactItem(state.facts, currentUpd);
 
       setState(({ current, notShownNum, ...rest }) => {
         return {
@@ -310,7 +307,7 @@ const Facts = () => {
         },
         favorites: fetchedFavorites,
       });
-      await storeNextFactItem(updFacts, currentUpd);
+      // await storeNextFactItem(updFacts, currentUpd);
     }
   };
 
@@ -339,8 +336,6 @@ const Facts = () => {
         return;
       }
 
-      // fadeInList();
-
       const {
         state: {
           current: curFromStorage,
@@ -350,10 +345,10 @@ const Facts = () => {
         favorites: favoritesFromStorage,
       } = restoreFactsResult.data;
 
-      // update the next fact item in AsyncStorage
-      if (curFromStorage) {
-        await storeNextFactItem(factsFromStorage, curFromStorage);
-      }
+      // // update the next fact item in AsyncStorage
+      // if (curFromStorage) {
+      //   await storeNextFactItem(factsFromStorage, curFromStorage);
+      // }
 
       // fetch the new facts from the server if the stored data does not meet
       // the minimum threshold defined by `FACTS_LENGTH_TO_FETCH_NEW_ITEMS`
@@ -393,18 +388,12 @@ const Facts = () => {
   // fade list
   useEffect(() => {
     if (state.current) fadeInList();
-    // if (!state.current) fadeInSkeleton();
   }, [state.current]);
 
   // fade in skeleton
   useEffect(() => {
     if (!state.current) fadeInSkeleton();
   }, [state.current]);
-
-  // // dev
-  // useEffect(() => {
-  //   logItem('CUR STATE', state.facts, state.current?.id);
-  // }, [state.current]);
 
   return (
     <View className="h-full relative">

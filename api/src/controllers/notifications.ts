@@ -1,11 +1,11 @@
 import { NextFunction, Request, Response } from 'express';
 
-import { decryptText, encryptText } from '../helpers/crypto.js';
-import { HttpError } from '../helpers/error.js';
-import { isReqValid } from '../helpers/http.js';
-import logger from '../helpers/logger.js';
-import { sendNotificationToSingleClient } from '../helpers/notifications.js';
-import UserModel from '../models/user.js';
+import { decryptText, encryptText } from '../helpers/crypto';
+import { HttpError } from '../helpers/error';
+import { isReqValid } from '../helpers/http';
+import logger from '../helpers/logger';
+import { sendNotificationToSingleClient } from '../helpers/notifications';
+import UserModel from '../models/user';
 
 export const createNotificationSubscription = async (
   req: Request,

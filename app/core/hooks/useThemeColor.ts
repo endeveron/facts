@@ -5,7 +5,7 @@
 
 import { useColorScheme } from 'react-native';
 
-import { colors } from '@/core/constants/colors';
+import { colors, gradients } from '@/core/constants/colors';
 
 export function useThemeColor(
   colorName: keyof typeof colors.light & keyof typeof colors.dark,
@@ -20,4 +20,11 @@ export function useThemeColor(
   }
 
   return colorFromTheme;
+}
+
+export function useThemeGradient(
+  gradientName: keyof typeof gradients.light & keyof typeof gradients.dark
+) {
+  const theme = useColorScheme() ?? 'light';
+  return gradients[theme][gradientName];
 }

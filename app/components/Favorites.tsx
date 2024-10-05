@@ -5,12 +5,12 @@ import FavoriteItem from '@/components/FavoriteItem';
 import HeartIcon from '@/components/svg/HeartIcon';
 import { Text } from '@/components/Text';
 import { KEY_FACTS_FAVORITES } from '@/core/constants';
-import { heartColor } from '@/core/constants/colors';
 import { useSession } from '@/core/context/SessionContext';
 import { useToast } from '@/core/hooks/useToast';
 import { getFavorites, postEvaluateFact } from '@/core/services/users';
 import { TFactItem } from '@/core/types/fact';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useThemeColor } from '@/core/hooks/useThemeColor';
 
 type TFavoritesState = {
   favorites: TFactItem[];
@@ -21,6 +21,7 @@ const Favorites = () => {
   if (!session) return null;
 
   const { showToast } = useToast();
+  const heartIconColor = useThemeColor('heartIcon');
 
   const [state, setState] = useState<TFavoritesState>({
     favorites: [],
@@ -79,7 +80,7 @@ const Favorites = () => {
     <View className="pb-28">
       <View className="flex-row items-center px-4 pb-2">
         <View className="mr-3">
-          <HeartIcon size={20} color={heartColor} />
+          <HeartIcon size={20} color={heartIconColor} />
         </View>
         <Text className="text-xl font-pbold">My Favorites</Text>
       </View>

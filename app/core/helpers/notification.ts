@@ -5,50 +5,28 @@ import { Platform } from 'react-native';
 
 import {
   API_BASE_URL,
-  HOUR,
-  KEY_NOTIF_SCHEDULE,
-  MINUTE,
   NOTIFICATION_BACKGROUND_TASK,
   NOTIFICATION_REMINDER_BODY,
   NOTIFICATION_REMINDER_TITLE,
 } from '@/core/constants';
 import { commonHeaders } from '@/core/constants/api';
 import { consoleClors } from '@/core/constants/colors';
+import { factActions } from '@/core/constants/facts';
 import { writeLog } from '@/core/context/LoggingProvider';
-import { TNotifications } from '@/core/context/PushNotificationsContext';
+import { logMessage } from '@/core/helpers/misc';
 import {
   getNotifScheduleFromAsyncStorage,
   getNotifSubscrDataFromSecureStore,
   removeNotifScheduleFromAsyncStorage,
   saveNotifScheduleInAsyncStorage,
 } from '@/core/helpers/store';
+import { deleteSchedule, postSchedule } from '@/core/services/notifications';
 import { postNotificationsSubscription } from '@/core/services/users';
 import { TNotificationConfig, TResponse } from '@/core/types/common';
 import { TNotification } from '@/core/types/notification';
 import { TaskManagerTaskExecutor } from 'expo-task-manager';
-import { deleteSchedule, postSchedule } from '@/core/services/notifications';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { logMessage } from '@/core/helpers/misc';
-import { factActions } from '@/core/constants/facts';
 
 const { cyan, green, gray, red, yellow, reset } = consoleClors;
-
-// // define notification categories
-// export const factNotificationActions: Notifications.NotificationAction[] = [
-//   {
-//     identifier: 'fact',
-//     buttonTitle: 'Fact',
-//     options: {
-//       opensAppToForeground: true,
-//       // isAuthenticationRequired: boolean,
-//       // isDestructive: boolean,
-//     },
-//     // textInput: { // will result in a button that prompts the user for a text response
-//     //   placeholder: string,
-//     //   submitButtonTitle: string
-//     // }
-//   },
-// ];
 
 export const logNotificationData = (
   notification: Notifications.Notification

@@ -5,7 +5,7 @@ import {
   KEY_AUTH_TOKEN,
   KEY_AUTH_USER,
   KEY_FACTS_FAVORITES,
-  KEY_FACTS_NEXT_ITEM,
+  // KEY_FACTS_NEXT_ITEM,
   KEY_FACTS_STATE,
   KEY_FACTS_STATE_CAT,
   KEY_NOTIF_SCHEDULE,
@@ -16,8 +16,7 @@ import { EFactsStateKey, TFactItem, TFactsState } from '@/core/types/fact';
 
 import { consoleClors } from '@/core/constants/colors';
 import { TResponse } from '@/core/types/common';
-import { writeLog } from '@/core/context/LoggingProvider';
-import { logMessage } from '@/core/helpers/misc';
+
 const { gray, green, red, reset } = consoleClors;
 
 /**
@@ -198,35 +197,35 @@ export const removeNotifScheduleFromAsyncStorage = async (): Promise<void> => {
   await AsyncStorage.removeItem(KEY_NOTIF_SCHEDULE);
 };
 
-/**
- * Stores facts state in AsyncStorage.
- * @param factItem - object of type TFactItem
- * @returns a Promise that resolves to an object of type
- * `TResponse` { success: boolean } indicating success or failure.
- */
-export const saveNextFactInAsyncStorage = async (
-  factItem: TFactItem
-): Promise<TResponse<{ success: boolean }>> => {
-  try {
-    const nextFactItemStr = JSON.stringify(factItem);
-    await AsyncStorage.setItem(KEY_FACTS_NEXT_ITEM, nextFactItemStr);
-    // console.info(
-    //   `${green}%s${gray}%s${reset}`,
-    //   `The next fact item saved in AsyncStorage `,
-    //   `${factItem.title.slice(0, 30)}...`
-    // );
-    return {
-      data: { success: true },
-      error: null,
-    };
-  } catch (err: any) {
-    console.error(err);
-    return {
-      data: null,
-      error: { message: 'Could not save the fact item' },
-    };
-  }
-};
+// /**
+//  * Stores facts state in AsyncStorage.
+//  * @param factItem - object of type TFactItem
+//  * @returns a Promise that resolves to an object of type
+//  * `TResponse` { success: boolean } indicating success or failure.
+//  */
+// export const saveNextFactInAsyncStorage = async (
+//   factItem: TFactItem
+// ): Promise<TResponse<{ success: boolean }>> => {
+//   try {
+//     const nextFactItemStr = JSON.stringify(factItem);
+//     await AsyncStorage.setItem(KEY_FACTS_NEXT_ITEM, nextFactItemStr);
+//     // console.info(
+//     //   `${green}%s${gray}%s${reset}`,
+//     //   `The next fact item saved in AsyncStorage `,
+//     //   `${factItem.title.slice(0, 30)}...`
+//     // );
+//     return {
+//       data: { success: true },
+//       error: null,
+//     };
+//   } catch (err: any) {
+//     console.error(err);
+//     return {
+//       data: null,
+//       error: { message: 'Could not save the fact item' },
+//     };
+//   }
+// };
 
 /**
  * Stores facts state in AsyncStorage.
@@ -333,9 +332,10 @@ export const deleteFactsDataFromAsyncStorage = async (): Promise<
   const errMessage = 'Could not clear facts data';
   try {
     const clear = async () => {
+      // await AsyncStorage.removeItem(KEY_FACTS_NEXT_ITEM);
+      await AsyncStorage.removeItem(KEY_FACTS_FAVORITES);
       await AsyncStorage.removeItem(KEY_FACTS_STATE);
       await AsyncStorage.removeItem(KEY_FACTS_STATE_CAT);
-      await AsyncStorage.removeItem(KEY_FACTS_FAVORITES);
     };
     const check = async (): Promise<boolean> => {
       const itemStr = await AsyncStorage.getItem(KEY_FACTS_FAVORITES);

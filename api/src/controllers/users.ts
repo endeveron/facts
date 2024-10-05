@@ -1,12 +1,12 @@
 import { NextFunction, Request, Response } from 'express';
 
-import { FACT_PROPS } from '../constants/facts.js';
-import { HttpError } from '../helpers/error.js';
-import { createCategoryMap } from '../helpers/facts.js';
-import { isReqValid } from '../helpers/http.js';
-import logger from '../helpers/logger.js';
-import FactModel from '../models/fact.js';
-import UserModel from '../models/user.js';
+import { FACT_PROPS } from '../constants/facts';
+import { HttpError } from '../helpers/error';
+import { createCategoryMap } from '../helpers/facts';
+import { isReqValid } from '../helpers/http';
+import logger from '../helpers/logger';
+import FactModel from '../models/fact';
+import UserModel from '../models/user';
 
 export const getFavorites = async (
   req: Request,
@@ -23,9 +23,10 @@ export const getFavorites = async (
     }
     const favoriteIdArr = user.facts.favorites;
     if (!favoriteIdArr.length) {
-      return res.status(200).json({
+      res.status(200).json({
         data: { favorites: [] },
       });
+      return;
     }
 
     const favoriteFacts = await FactModel.find({

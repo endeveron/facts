@@ -1,5 +1,5 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import React, { memo, ReactElement, useEffect, useState } from 'react';
+import React, { memo, useEffect, useState } from 'react';
 import {
   Dimensions,
   Image,
@@ -9,21 +9,11 @@ import {
 } from 'react-native';
 
 import Card from '@/components/Card';
-import AtomStrokeIcon from '@/components/svg/AtomStrokeIcon';
-import CaseStrokeIcon from '@/components/svg/CaseStrokeIcon';
-import CopyIcon from '@/components/svg/CopyIcon';
-import EarthStrokeIcon from '@/components/svg/EarthStrokeIcon';
-import HeartIcon from '@/components/svg/HeartIcon';
-import MiscStrokeIcon from '@/components/svg/MiscStrokeIcon';
-import StarsStrokeIcon from '@/components/svg/StarsStrokeIcon';
-import UserStrokeIcon from '@/components/svg/UserStrokeIcon';
-import {
-  brandGradient,
-  factCategoryIconBoxGradient,
-  heartColor,
-} from '@/core/constants/colors';
-import { TFactItem, TFavorites } from '@/core/types/fact';
 import FactCategoryIconBox from '@/components/FactCategoryIconBox';
+import CopyIcon from '@/components/svg/CopyIcon';
+import HeartIcon from '@/components/svg/HeartIcon';
+import { useThemeColor, useThemeGradient } from '@/core/hooks/useThemeColor';
+import { TFactItem, TFavorites } from '@/core/types/fact';
 
 // get the height of device screen
 const screenHeight = Dimensions.get('window').height;
@@ -44,6 +34,9 @@ const FactItem = ({
   onLike,
 }: TFactItemProps) => {
   if (itemData.index === null) return null;
+
+  const heartIconColor = useThemeColor('heartIcon');
+  const brandGradient = useThemeGradient('brand');
 
   const [isFavorites, setIsFavorites] = useState(false);
   const category = itemData.category;
@@ -103,7 +96,7 @@ const FactItem = ({
         <View className="mt-8 flex-row justify-center">
           <Card addClassName="flex-row p-4 rounded-full">
             <TouchableOpacity onPress={handleLike} className="mx-4">
-              <HeartIcon color={isFavorites ? heartColor : undefined} />
+              <HeartIcon color={isFavorites ? heartIconColor : undefined} />
             </TouchableOpacity>
             <TouchableOpacity onPress={handleCopy} className="mx-4">
               <CopyIcon />
