@@ -9,22 +9,23 @@ const NOTIFICATIONS_KEY =
   process.env.EXPO_PUBLIC_NOTIFICATIONS_KEY ||
   '';
 
-const DEFAULT_REDIRECT_URL = '/facts';
+const SHARE_TITLE = 'Did you know this?';
+const NOTIFICATION_REMINDER_TITLE = 'Facts';
+const NOTIFICATION_REMINDER_BODY = 'Did you know this?';
+
+// const DEFAULT_REDIRECT_URL = '/facts';
 // const DEFAULT_REDIRECT_URL = '/dev';
-// const DEFAULT_REDIRECT_URL = '/profile';
+const DEFAULT_REDIRECT_URL = '/profile';
 
 const NOTIFICATION_BACKGROUND_TASK = 'notification_background_task';
-const NOTIFICATION_REMINDER_BODY = 'Did you know this?';
-const NOTIFICATION_REMINDER_TITLE = 'Facts';
 
 const KEY_AUTH_TOKEN = 'auth_token';
 const KEY_AUTH_USER = 'auth_user';
 const KEY_FACTS_FAVORITES = 'facts_favorites';
-// const KEY_FACTS_NEXT_ITEM = 'facts_next_item';
 const KEY_FACTS_STATE = 'facts_state';
 const KEY_FACTS_STATE_CAT = 'facts_state_cat';
-const KEY_NOTIF_SCHEDULE = 'notif_schedule';
-const KEY_SUBSCR_NOTIF = 'subscr_notif';
+const KEY_NOTIF_SUBSCR = 'notif_subscription';
+const KEY_NOTIF_SUBSCR_FETCHED = 'notif_subscription_fetched';
 
 export {
   API_BASE_URL,
@@ -34,16 +35,16 @@ export {
   KEY_AUTH_TOKEN,
   KEY_AUTH_USER,
   KEY_FACTS_FAVORITES,
-  // KEY_FACTS_NEXT_ITEM,
   KEY_FACTS_STATE,
   KEY_FACTS_STATE_CAT,
-  KEY_NOTIF_SCHEDULE,
-  KEY_SUBSCR_NOTIF,
+  KEY_NOTIF_SUBSCR,
+  KEY_NOTIF_SUBSCR_FETCHED,
   NOTIFICATION_BACKGROUND_TASK,
   NOTIFICATION_REMINDER_BODY,
   NOTIFICATION_REMINDER_TITLE,
   NOTIFICATIONS_KEY,
+  SHARE_TITLE,
 };
 
-export const HOUR = 14;
-export const MINUTE = 5;
+export const HOUR = 16;
+export const MINUTE = 15;

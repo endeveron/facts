@@ -7,13 +7,12 @@ import logger from '../helpers/logger';
 import { sendNotificationToSingleClient } from '../helpers/notifications';
 import UserModel from '../models/user';
 
-export const createNotificationSubscription = async (
+export const getNotificationSubscription = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
-  if (!isReqValid(req, next)) return;
-  const { expoPushToken, userId } = req.body;
+  const userId = req.params.userId;
 
   try {
     const user = await UserModel.findById(userId);
@@ -23,30 +22,106 @@ export const createNotificationSubscription = async (
       );
     }
 
-    // check if a subscription already exists
-    if (user.notificationsSubscr !== null) {
-      return next(new HttpError('Subscription already exists', 409));
+    if (!user.notificationSubscr) {
+      res.status(200).json({ data: null });
+      return;
+    }
+
+    let expoPushToken = null;
+    const encryptedToken = user.notificationSubscr.token;
+    // decrypt the token
+    if (encryptedToken) expoPushToken = decryptText(encryptedToken);
+
+    const data = {
+      token: expoPushToken,
+      isActive: user.notificationSubscr.isActive,
+      schedule: user.notificationSubscr.schedule,
+    };
+
+    res.status(200).json({ data });
+  } catch (err) {
+    logger.r('getNotificationSubscription', err);
+    return next(new HttpError('Unable to get subscription data', 500));
+  }
+};
+
+export const createNotificationSubscription = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  if (!isReqValid(req, next)) return;
+  const { subscription, userId } = req.body;
+
+  try {
+    const user = await UserModel.findById(userId);
+    if (!user) {
+      return next(
+        new HttpError('Unable to find a user with the specified ID.', 404)
+      );
     }
 
     // encrypt the token
-    const { data, iv } = encryptText(expoPushToken);
-    const notificationsSubscr = {
+    const { data, iv } = encryptText(subscription.expoPushToken);
+    const notificationSubscr = {
+      isActive: subscription.isActive,
+      schedule: subscription.schedule,
       token: {
         data,
         iv,
       },
-      isActive: true,
-      schedule: null,
     };
-    user.notificationsSubscr = notificationsSubscr;
+
+    // create subscription
+    user.notificationSubscr = notificationSubscr;
     await user.save();
 
     res.status(200).json({
       data: { success: true },
     });
   } catch (err) {
-    logger.r('postEvaluateFact', err);
-    return next(new HttpError('Unable to evaluate fact.', 500));
+    logger.r('createNotificationSubscription', err);
+    return next(new HttpError('Unable to create subscription', 500));
+  }
+};
+
+export const updateNotificationSubscription = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  if (!isReqValid(req, next)) return;
+  const { subscription, userId } = req.body;
+
+  try {
+    const user = await UserModel.findById(userId);
+    if (!user) {
+      return next(
+        new HttpError('Unable to find a user with the specified ID.', 404)
+      );
+    }
+
+    // encrypt the token
+    const { data, iv } = encryptText(subscription.expoPushToken);
+    const notificationSubscr = {
+      isActive: subscription.isActive,
+      schedule: subscription.schedule,
+      token: {
+        data,
+        iv,
+      },
+    };
+
+    // update the existing subscription
+    user.notificationSubscr = notificationSubscr;
+    await user.save();
+
+    res.status(200).json({
+      data: { success: true },
+    });
+  } catch (err) {
+    logger.r('updateNotificationSubscription', err);
+    return next(new HttpError('Unable to update subscription', 500));
   }
 };
 
@@ -67,11 +142,11 @@ export const createNotificationSchedule = async (
     }
 
     // check if the subscription exist
-    if (user.notificationsSubscr === null) {
+    if (user.notificationSubscr === null) {
       return next(new HttpError('No subscription exists', 404));
     }
 
-    user.notificationsSubscr.schedule = schedule;
+    user.notificationSubscr.schedule = schedule;
     await user.save();
 
     res.status(201).json({
@@ -100,12 +175,12 @@ export const deleteNotificationSchedule = async (
     }
 
     // check if the subscription exist
-    if (user.notificationsSubscr === null) {
+    if (user.notificationSubscr === null) {
       return next(new HttpError('No subscription exists', 404));
     }
 
     // update user data
-    user.notificationsSubscr.schedule = null;
+    user.notificationSubscr.schedule = null;
     await user.save();
 
     res.status(201).json({
@@ -133,7 +208,7 @@ export const sendNotification = async (
       );
     }
 
-    const subscription = user.notificationsSubscr;
+    const subscription = user.notificationSubscr;
 
     // check if the subscription already exists and active
     if (!subscription || !subscription.isActive) {

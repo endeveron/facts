@@ -1,28 +1,18 @@
-import * as Notifications from 'expo-notifications';
 import { View } from 'react-native';
 
-import { Button } from '@/components/Button';
 import Favorites from '@/components/Favorites';
 import { NavItemName, TNavbarItem } from '@/components/Navbar';
+import ScheduleNotification from '@/components/ScheduleNotification';
 import ScrollScreen from '@/components/ScrollScreen';
 import CategoriesIcon from '@/components/svg/CategoriesIcon';
 import LogsIcon from '@/components/svg/LogsIcon';
 import PlusSquaredIcon from '@/components/svg/PlusSquaredIcon';
 import TextFileIcon from '@/components/svg/TextFileIcon';
 import { Text } from '@/components/Text';
-import { useNotifications } from '@/core/context/PushNotificationsContext';
 import { useSession } from '@/core/context/SessionContext';
-import { useThemeColor } from '@/core/hooks/useThemeColor';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { consoleClors } from '@/core/constants/colors';
-
-const { cyan, green, gray, red, reset } = consoleClors;
 
 const profile = () => {
   const { session, signOut } = useSession();
-  const { scheduleDailyNotification, unscheduleDailyNotification } =
-    useNotifications();
-  const accentColor = useThemeColor('accent');
 
   // only admin can create a new fact
   const isAdmin = session?.user.account.role.index === 3;
@@ -56,25 +46,29 @@ const profile = () => {
     });
   }
 
-  const scheduleNotification = async () => {
-    await Notifications.scheduleNotificationAsync({
-      content: {
-        title: 'Facts',
-        body: 'Hey there!',
-        data: { status: 'ok' },
-      },
-      trigger: { seconds: 1 },
-    });
-  };
+  // const scheduleNotification = async () => {
+  //   await Notifications.scheduleNotificationAsync({
+  //     content: {
+  //       title: 'Facts',
+  //       body: 'Hey there!',
+  //       data: { status: 'ok' },
+  //     },
+  //     trigger: { seconds: 1 },
+  //   });
+  // };
 
-  const logStorageItems = async () => {
-    const asyncKeys = await AsyncStorage.getAllKeys();
+  // // dev
+  // const logStorageItems = async () => {
+  //   const asyncKeys = await AsyncStorage.getAllKeys();
+  //   console.info(`${cyan}%s${reset}`, `AsyncStorage items:`);
 
-    for (let key of asyncKeys) {
-      const isExists = await AsyncStorage.getItem(key);
-      console.info(`${cyan}%s${reset}`, `AsyncStorage: ${key} : ${!!isExists}`);
-    }
-  };
+  //   for (let key of asyncKeys) {
+  //     console.info(`${cyan}%s${reset}`, ` ${key}`);
+  //   }
+  // };
+  // useEffect(() => {
+  //   session?.token && logStorageItems();
+  // }, [session]);
 
   return (
     <ScrollScreen title={title} navbar={{ navItems }}>
@@ -93,7 +87,7 @@ const profile = () => {
         </Text>
       </View>
 
-      <View className="flex-col items-center mb-4">
+      {/* <View className="flex-col items-center mb-4">
         <Button
           title="Send one-time notification"
           containerClassName="mb-4 w-80"
@@ -114,7 +108,8 @@ const profile = () => {
           containerClassName="mb-4 w-80"
           handlePress={async () => logStorageItems()}
         />
-      </View>
+      </View> */}
+      <ScheduleNotification />
       <Favorites />
     </ScrollScreen>
   );

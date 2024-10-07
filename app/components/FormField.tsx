@@ -59,10 +59,6 @@ export const FormField = ({
     }
   }
 
-  useEffect(() => {
-    error && console.log('error', error);
-  }, [error]);
-
   return (
     <View className={`space-y-2 ${containerClassName}`}>
       {!!label ? (

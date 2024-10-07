@@ -1,8 +1,6 @@
-const brandFlatColor = '#ff4810';
-
 export default {
   expo: {
-    name: 'facts',
+    name: 'Facts',
     slug: 'facts',
     version: '1.0.0',
     orientation: 'portrait',
@@ -29,7 +27,7 @@ export default {
     },
     notification: {
       icon: './assets/icons/notification_icon.png',
-      color: brandFlatColor,
+      color: '#ff4810',
       androidMode: 'collapse',
       androidCollapsedTitle: '#{unread_notifications} new facts for you',
     },

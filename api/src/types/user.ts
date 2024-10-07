@@ -34,7 +34,7 @@ export type TUser = {
   _id: ObjectId;
   account: TUserAccount;
   facts: TFacts;
-  notificationsSubscr: TNotificationsSubscription | null;
+  notificationSubscr: TNotificationsSubscription | null;
 };
 
 export type TAuthData = {

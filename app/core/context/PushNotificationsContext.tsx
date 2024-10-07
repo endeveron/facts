@@ -11,11 +11,11 @@ import {
 
 import { HOUR, MINUTE, NOTIFICATION_BACKGROUND_TASK } from '@/core/constants';
 import { consoleClors } from '@/core/constants/colors';
-import { useLogging } from '@/core/context/LoggingProvider';
+import { useLogging, writeLog } from '@/core/context/LoggingProvider';
 import { useSession } from '@/core/context/SessionContext';
 import {
-  handleNotificationBackgroundTask,
   handleForegroundNotification,
+  handleNotificationBackgroundTask,
   handleNotificationClick,
   logNotificationData,
   registerPushNotificationService,
@@ -24,8 +24,15 @@ import {
 } from '@/core/helpers/notification';
 import { useToast } from '@/core/hooks/useToast';
 import { TNotificationConfig } from '@/core/types/common';
+import {
+  getNotifSubFromSecureStore,
+  getNotifSubIsFetchedFromAsyncStorage,
+} from '@/core/helpers/store';
+import { getSubscription } from '@/core/services/notifications';
+import { TNotificationSubscription } from '@/core/types/notification';
+import { logMessage } from '@/core/helpers/misc';
 
-const { cyan, green, gray, red, yellow, reset } = consoleClors;
+const { cyan, gray, reset } = consoleClors;
 
 // define a task to handle the behavior when notifications are received when app is backgrounded
 // ! background event listeners are not supported in Expo Go
@@ -39,30 +46,26 @@ Notifications.setNotificationHandler({
   handleNotification: handleForegroundNotification,
 });
 
-export type TNotifications = typeof Notifications;
-
 type TPushNotificationsContextProps = {
-  expoPushToken: string;
-  notification: Notifications.Notification | undefined;
-  response: Notifications.NotificationResponse | null;
-  sendNotification: (config: TNotificationConfig) => Promise<void>;
-  scheduleDailyNotification: ({
-    hour,
-    minute,
-  }: {
-    hour?: number;
-    minute?: number;
-  }) => Promise<void>;
+  isSubscription: boolean;
+  setIsSubscription: (value: boolean) => void;
+  scheduleDailyNotification: () => Promise<void>;
   unscheduleDailyNotification: () => Promise<void>;
+  // expoPushToken: string;
+  // notification: Notifications.Notification | undefined;
+  // response: Notifications.NotificationResponse | null;
+  // sendNotification: (config: TNotificationConfig) => Promise<void>;
 };
 
 const PushNotificationsContext = createContext<TPushNotificationsContextProps>({
-  expoPushToken: '',
-  notification: undefined,
-  response: null,
-  sendNotification: async () => {},
+  isSubscription: false,
+  setIsSubscription: () => {},
   scheduleDailyNotification: async () => {},
   unscheduleDailyNotification: async () => {},
+  // expoPushToken: '',
+  // notification: undefined,
+  // response: null,
+  // sendNotification: async () => {},
 });
 
 export const useNotifications = () => {
@@ -74,33 +77,56 @@ export const PushNotificationsProvider = ({ children }: PropsWithChildren) => {
   const { addLog } = useLogging();
   const { showToast } = useToast();
 
-  const [expoPushToken, setExpoPushToken] = useState('');
-  const [notification, setNotification] = useState<
-    Notifications.Notification | undefined
-  >(undefined);
-  const [response, setResponse] =
-    useState<Notifications.NotificationResponse | null>(null);
+  const [isSubscription, setIsSubscription] = useState(false);
+  // const [expoPushToken, setExpoPushToken] = useState('');
+  // const [notification, setNotification] = useState<
+  //   Notifications.Notification | undefined
+  // >(undefined);
+  // const [response, setResponse] =
+  //   useState<Notifications.NotificationResponse | null>(null);
 
   const notificationListener = useRef<Notifications.Subscription>();
   const responseListener = useRef<Notifications.Subscription>();
 
-  const registerService = async () => {
+  const registerService = async (
+    subscription: TNotificationSubscription | null,
+    subscrSource: string | null
+  ) => {
     try {
       // get the token for expo push notifications
-      const expoToken = await registerPushNotificationService({
+      const serviceRes = await registerPushNotificationService({
         token: session?.token as string,
         userId: session?.user.id as string,
-        // Notifications,
+        subscription,
+        subscrSource,
       });
-      expoToken && setExpoPushToken(expoToken);
+
+      if (!serviceRes) {
+        const message = 'Could not register service';
+        showToast(message);
+        logMessage(message);
+      }
+
+      if (serviceRes?.error) {
+        logMessage(serviceRes.error.message);
+      }
+      if (serviceRes?.data) {
+        const expoPushToken = serviceRes.data.subscription.expoPushToken;
+        const isSubActive = serviceRes.data.subscription.isActive;
+        setIsSubscription(isSubActive);
+
+        if (expoPushToken && isSubActive) {
+          await scheduleDailyNotification();
+        }
+      }
 
       // create a listener for recieved notifications
       notificationListener.current =
         Notifications.addNotificationReceivedListener((notification) => {
-          setNotification(notification);
+          // setNotification(notification);
           logNotificationData(notification);
           addLog(
-            `New notification [ ${notification.request.content.title} ] ${notification.request.content.body}`
+            `[ NL ] New notification [ ${notification.request.content.title} ] ${notification.request.content.body}`
           );
         });
 
@@ -110,61 +136,170 @@ export const PushNotificationsProvider = ({ children }: PropsWithChildren) => {
           handleNotificationClick(response);
           // setResponse(response);
         });
-    } catch (err: any) {
-      console.error(err);
-      setExpoPushToken(`${err}`);
+    } catch (error: any) {
+      logMessage(error?.message ?? 'Unable to register service');
+      // setExpoPushToken(`${error}`);
     }
   };
 
-  const sendNotification = async (notification: TNotificationConfig) => {
-    // await sendPushNotificationUsingExpo({ config, expoPushToken });
-    // await sendPushNotification({
-    //   notification,
-    //   token: session?.token as string,
-    //   userId: session?.user.id as string,
-    // });
+  const initService = async () => {
+    let subscription: TNotificationSubscription | null = null;
+    let subscrSource: string | null = null;
+    const defaultErrorMsg = 'Could not handle subscription';
+
+    logMessage('[ NS ] notification service is launched', 'success');
+
+    try {
+      // check if the subscription already saved in SecureStore
+      const storeRes = await getNotifSubFromSecureStore();
+      if (storeRes.error) {
+        writeLog(storeRes.error.message, 'error');
+        showToast(defaultErrorMsg);
+        return;
+      }
+
+      // handle data from SecureStore
+      if (storeRes.data) {
+        logMessage('[ NS ] handle data from store');
+        if (storeRes.data.isActive === false) {
+          // subscription is not active, exit
+          logMessage('[ NS ] subscription is not active, exit');
+          return;
+        }
+
+        // prevent the receipt of unnecessary data
+        const isSubFetched = await getNotifSubIsFetchedFromAsyncStorage();
+        if (isSubFetched) {
+          const subStoreRes = await getNotifSubFromSecureStore();
+          if (!subStoreRes) {
+            logMessage(
+              `[ NS ] unable to get subscription state from atorage`,
+              'error'
+            );
+          }
+          if (subStoreRes.error) {
+            logMessage(`[ NS ] ${subStoreRes.error.message}`, 'error');
+          }
+          if (!subStoreRes || subStoreRes.error) {
+            showToast('Unable to get subscription state');
+            return;
+          }
+
+          logMessage('[ NS ] data already recieved');
+
+          const isActive = subStoreRes.data?.isActive as boolean;
+          setIsSubscription(isActive);
+          logMessage(
+            `[ NS ] subscription is ${isActive ? 'active' : 'inactive'}`
+          );
+
+          return;
+        }
+
+        subscription = storeRes.data;
+        subscrSource = 'store';
+      }
+
+      // try to fetch data from db
+      if (!storeRes.data) {
+        logMessage('[ NS ] no data in store, fetch from db');
+        const userId = session?.user.id;
+        const token = session?.token;
+        if (!userId || !token) {
+          logMessage(`[ NS ] ${defaultErrorMsg}. Invalid auth data`, 'error');
+          showToast(defaultErrorMsg);
+          return;
+        }
+        // fetch data
+        const subscrRes = await getSubscription({ token, userId });
+        if (!subscrRes) {
+          logMessage(
+            `[ NS ] ${defaultErrorMsg}. Unable to fetch subscription from db`,
+            'error'
+          );
+          return;
+        }
+        if (subscrRes.error) {
+          logMessage(`[ NS ] ${subscrRes.error.message}`, 'error');
+          return;
+        }
+        if (subscrRes.data) {
+          if (subscrRes.data.isActive === false) {
+            // subscription is not active, exit
+            logMessage('[ NS ] subscription is not active, exit');
+            return;
+          }
+          subscription = subscrRes.data;
+          subscrSource = 'db';
+        } else {
+          // subscription is not created
+          logMessage('[ NS ] no subscription in db');
+        }
+      }
+
+      registerService(subscription, subscrSource);
+    } catch (error: any) {
+      writeLog(`${error.message || defaultErrorMsg}`, 'error');
+      showToast(defaultErrorMsg);
+    }
   };
 
-  const scheduleDailyNotification = async ({
-    hour = HOUR,
-    minute = MINUTE,
-  }: {
-    hour?: number;
-    minute?: number;
-  }) => {
+  const scheduleDailyNotification = async () => {
     if (!session?.token || !session.user.id) {
       showToast('Not authenticated');
+      logMessage('[ NS ] schedule: not authenticated', 'error');
       return;
     }
-
-    const scheduleRes = await scheduleNotification({
-      hour,
-      minute,
+    const result = await scheduleNotification({
+      hour: HOUR,
+      minute: MINUTE,
       token: session.token,
       userId: session.user.id,
     });
-    if (scheduleRes.error) showToast(scheduleRes.error.message);
-    if (scheduleRes.data?.success) showToast('Notification scheduled');
+    if (result.error) {
+      logMessage(`[ NS ] schedule: ${result.error.message}`, 'error');
+      showToast(result.error.message);
+    }
+    if (result.data?.success) {
+      logMessage(`[ NS ] schedule activated`, 'success');
+      showToast('Daily notification activated');
+      setIsSubscription(true);
+    }
   };
 
   const unscheduleDailyNotification = async () => {
     if (!session?.token || !session.user.id) {
       showToast('Not authenticated');
+      logMessage('[ NS ] unschedule: not authenticated', 'error');
       return;
     }
-
-    const scheduleRes = await unscheduleNotification({
+    const result = await unscheduleNotification({
       token: session.token,
       userId: session.user.id,
     });
-    if (scheduleRes.error) showToast(scheduleRes.error.message);
-    if (scheduleRes.data?.success) showToast('Notification unscheduled');
+    if (result.error) {
+      logMessage(`[ NS ] unschedule: ${result.error.message}`, 'error');
+      showToast(result.error.message);
+    }
+    if (result.data?.success) {
+      logMessage(`[ NS ] schedule canceled`, 'success');
+      showToast('Daily notification canceled');
+      setIsSubscription(false);
+    }
   };
 
-  // register service
+  // const sendNotification = async (notification: TNotificationConfig) => {
+  //   // await sendPushNotificationUsingExpo({ config, expoPushToken });
+  //   // await sendPushNotification({
+  //   //   notification,
+  //   //   token: session?.token as string,
+  //   //   userId: session?.user.id as string,
+  //   // });
+  // };
+
+  // init
   useEffect(() => {
-    if (!session || notificationListener.current) return;
-    registerService();
+    if (session) initService();
   }, [session]);
 
   // clean up before dismount
@@ -190,7 +325,7 @@ export const PushNotificationsProvider = ({ children }: PropsWithChildren) => {
         }, []);
         console.info(
           `${cyan}%s${gray}%s${reset}`,
-          'Registered tasks: ',
+          '[ TM ] tasks: ',
           formatedTasks.join(', ')
         );
         addLog(`Tasks: ${formatedTasks.join(', ')}`);
@@ -200,12 +335,14 @@ export const PushNotificationsProvider = ({ children }: PropsWithChildren) => {
   }, []);
 
   const value = {
-    expoPushToken,
-    notification,
-    response,
-    sendNotification,
+    isSubscription,
+    setIsSubscription,
     scheduleDailyNotification,
     unscheduleDailyNotification,
+    // expoPushToken,
+    // notification,
+    // response,
+    // sendNotification,
   };
 
   return (

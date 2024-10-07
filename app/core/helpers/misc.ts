@@ -1,8 +1,11 @@
+import * as SecureStore from 'expo-secure-store';
 import { Dimensions, Platform, StatusBar } from 'react-native';
 
 import { consoleClors } from '@/core/constants/colors';
 import { TFactItem } from '@/core/types/fact';
 import { TLogType, writeLog } from '@/core/context/LoggingProvider';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { KEY_NOTIF_SUBSCR } from '@/core/constants';
 
 const { cyan, green, gray, red, reset } = consoleClors;
 
@@ -55,5 +58,25 @@ export const logMessage = (message: string, type?: TLogType) => {
       console.info(`${cyan}%s${reset}`, message);
       writeLog(message);
     }
+  }
+};
+
+export const logStoreData = async () => {
+  const asyncKeys = await AsyncStorage.getAllKeys();
+  console.info(`${cyan}%s${reset}`, `[ AS ] async storage:`);
+  if (asyncKeys.length) {
+    for (let key of asyncKeys) {
+      console.info(`${cyan}%s${reset}`, ` - ${key}`);
+    }
+  } else {
+    console.info(`${cyan}%s${reset}`, `[ AS ] no items`);
+  }
+
+  console.info(`${cyan}%s${reset}`, `[ SS ] secure store:`);
+  const notifSub = await SecureStore.getItemAsync(KEY_NOTIF_SUBSCR);
+  if (notifSub) {
+    console.info(`${cyan}%s${reset}`, ` ${KEY_NOTIF_SUBSCR}`);
+  } else {
+    console.info(`${cyan}%s${reset}`, ` no items`);
   }
 };

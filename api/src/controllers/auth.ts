@@ -66,7 +66,7 @@ export const signup = async (
         categoryRateMap,
         offsetMap,
       },
-      notificationsSubscr: null,
+      notificationSubscr: null,
     });
 
     await user.save();

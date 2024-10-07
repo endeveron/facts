@@ -1,7 +1,13 @@
-import * as Clipboard from 'expo-clipboard';
 import { useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Animated, Dimensions, FlatList, View, ViewToken } from 'react-native';
+import {
+  Animated,
+  Dimensions,
+  FlatList,
+  Share,
+  View,
+  ViewToken,
+} from 'react-native';
 
 import FactItem from '@/components/FactItem';
 import Navbar, { NavItemName, TNavbarItem } from '@/components/Navbar';
@@ -10,7 +16,7 @@ import CategoriesIcon from '@/components/svg/CategoriesIcon';
 import TextFileIcon from '@/components/svg/TextFileIcon';
 import UserIcon from '@/components/svg/UserIcon';
 import { Text } from '@/components/Text';
-import { consoleClors } from '@/core/constants/colors';
+import { SHARE_TITLE } from '@/core/constants';
 import { FACTS_LENGTH_TO_FETCH_NEW_ITEMS } from '@/core/constants/facts';
 import { useLogging } from '@/core/context/LoggingProvider';
 import { useSession } from '@/core/context/SessionContext';
@@ -28,8 +34,6 @@ import {
   TFactItem,
   TFactsState,
 } from '@/core/types/fact';
-
-const { cyan, gray, yellow, reset } = consoleClors;
 
 // get the height of device window
 const windowHeight = Dimensions.get('window').height;
@@ -124,11 +128,6 @@ const Facts = () => {
     }).start();
   };
 
-  const handleCopy = async (text: string) => {
-    if (!text) return;
-    await Clipboard.setStringAsync(text);
-  };
-
   const handleLike = async (factId: string, category: string) => {
     const favoritesUpd = [...favorites];
     const index = favoritesUpd.indexOf(factId);
@@ -145,6 +144,31 @@ const Facts = () => {
       category,
       token,
     });
+  };
+
+  // const handleCopy = async (text: string) => {
+  //   if (!text) return;
+  //   await Clipboard.setStringAsync(text);
+  // };
+
+  const handleShare = async (title: string) => {
+    try {
+      const result = await Share.share({
+        title: SHARE_TITLE,
+        message: title,
+      });
+      if (result.action === Share.sharedAction) {
+        if (result.activityType) {
+          // shared with activity type of result.activityType
+        } else {
+          // shared
+        }
+      } else if (result.action === Share.dismissedAction) {
+        // dismissed
+      }
+    } catch (error: any) {
+      // Alert.alert(error.message);
+    }
   };
 
   // /** Saves the next fact item in AsyncStorage to handle the daily notification */
@@ -417,8 +441,9 @@ const Facts = () => {
                 itemData={{ index, ...item }}
                 factsTotal={factsLength}
                 favorites={favorites}
-                onCopy={handleCopy}
                 onLike={handleLike}
+                // onCopy={handleCopy}
+                onShare={handleShare}
               />
             )}
           />

@@ -1,23 +1,20 @@
-import * as SecureStore from 'expo-secure-store';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as SecureStore from 'expo-secure-store';
 
 import {
   KEY_AUTH_TOKEN,
   KEY_AUTH_USER,
   KEY_FACTS_FAVORITES,
-  // KEY_FACTS_NEXT_ITEM,
   KEY_FACTS_STATE,
   KEY_FACTS_STATE_CAT,
-  KEY_NOTIF_SCHEDULE,
-  KEY_SUBSCR_NOTIF,
+  KEY_NOTIF_SUBSCR,
+  KEY_NOTIF_SUBSCR_FETCHED,
 } from '@/core/constants';
 import { TAuthData, TUser } from '@/core/types/auth';
-import { EFactsStateKey, TFactItem, TFactsState } from '@/core/types/fact';
-
-import { consoleClors } from '@/core/constants/colors';
 import { TResponse } from '@/core/types/common';
-
-const { gray, green, red, reset } = consoleClors;
+import { EFactsStateKey, TFactsState } from '@/core/types/fact';
+import { TNotificationSubscription } from '@/core/types/notification';
+import { logMessage } from '@/core/helpers/misc';
 
 /**
  * Retrieves authentication data including token and user information from SecureStore.
@@ -116,36 +113,132 @@ export const deleteAuthDataFromSecureStore = async (): Promise<
 };
 
 /**
- * Retrieves notification subscription data from SecureStore.
- * @returns a Promise that resolves to an object of type `TResponse` { expoPushToken }
+ * Saves notification subscription in SecureStore.
+ * @returns a Promise that resolves to an object of type
+ * `TResponse` { success: boolean } indicating success or failure.
  */
-export const getNotifSubscrDataFromSecureStore = async (): Promise<
-  TResponse<{
-    expoPushToken: string;
-  }>
-> => {
+export const saveNotifSubInSecureStore = async (
+  subscription: TNotificationSubscription
+): Promise<TResponse<{ success: boolean }>> => {
   try {
-    const expoPushToken = await SecureStore.getItemAsync(KEY_SUBSCR_NOTIF);
-    if (!expoPushToken)
-      return {
-        data: null,
-        error: null,
-      };
+    const subscrDataStr = JSON.stringify(subscription);
+    await SecureStore.setItemAsync(KEY_NOTIF_SUBSCR, subscrDataStr);
     // console.info(
     //   `${gray}%s${reset}`,
-    //   'Notification subscription data retrieved from secure store'
+    //   'Notification subscription data saved in secure store'
     // );
     return {
-      data: {
-        expoPushToken,
-      },
+      data: { success: true },
       error: null,
     };
   } catch (err: any) {
     console.error(err);
     return {
       data: null,
-      error: { message: err.message ?? 'Could not get user data from store.' },
+      error: { message: err.message ?? 'Could not save subscription in store' },
+    };
+  }
+};
+
+/**
+ * Retrieves notification subscription data from SecureStore.
+ * @returns a Promise that resolves to an object of type
+ * `TResponse` { success: boolean } indicating success or failure.
+ */
+export const getNotifSubFromSecureStore = async (): Promise<
+  TResponse<TNotificationSubscription>
+> => {
+  try {
+    const subscrDataStr = await SecureStore.getItemAsync(KEY_NOTIF_SUBSCR);
+    if (!subscrDataStr) return { data: null, error: null };
+    const subscription = JSON.parse(subscrDataStr);
+    return {
+      data: subscription,
+      error: null,
+    };
+  } catch (err: any) {
+    console.error(err);
+    return {
+      data: null,
+      error: {
+        message: err.message ?? 'Could not get subscription from store',
+      },
+    };
+  }
+};
+
+/**
+ * Delete notification subscription from SecureStore.
+ * @returns a Promise that resolves to an object of type
+ * `TResponse` { success: boolean } indicating success or failure.
+ */
+export const deleteNotifSubFromSecureStore = async (): Promise<
+  TResponse<{ success: boolean }>
+> => {
+  try {
+    await SecureStore.deleteItemAsync(KEY_NOTIF_SUBSCR);
+    return {
+      data: { success: true },
+      error: null,
+    };
+  } catch (err: any) {
+    console.error(err);
+    return {
+      data: null,
+      error: { message: err.message ?? 'Could not save subscription in store' },
+    };
+  }
+};
+
+/**
+ * Saves notification subscription status in AsyncStorage.
+ * @returns a Promise that resolves to an object of type
+ * `TResponse` { success: boolean } indicating success or failure.
+ */
+export const saveNotifSubIsFetchedInAsyncStorage = async (
+  isFetched: boolean
+): Promise<TResponse<{ success: boolean }>> => {
+  try {
+    await AsyncStorage.setItem(KEY_NOTIF_SUBSCR_FETCHED, `${isFetched}`);
+    return {
+      data: { success: true },
+      error: null,
+    };
+  } catch (err: any) {
+    console.error(err);
+    return {
+      data: null,
+      error: { message: err.message ?? 'Could not save subscription in store' },
+    };
+  }
+};
+
+/**
+ * Get notification subscription status in AsyncStorage.
+ * @returns a Promise that resolves to an object of type
+ * `TResponse` isFetched: boolean
+ */
+export const getNotifSubIsFetchedFromAsyncStorage = async (): Promise<
+  TResponse<{ isFetched: boolean }>
+> => {
+  try {
+    const result = await AsyncStorage.getItem(KEY_NOTIF_SUBSCR_FETCHED);
+    if (!result) {
+      const message = 'Unable to get notification subscription status';
+      logMessage('[ NS ] subscription status error', 'error');
+      return { data: null, error: { message } };
+    }
+    const resData = JSON.parse(result);
+
+    return {
+      data: { isFetched: Boolean(resData) },
+      error: null,
+    };
+  } catch (err: any) {
+    console.error(err);
+    return {
+      data: null,
+      error: { message: err.message ?? 'Could not save subscription in store' },
     };
   }
 };
@@ -160,12 +253,55 @@ export const saveNotifScheduleInAsyncStorage = async (
   schedule: string
 ): Promise<TResponse<{ success: boolean }>> => {
   try {
-    await AsyncStorage.setItem(KEY_NOTIF_SCHEDULE, schedule);
-    // console.info(
-    //   `${green}%s${reset}`,
-    //   `Notifications schedule saved in AsyncStorage`
-    // );
-    // writeLog('Notifications schedule saved in AsyncStorage', 'success');
+    const subResult = await getNotifSubFromSecureStore();
+    if (subResult.error) {
+      logMessage(
+        `[ NS ] get subscription from store: ${subResult.error.message}`,
+        'error'
+      );
+      return {
+        data: null,
+        error: { message: subResult.error.message },
+      };
+    }
+    const getErrMessage = 'Could not get schedule from store';
+    if (!subResult || !subResult.data) {
+      logMessage(
+        `[ NS ] get subscription from store: ${getErrMessage}`,
+        'error'
+      );
+      return {
+        data: null,
+        error: { message: getErrMessage },
+      };
+    }
+
+    const subscription = subResult.data;
+    subscription.schedule = schedule;
+
+    const saveRes = await saveNotifSubInSecureStore(subscription);
+    if (saveRes.error) {
+      logMessage(
+        `[ NS ] save subscription in store: ${saveRes.error.message}`,
+        'error'
+      );
+      return {
+        data: null,
+        error: { message: saveRes.error.message },
+      };
+    }
+    const saveErrMessage = 'Could not save subscription in store';
+    if (!saveRes || !saveRes.data) {
+      logMessage(
+        `[ NS ] save subscription in store: ${saveErrMessage}`,
+        'error'
+      );
+      return {
+        data: null,
+        error: { message: saveErrMessage },
+      };
+    }
+
     return {
       data: { success: true },
       error: null,
@@ -182,20 +318,26 @@ export const saveNotifScheduleInAsyncStorage = async (
 /**
  * Retrieves notifications schedule from AsyncStorage.
  * @returns a Promise that resolves to an object of type
- * `TResponse` { hour: number }
+ * `TResponse` schedule: string
  */
 export const getNotifScheduleFromAsyncStorage = async (): Promise<
   TResponse<string | null>
 > => {
-  const schedule = await AsyncStorage.getItem(KEY_NOTIF_SCHEDULE);
+  const result = await AsyncStorage.getItem(KEY_NOTIF_SUBSCR);
+  if (!result) {
+    return {
+      data: null,
+      error: { message: 'Unable to get data from store' },
+    };
+  }
+  const subscription = JSON.parse(result);
   return {
-    data: schedule,
+    data: subscription.schedule,
     error: null,
   };
 };
-export const removeNotifScheduleFromAsyncStorage = async (): Promise<void> => {
-  await AsyncStorage.removeItem(KEY_NOTIF_SCHEDULE);
-};
+export const removeNotifScheduleFromAsyncStorage =
+  async (): Promise<void> => {};
 
 // /**
 //  * Stores facts state in AsyncStorage.

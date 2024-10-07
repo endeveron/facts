@@ -22,7 +22,7 @@ export const colors = {
   dark: {
     text: '#F8FAFC', // slate-50
     muted: '#56657a', // ~slate-500
-    secondary: '#334155', // slate-700
+    secondary: '#1E293B', // slate-800
     inversed: '#020617', // slate-950
     inversedBg: '#F1F5F9', // slate-100
     accent: brandFlatColor,

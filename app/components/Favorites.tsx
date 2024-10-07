@@ -77,12 +77,11 @@ const Favorites = () => {
   }, []);
 
   return state.favorites.length ? (
-    <View className="pb-28">
-      <View className="flex-row items-center px-4 pb-2">
-        <View className="mr-3">
-          <HeartIcon size={20} color={heartIconColor} />
-        </View>
-        <Text className="text-xl font-pbold">My Favorites</Text>
+    <View className="mt-6 pb-28">
+      <View className="flex-row items-center px-4 mb-2">
+        <Text colorName="muted" className="text-base font-psemibold">
+          My Favorites
+        </Text>
       </View>
 
       {state.favorites.map((data) => (

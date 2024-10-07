@@ -12,8 +12,10 @@ import {
 import {
   deleteAuthDataFromSecureStore,
   deleteFactsDataFromAsyncStorage,
+  deleteNotifSubFromSecureStore,
   getAuthDataFromSecureStore,
   saveAuthDataInSecureStore,
+  saveNotifSubIsFetchedInAsyncStorage,
 } from '@/core/helpers/store';
 import { postSignIn, postSignUp } from '@/core/services/auth';
 import { getResetFacts } from '@/core/services/users';
@@ -25,11 +27,10 @@ import {
   useState,
 } from 'react';
 
-import { consoleClors } from '@/core/constants/colors';
-import { useLogging, writeLog } from '@/core/context/LoggingProvider';
+import { useLogging } from '@/core/context/LoggingProvider';
+import { logMessage, logStoreData } from '@/core/helpers/misc';
 import { useToast } from '@/core/hooks/useToast';
-import { logMessage } from '@/core/helpers/misc';
-const { green, red, reset } = consoleClors;
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const SessionContext = createContext<TSessionContext>({
   session: null,
@@ -140,7 +141,7 @@ export const SessionProvider = ({ children }: PropsWithChildren) => {
       if (factsStorageResult.error) {
         throw new Error(factsStorageResult.error.message);
       }
-      logMessage('Facts data removed from storage', 'success');
+      logMessage('[ SO ] facts data removed from storage', 'success');
 
       // reset facts data in db
       const resetFactsRes = await getResetFacts({
@@ -150,22 +151,39 @@ export const SessionProvider = ({ children }: PropsWithChildren) => {
       if (resetFactsRes?.error) {
         throw new Error(resetFactsRes.error.message);
       }
-      logMessage('Facts data is reset in DB', 'success');
+      logMessage('[ SO ] facts data is reset in DB', 'success');
 
-      // delete auth data from storage
+      // delete auth data from store
       const authRes = await deleteAuthDataFromSecureStore();
       if (authRes?.error) {
         throw new Error(authRes.error.message);
       }
-      logMessage('Auth data removed from storage', 'success');
+      logMessage('[ SO ] auth data removed from store', 'success');
+
+      // delete notification subscription data from store
+      const subRes = await deleteNotifSubFromSecureStore();
+      if (subRes?.error) {
+        throw new Error(subRes.error.message);
+      }
+      logMessage('[ SO ] subscription data removed from store', 'success');
+
+      // reset subscription status in storage
+      const subStatRes = await saveNotifSubIsFetchedInAsyncStorage(false);
+      if (subStatRes?.error) {
+        throw new Error(subStatRes.error.message);
+      }
+      logMessage('[ SO ] subscription status is reset in storage', 'success');
 
       // unregister tasts
       await TaskManager.unregisterAllTasksAsync();
-      logMessage('All tasks unregistered', 'success');
+      logMessage('[ SO ] all tasks unregistered', 'success');
+
+      // dev
+      await logStoreData();
 
       // reset auth session
       setSession(null);
-      logMessage('Signing out');
+      logMessage('[ SO ] sign out');
       router.replace('/sign-in');
     } catch (error: any) {
       showToast('Unable to sign out');
