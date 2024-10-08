@@ -126,7 +126,7 @@ export const PushNotificationsProvider = ({ children }: PropsWithChildren) => {
           // setNotification(notification);
           logNotificationData(notification);
           addLog(
-            `[ NL ] New notification [ ${notification.request.content.title} ] ${notification.request.content.body}`
+            `[ NL ] new notification [ ${notification.request.content.title} ] ${notification.request.content.body}`
           );
         });
 
@@ -147,7 +147,7 @@ export const PushNotificationsProvider = ({ children }: PropsWithChildren) => {
     let subscrSource: string | null = null;
     const defaultErrorMsg = 'Could not handle subscription';
 
-    logMessage('[ NS ] notification service is launched', 'success');
+    logMessage('[ NS ] notification service is launched');
 
     try {
       // check if the subscription already saved in SecureStore
@@ -328,7 +328,7 @@ export const PushNotificationsProvider = ({ children }: PropsWithChildren) => {
           '[ TM ] tasks: ',
           formatedTasks.join(', ')
         );
-        addLog(`Tasks: ${formatedTasks.join(', ')}`);
+        addLog(`[ TM ] tasks: ${formatedTasks.join(', ')}`);
       }
     };
     getTasks();

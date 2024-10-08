@@ -13,10 +13,11 @@ import {
   AUTH_PASSWORD,
   DEFAULT_REDIRECT_URL,
 } from '@/core/constants';
+import { writeLog } from '@/core/context/LoggingProvider';
 import { useSession } from '@/core/context/SessionContext';
+import { logMessage } from '@/core/helpers/misc';
 import { useToast } from '@/core/hooks/useToast';
 import { signInSchema, TSignInFormData } from '@/core/utils/validation';
-import { writeLog } from '@/core/context/LoggingProvider';
 
 const SignIn = () => {
   const { isLoading, signIn } = useSession();
@@ -40,12 +41,16 @@ const SignIn = () => {
         password: data.password,
       });
       if (loggedIn) {
+        logMessage('[ AU ] signed in');
         router.replace(DEFAULT_REDIRECT_URL);
       }
     } catch (error: any) {
       console.error(error);
       showToast('Unable to login');
-      writeLog(`Login error: ${error.message || JSON.stringify(error)}`);
+      logMessage(
+        `[ AU ] sign in error: ${error.message || JSON.stringify(error)}`,
+        'error'
+      );
       router.push('/dev-logs');
     }
   };

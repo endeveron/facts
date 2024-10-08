@@ -66,10 +66,10 @@ export const logStoreData = async () => {
   console.info(`${cyan}%s${reset}`, `[ AS ] async storage:`);
   if (asyncKeys.length) {
     for (let key of asyncKeys) {
-      console.info(`${cyan}%s${reset}`, ` - ${key}`);
+      console.info(`${cyan}%s${reset}`, `[ AS ] - ${key}`);
     }
   } else {
-    console.info(`${cyan}%s${reset}`, `[ AS ] no items`);
+    console.info(`${cyan}%s${reset}`, `[ AS ] - no items`);
   }
 
   console.info(`${cyan}%s${reset}`, `[ SS ] secure store:`);
@@ -77,6 +77,6 @@ export const logStoreData = async () => {
   if (notifSub) {
     console.info(`${cyan}%s${reset}`, ` ${KEY_NOTIF_SUBSCR}`);
   } else {
-    console.info(`${cyan}%s${reset}`, ` no items`);
+    console.info(`${cyan}%s${reset}`, `[ SS ] - no items`);
   }
 };

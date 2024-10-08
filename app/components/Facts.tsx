@@ -251,13 +251,10 @@ const Facts = () => {
         // },
       });
       if (result.error) return showToast(result.error.message);
-      logMessage('Leaving Facts');
     }
   };
 
   const fetchData = async () => {
-    logMessage('Fetching facts data...');
-
     let fetchedFacts: TFactItem[] = [];
     let fetchedFavorites: string[] = [];
     let updFacts: TFactItem[] = [];
@@ -277,6 +274,7 @@ const Facts = () => {
 
     // save facts and favorites in the local state
     if (result?.data) {
+      logMessage('[ FC ] data fetched from db');
       fetchedFacts = result.data.facts;
       setState(({ facts, ...rest }) => {
         updFacts = [...facts, ...fetchedFacts];
@@ -296,6 +294,7 @@ const Facts = () => {
     // and recalculate the number of facts not shown
     if (!state.current) {
       // initialize data
+      logMessage('[ FC ] init current item');
       currentUpd = {
         id: fetchedFacts[0].id,
         index: 0,
@@ -331,6 +330,7 @@ const Facts = () => {
         },
         favorites: fetchedFavorites,
       });
+      logMessage('[ FC ] state saved in storage');
       // await storeNextFactItem(updFacts, currentUpd);
     }
   };
@@ -346,6 +346,7 @@ const Facts = () => {
 
     // otherwise initialize the facts of all categories
     const init = async () => {
+      logMessage('[ FC ] init data');
       // check whether the facts data is stored in the storage
       const restoreFactsResult = await getFactsStateFromAsyncStorage(stateKey);
 
@@ -380,6 +381,8 @@ const Facts = () => {
         await fetchData();
         return;
       }
+
+      logMessage('[ FC ] data fetched from storage');
 
       // update the current item
       let currentUpd = curFromStorage ?? {

@@ -2,11 +2,11 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Link, router } from 'expo-router';
 import { useEffect } from 'react';
 import { Controller, SubmitHandler, useForm } from 'react-hook-form';
-import { ScrollView, View } from 'react-native';
+import { View } from 'react-native';
 
+import AuthScreen from '@/components/AuthScreen';
 import { Button } from '@/components/Button';
 import { FormField } from '@/components/FormField';
-import { SafeAreaView } from '@/components/SafeAreaView';
 import { Text } from '@/components/Text';
 import {
   AUTH_EMAIL,
@@ -14,9 +14,9 @@ import {
   DEFAULT_REDIRECT_URL,
 } from '@/core/constants';
 import { useSession } from '@/core/context/SessionContext';
+import { logMessage } from '@/core/helpers/misc';
 import { useToast } from '@/core/hooks/useToast';
 import { signUpSchema, TSignUpFormData } from '@/core/utils/validation';
-import AuthScreen from '@/components/AuthScreen';
 
 const SignUp = () => {
   const { isLoading, signUp } = useSession();
@@ -42,11 +42,15 @@ const SignUp = () => {
         password: data.password,
       });
       if (registered) {
+        logMessage('[ AU ] signed up');
         router.replace(DEFAULT_REDIRECT_URL);
       }
-    } catch (error: unknown) {
-      console.error(error);
+    } catch (error: any) {
       showToast('Unable to register');
+      logMessage(
+        `[ AU ] sign up error: ${error.message || JSON.stringify(error)}`,
+        'error'
+      );
     }
   };
 

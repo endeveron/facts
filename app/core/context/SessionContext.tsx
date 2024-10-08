@@ -141,7 +141,7 @@ export const SessionProvider = ({ children }: PropsWithChildren) => {
       if (factsStorageResult.error) {
         throw new Error(factsStorageResult.error.message);
       }
-      logMessage('[ SO ] facts data removed from storage', 'success');
+      logMessage('[ CL ] facts data removed from storage', 'success');
 
       // reset facts data in db
       const resetFactsRes = await getResetFacts({
@@ -151,39 +151,39 @@ export const SessionProvider = ({ children }: PropsWithChildren) => {
       if (resetFactsRes?.error) {
         throw new Error(resetFactsRes.error.message);
       }
-      logMessage('[ SO ] facts data is reset in DB', 'success');
+      logMessage('[ CL ] facts data is reset in DB', 'success');
 
       // delete auth data from store
       const authRes = await deleteAuthDataFromSecureStore();
       if (authRes?.error) {
         throw new Error(authRes.error.message);
       }
-      logMessage('[ SO ] auth data removed from store', 'success');
+      logMessage('[ CL ] auth data removed from store', 'success');
 
       // delete notification subscription data from store
       const subRes = await deleteNotifSubFromSecureStore();
       if (subRes?.error) {
         throw new Error(subRes.error.message);
       }
-      logMessage('[ SO ] subscription data removed from store', 'success');
+      logMessage('[ CL ] subscription data removed from store', 'success');
 
       // reset subscription status in storage
       const subStatRes = await saveNotifSubIsFetchedInAsyncStorage(false);
       if (subStatRes?.error) {
         throw new Error(subStatRes.error.message);
       }
-      logMessage('[ SO ] subscription status is reset in storage', 'success');
+      logMessage('[ CL ] subscription status is reset in storage', 'success');
 
       // unregister tasts
       await TaskManager.unregisterAllTasksAsync();
-      logMessage('[ SO ] all tasks unregistered', 'success');
+      logMessage('[ CL ] all tasks unregistered', 'success');
 
       // dev
       await logStoreData();
 
       // reset auth session
       setSession(null);
-      logMessage('[ SO ] sign out');
+      logMessage('[ AU ] sign out');
       router.replace('/sign-in');
     } catch (error: any) {
       showToast('Unable to sign out');

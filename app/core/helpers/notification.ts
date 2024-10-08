@@ -113,7 +113,7 @@ export const handleNotificationBackgroundTask: TaskManagerTaskExecutor = ({
 export const handleNotificationClick = (
   response: Notifications.NotificationResponse
 ) => {
-  console.info(`${cyan}%s${reset}`, '[ NH ] notification handler');
+  console.info(`${cyan}%s${reset}`, '[ HN ] notification handler');
 
   const actionIdentifier = response.actionIdentifier;
   const content = response.notification.request.content;
@@ -121,27 +121,27 @@ export const handleNotificationClick = (
 
   console.info(
     `${cyan}%s${yellow}%s${reset}`,
-    '[ NH ] actionId ',
+    '[ NR ] actionId ',
     actionIdentifier
   );
-  console.info(`${cyan}%s${gray}%s${reset}`, '[ NH ] content ', content);
-  console.info(`${cyan}%s${gray}%s${reset}`, '[ NH ] trigger ', trigger);
+  console.info(`${cyan}%s${gray}%s${reset}`, '[ NR ] content ', content);
+  console.info(`${cyan}%s${gray}%s${reset}`, '[ NR ] trigger ', trigger);
 
-  writeLog(`[ NH ] User tapped notification`, 'success');
-  writeLog(`[ NH ] actionId: ${actionIdentifier}`);
-  writeLog(`[ NH ] content: ${JSON.stringify(content)}`);
-  writeLog(`[ NH ] trigger: ${JSON.stringify(trigger)}`);
+  writeLog(`[ NR ] User tapped notification`, 'success');
+  writeLog(`[ NR ] actionId: ${actionIdentifier}`);
+  writeLog(`[ NR ] content: ${JSON.stringify(content)}`);
+  writeLog(`[ NR ] trigger: ${JSON.stringify(trigger)}`);
 
   // Handle different actions based on the identifier
   switch (response.actionIdentifier) {
     case 'first':
-      writeLog(`[ NA ] First button clicked`, 'success');
+      writeLog(`[ NA ] first button clicked`, 'success');
       break;
     case 'second':
-      writeLog(`[ NA ] Second button clicked`, 'success');
+      writeLog(`[ NA ] second button clicked`, 'success');
       break;
     default:
-      writeLog(`[ NA ] Default action`, 'success');
+      writeLog(`[ NA ] default action`, 'error');
   }
 
   // if (response.actionIdentifier === Notifications.DEFAULT_ACTION_IDENTIFIER)
@@ -311,86 +311,6 @@ export const saveSubscription = async ({
     error: null,
   };
 };
-
-// /**
-//  * Retrieves a fact data from AsyncStorage and updates the
-//  * body of the notification with the fact's title if available
-//  * @returns An object with `title` and `body` properties
-//  */
-// const getNextFactItemData = async () => {
-//   const result = await getNextFactFromAsyncStorage();
-//   if (result.error) console.error(result.error.message);
-//   return {
-//     title: NOTIFICATION_REMINDER_TITLE,
-//     body: result.data?.title ?? NOTIFICATION_REMINDER_BODY,
-//   };
-// };
-
-// export const cancelAllScheduledNotifications = async () => {
-//   await Notifications.cancelAllScheduledNotificationsAsync();
-//   console.info(`${green}%s${reset}`, `All scheduled notifications canceled`);
-// };
-
-// const saveNotificationSchedule = async ({
-//   schedule,
-//   token,
-//   userId,
-// }: {
-//   schedule: string;
-//   token: string;
-//   userId: string;
-// }): Promise<
-//   TResponse<{
-//     success: boolean;
-//   }>
-// > => {
-//   // save in db
-//   const dbRes = await postSchedule({ schedule, token, userId });
-//   if (dbRes.error) {
-//     logMessage(dbRes.error.message, 'error');
-//     return { data: { success: false }, error: dbRes.error };
-//   }
-//   logMessage('Notifications schedule saved in db', 'success');
-
-//   // save in store
-//   const storeRes = await saveNotifScheduleInAsyncStorage(schedule);
-//   if (storeRes.error) {
-//     logMessage(storeRes.error.message, 'error');
-//     return { data: { success: false }, error: storeRes.error };
-//   }
-//   logMessage('Notifications schedule saved in storage', 'success');
-
-//   return {
-//     data: { success: true },
-//     error: null,
-//   };
-// };
-
-// const deleteNotificationSchedule = async ({
-//   schedule,
-//   token,
-//   userId,
-// }: {
-//   schedule: string;
-//   token: string;
-//   userId: string;
-// }): Promise<
-//   TResponse<{
-//     success: boolean;
-//   }>
-// > => {
-//   // delete from db
-//   const dbRes = await deleteSchedule({ schedule, token, userId });
-//   if (dbRes.error) {
-//     logMessage(dbRes.error.message, 'error');
-//     return { data: { success: false }, error: dbRes.error };
-//   }
-//   logMessage('Notifications schedule removed from db', 'success');
-//   return {
-//     data: { success: true },
-//     error: null,
-//   };
-// };
 
 export const scheduleNotification = async ({
   hour,
@@ -740,3 +660,17 @@ export const registerPushNotificationService = async ({
     );
   }
 };
+
+// /**
+//  * Retrieves a fact data from AsyncStorage and updates the
+//  * body of the notification with the fact's title if available
+//  * @returns An object with `title` and `body` properties
+//  */
+// const getNextFactItemData = async () => {
+//   const result = await getNextFactFromAsyncStorage();
+//   if (result.error) console.error(result.error.message);
+//   return {
+//     title: NOTIFICATION_REMINDER_TITLE,
+//     body: result.data?.title ?? NOTIFICATION_REMINDER_BODY,
+//   };
+// };
