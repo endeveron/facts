@@ -478,6 +478,7 @@ export const unscheduleNotification = async ({
     subscription.schedule = null;
 
     await Notifications.cancelAllScheduledNotificationsAsync();
+    await Notifications.unregisterForNotificationsAsync();
     logMessage(`[ NS ] subscription canceled`);
 
     // save subscription to store

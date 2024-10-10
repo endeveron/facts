@@ -1,8 +1,9 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Notifications from 'expo-notifications';
 import * as SecureStore from 'expo-secure-store';
+import * as TaskManager from 'expo-task-manager';
 import { View } from 'react-native';
 import React, { useEffect, useState } from 'react';
-import * as TaskManager from 'expo-task-manager';
 
 import ScrollScreen from '@/components/ScrollScreen';
 import { Text } from '@/components/Text';
@@ -55,6 +56,7 @@ const devlogs = () => {
         writeLog('Auth data deleted from SecureStore', 'success');
       }
       await TaskManager.unregisterAllTasksAsync();
+      await Notifications.unregisterForNotificationsAsync();
     } catch (err: any) {
       writeLog(`Error: ${err.message}`, 'error');
     }

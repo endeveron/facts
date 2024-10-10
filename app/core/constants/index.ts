@@ -46,5 +46,5 @@ export {
   SHARE_TITLE,
 };
 
-export const HOUR = 16;
-export const MINUTE = 15;
+export const HOUR = 20;
+export const MINUTE = 0;

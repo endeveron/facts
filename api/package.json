@@ -1,5 +1,5 @@
 {
-  "name": "express-ts",
+  "name": "facts-server",
   "version": "1.0.0",
   "main": "build/server.js",
   "scripts": {
