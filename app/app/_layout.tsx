@@ -48,15 +48,15 @@ const RootLayout = () => {
   }
 
   return (
-    <AppStateProvider>
-      <SessionProvider>
-        <LocalDBProvider>
-          <NotificationsProvider>
-            <Slot />
-          </NotificationsProvider>
-        </LocalDBProvider>
-      </SessionProvider>
-    </AppStateProvider>
+    // <AppStateProvider>
+    <SessionProvider>
+      <LocalDBProvider>
+        <NotificationsProvider>
+          <Slot />
+        </NotificationsProvider>
+      </LocalDBProvider>
+    </SessionProvider>
+    // </AppStateProvider>
   );
 };
 

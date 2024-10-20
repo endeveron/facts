@@ -175,7 +175,7 @@ const NotificationsProvider = ({ children }: PropsWithChildren) => {
     };
 
     const fetchSubscriptionDataFromRemoteDb = async () => {
-      logMessage('[ NS ] no data in store, fetch from db');
+      logMessage('[ NS ] fetch subscription from remote db');
 
       if (!userId || !token) {
         logMessage(`[ NS ] ${defaultErrorMsg}. Invalid auth data`, 'error');

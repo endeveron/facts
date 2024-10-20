@@ -43,7 +43,7 @@ export const FormField = ({
   const textColor = useThemeColor('text');
   const inputColor = useThemeColor('input');
   const borderColor = useThemeColor('border');
-  const errorColor = useThemeColor('danger');
+  const errorColor = useThemeColor('error');
   const mutedColor = useThemeColor('muted');
 
   const nultiline = numberOfLines > 1;

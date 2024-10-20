@@ -10,7 +10,7 @@ import { AppState } from 'react-native';
 import { consoleClors } from '@/core/constants/colors';
 import { TAppStateContext } from '@/core/types/common';
 
-const { cyan, green, reset } = consoleClors;
+const { cyan, yellow, reset } = consoleClors;
 
 const AppStateContext = createContext<TAppStateContext>({
   appState: typeof AppState.currentState,
@@ -35,9 +35,9 @@ export const AppStateProvider = ({ children }: PropsWithChildren) => {
 
       appState.current = nextAppState;
       console.info(
-        `${green}%s${cyan}%s${reset}`,
-        `[ AS ] `,
-        `${appState.current}`
+        `${yellow}%s${cyan}%s${reset}`,
+        `[ ST ] `,
+        `app state: ${appState.current}`
       );
     });
 

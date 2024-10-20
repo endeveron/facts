@@ -13,8 +13,8 @@ import PlusSquaredIcon from '@/components/svg/PlusSquaredIcon';
 import TextFileIcon from '@/components/svg/TextFileIcon';
 import { Text } from '@/components/Text';
 import { useSession } from '@/core/context/SessionProvider';
-import { resetAllTAbles } from '@/core/helpers/db/init';
 import { openNextFact } from '@/core/helpers/db';
+import { clearFactTables } from '@/core/helpers/db/init';
 
 const profile = () => {
   const { session, signOut } = useSession();
@@ -57,17 +57,8 @@ const profile = () => {
   };
 
   const handleResetTables = async () => {
-    await resetAllTAbles(
-      {
-        token: session?.token!,
-        userId: session?.user.id!,
-      },
-      db
-    );
-    // try {
-    // } catch (err: any) {
-    //   console.error(err);
-    // }
+    await clearFactTables(db);
+    signOut();
   };
 
   // const scheduleNotification = async () => {
@@ -135,17 +126,18 @@ const profile = () => {
       </View> */}
       <ScheduleNotification />
       <Favorites />
-      <View className="flex-col items-center mb-4">
+      <View className="flex-row justify-center items-center my-8">
+        <Button
+          variant="secondary"
+          title="Reset local DB"
+          containerClassName="mx-4 w-40"
+          handlePress={handleResetTables}
+        />
         <Button
           title="Dev"
-          containerClassName="my-4 w-40"
+          containerClassName="mx-4 w-40"
           handlePress={handleDev}
         />
-        {/* <Button
-          title="Reset Tables"
-          containerClassName="my-4 w-40"
-          handlePress={handleResetTables}
-        /> */}
       </View>
     </ScrollScreen>
   );

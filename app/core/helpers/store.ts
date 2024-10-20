@@ -250,10 +250,11 @@ export const saveLocalDbFactsInitInAsyncStorage =
   };
 
 export const getLocalDbFactsInitFromAsyncStorage = async (): Promise<
-  string | null
+  boolean | null
 > => {
   try {
-    return await AsyncStorage.getItem(KEY_LOCAL_DB_FACTS_INIT);
+    const isInit = await AsyncStorage.getItem(KEY_LOCAL_DB_FACTS_INIT);
+    return isInit === 'true';
   } catch (err: any) {
     console.error(err);
     logMessage('[ AS ] unable to get facts init value', 'error');

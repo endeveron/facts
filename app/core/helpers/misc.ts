@@ -8,7 +8,7 @@ import { TFactItem } from '@/core/types/fact';
 import { KEY_DEV_LOGS, KEY_NOTIF_SUBSCR } from '@/core/constants';
 import { TLogItem, TLogType } from '@/core/types/common';
 
-const { cyan, green, gray, red, reset } = consoleClors;
+const { cyan, green, gray, red, yellow, reset } = consoleClors;
 
 export const getFullScreenHeight = () => {
   const { height: windowHeight } = Dimensions.get('window');
@@ -85,6 +85,11 @@ export const logMessage = (message: string, type?: TLogType) => {
     case 'success': {
       console.info(`${green}%s${reset}`, message);
       writeLog(message, 'success');
+      break;
+    }
+    case 'warning': {
+      console.info(`${yellow}%s${reset}`, message);
+      writeLog(message, 'warning');
       break;
     }
     default: {

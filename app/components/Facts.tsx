@@ -32,6 +32,7 @@ import { initFactDataInLocalDb } from '@/core/helpers/db/init';
 import { logMessage, sleep } from '@/core/helpers/misc';
 import { TAddFactsToGroupResult, TFactCursor } from '@/core/types/db';
 import { TFactItem } from '@/core/types/fact';
+import Skeleton from '@/components/Skeleton';
 
 // get the height of device window
 const windowHeight = Dimensions.get('window').height;
@@ -41,6 +42,11 @@ const viewabilityConfig = {
   waitForInteraction: true,
   minimumViewTime: 100,
   itemVisiblePercentThreshold: 25,
+};
+
+const animTimingConfig = {
+  duration: 200,
+  useNativeDriver: true,
 };
 
 type TOnViewableItemsChangedArgs = {
@@ -73,13 +79,14 @@ const Facts = () => {
 
   const { category: factCategory, index: factIndex } = useLocalSearchParams();
 
+  const [fetching, setFetching] = useState(false);
   const [cursor, setCursor] = useState<TFactCursor>();
   const [favorites, setFavorites] = useState<string[]>([]);
   const [facts, setFacts] = useState<TFactItem[]>([]);
 
   const flatListRef = useRef<FlatList<TFactItem>>(null);
   const fadeList = useRef(new Animated.Value(0)).current;
-  // const fadeSkeleton = useRef(new Animated.Value(0)).current;
+  const fadeSkeleton = useRef(new Animated.Value(0)).current;
 
   const userId = session.user.id;
   const token = session.token;
@@ -90,28 +97,38 @@ const Facts = () => {
   const fadeInList = () => {
     Animated.timing(fadeList, {
       toValue: 1,
-      duration: 200,
       delay: 100,
-      useNativeDriver: true,
+      ...animTimingConfig,
     }).start();
   };
 
   const fadeOutList = () => {
     Animated.timing(fadeList, {
       toValue: 0,
-      duration: 300,
-      useNativeDriver: true,
+      ...animTimingConfig,
     }).start();
   };
 
-  // const fadeInSkeleton = () => {
-  //   Animated.timing(fadeSkeleton, {
-  //     toValue: 1,
-  //     duration: 500,
-  //     useNativeDriver: true,
-  //     delay: 500,
-  //   }).start();
-  // };
+  const fadeInSkeleton = () => {
+    Animated.timing(fadeSkeleton, {
+      toValue: 1,
+      ...animTimingConfig,
+    }).start();
+  };
+
+  const fadeOutSkeleton = () => {
+    Animated.timing(fadeSkeleton, {
+      toValue: 0,
+      ...animTimingConfig,
+    }).start();
+  };
+
+  const setFetchingCb = async (newFetching: boolean) => {
+    if (!fetching && newFetching) fadeInSkeleton();
+    if (fetching && !newFetching) fadeOutSkeleton();
+    await sleep(200);
+    setFetching(newFetching);
+  };
 
   const handleLike = async (factId: string, category: string) => {
     const favoritesUpd = [...favorites];
@@ -335,10 +352,12 @@ const Facts = () => {
   // };
 
   const initFactData = async () => {
-    logMessage('[ FC ] init data');
-
     // initialize local db tables
-    const { success } = await initFactDataInLocalDb({ userId, token }, db);
+    const { success } = await initFactDataInLocalDb({
+      authData: { userId, token },
+      db,
+      setFetchingCb,
+    });
     if (!success) return;
 
     // get data from the local db
@@ -408,20 +427,48 @@ const Facts = () => {
       <View className="absolute inset-x-0 top-14">
         <View className="flex-row flex-wrap justify-evenly">
           <View className="m-2">
-            <Text colorName="muted">category</Text>
-            <Text colorName="muted">store offset</Text>
+            <Text
+              colorName="muted"
+              className="opacity-80 bg-black px-2 rounded-full"
+            >
+              category
+            </Text>
+            <Text
+              colorName="muted"
+              className="opacity-80 bg-black px-2 rounded-full"
+            >
+              store offset
+            </Text>
           </View>
           <View className="m-2">
-            <Text colorName="muted">{cursor?.category}</Text>
-            <Text colorName="muted">{cursor?.storageOffset}</Text>
+            <Text colorName="muted" className="bg-black px-2 rounded-full">
+              {cursor?.category}
+            </Text>
+            <Text colorName="muted" className="bg-black px-2 rounded-full">
+              {cursor?.storageOffset}
+            </Text>
           </View>
           <View className="m-2">
-            <Text colorName="muted">group length</Text>
-            <Text colorName="muted">left in store</Text>
+            <Text
+              colorName="muted"
+              className="opacity-80 bg-black px-2 rounded-full"
+            >
+              group length
+            </Text>
+            <Text
+              colorName="muted"
+              className="opacity-80 bg-black px-2 rounded-full"
+            >
+              left in store
+            </Text>
           </View>
           <View className="m-2">
-            <Text colorName="muted">{cursor?.groupLength}</Text>
-            <Text colorName="muted">{cursor?.leftInStorage}</Text>
+            <Text colorName="muted" className="bg-black px-2 rounded-full">
+              {cursor?.groupLength}
+            </Text>
+            <Text colorName="muted" className="bg-black px-2 rounded-full">
+              {cursor?.leftInStorage}
+            </Text>
           </View>
         </View>
       </View>
@@ -451,8 +498,7 @@ const Facts = () => {
             )}
           />
         </Animated.View>
-      ) : null}
-      {/* ) : (
+      ) : fetching ? (
         <Animated.View
           className="flex-1 items-center justify-center"
           style={{ opacity: fadeSkeleton }}
@@ -463,7 +509,7 @@ const Facts = () => {
             <Text className="h-8 w-3/5 mt-4 rounded-full bg-slate-600 opacity-80"></Text>
           </Skeleton>
         </Animated.View>
-      )} */}
+      ) : null}
     </View>
   );
 };

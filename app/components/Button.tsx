@@ -1,22 +1,25 @@
-import { useThemeGradient } from '@/core/hooks/useThemeColor';
+import { useThemeColor, useThemeGradient } from '@/core/hooks/useThemeColor';
 import classNames from 'classnames';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Text, TouchableOpacity } from 'react-native';
+import { Text, TouchableOpacity, View } from 'react-native';
 
 export const Button = ({
   title,
   handlePress,
+  variant = 'primary',
   containerClassName,
   textClassName,
   isLoading,
 }: {
   title: string;
   handlePress: () => void;
+  variant?: 'primary' | 'secondary';
   containerClassName?: string;
   textClassName?: string;
   isLoading?: boolean;
 }) => {
   const brandButtonGradient = useThemeGradient('brandButton');
+  const secondaryColor = useThemeColor('secondary');
 
   return (
     <TouchableOpacity
@@ -31,16 +34,28 @@ export const Button = ({
       disabled={isLoading}
     >
       <Text
-        className={`relative z-10 text-white text-base font-psemibold ${textClassName}`}
+        className={classNames(
+          `relative z-10 text-white text-base font-psemibold ${textClassName}`,
+          {
+            'opacity-70': variant === 'secondary',
+          }
+        )}
       >
         {title}
       </Text>
-      <LinearGradient
-        className="absolute inset-x-0 inset-y-0 h-full z-0"
-        colors={brandButtonGradient}
-        start={[0, 1]}
-        end={[1, 0]}
-      />
+      {variant === 'primary' ? (
+        <LinearGradient
+          className="absolute inset-x-0 inset-y-0 h-full z-0"
+          colors={brandButtonGradient}
+          start={[0, 1]}
+          end={[1, 0]}
+        />
+      ) : (
+        <View
+          style={{ backgroundColor: secondaryColor }}
+          className="absolute inset-x-0 inset-y-0 h-full z-0"
+        ></View>
+      )}
     </TouchableOpacity>
   );
 };

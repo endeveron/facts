@@ -76,7 +76,7 @@ export const getFactDataFromLocalDb = async (
     // get cursor data from the fact_cursor table
     const cursor = await getCursor({ db });
     if (!cursor) {
-      logMessage(errorMessage, 'error');
+      // logMessage(errorMessage, 'error');
       return null;
     }
     const favorites = await getFavorites(db);

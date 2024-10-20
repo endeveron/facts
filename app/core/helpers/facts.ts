@@ -3,11 +3,8 @@ import {
   FACT_CATEGORIES_DIST_RATE,
   FACT_GROUP_LIMIT,
 } from '@/core/constants/facts';
-import { getNextFact } from '@/core/helpers/db';
 import { logMessage } from '@/core/helpers/misc';
 import { FactCategories } from '@/core/types/fact';
-import { Router } from 'expo-router';
-import { SQLiteDatabase } from 'expo-sqlite';
 
 /**
  * Creates a new Map object with keys from the FactCategory enum set to 0.

@@ -10,8 +10,10 @@ export const colors = {
     inversed: '#F8FAFC', // slate-50
     inversedBg: '#1E293B', // slate-800
     accent: brandFlatColor,
-    success: '#16A34A', // green-600
-    danger: '#E11D48', // rose-600
+    success: '#059669', // emerald-600
+    error: '#E11D48', // rose-600
+    warning: '#D97706', // amber-600
+    info: '#0284C7', // sky-600
     background: '#E2E8F0', // slate-200
     card: '#F8FAFC', // slate-50
     border: '#fcfcfc', // ~ white
@@ -26,8 +28,10 @@ export const colors = {
     inversed: '#020617', // slate-950
     inversedBg: '#F1F5F9', // slate-100
     accent: brandFlatColor,
-    success: '#16A34A', // green-600
-    danger: '#F43F5E', // rose-500
+    success: '#10B981', // emerald-500
+    error: '#F43F5E', // rose-500
+    warning: '#D97706', // amber-600
+    info: '#0EA5E9', // sky-500
     background: '#000', // black
     card: '#000', // black
     border: '#192230', // ~slate-800

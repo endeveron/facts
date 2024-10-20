@@ -68,7 +68,7 @@ export const handleForegroundNotification = async (
   notification: Notifications.Notification
 ): Promise<Notifications.NotificationBehavior> => {
   logMessage(
-    `[ NL ] Foreground notification data: ${JSON.stringify(
+    `[ NL ] foreground notification data: ${JSON.stringify(
       notification.request.content.data
     )}`
   );
@@ -94,7 +94,8 @@ export const handleNotificationBackgroundTask: TaskManagerTaskExecutor = ({
     );
   }
   if (data) {
-    logMessage(`[ BT ] background task ran`, 'success');
+    logMessage(`[ BT ] running background task`);
+    logMessage(`[ BT ] background task data: ${JSON.stringify(data)}`);
   }
 };
 

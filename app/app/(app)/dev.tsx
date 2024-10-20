@@ -58,7 +58,7 @@ const dev = () => {
                   clearLogs();
                   setPrompt(false);
                 }}
-                colorName="danger"
+                colorName="error"
                 className="uppercase text-sm"
               >
                 clear
@@ -92,9 +92,13 @@ const dev = () => {
               <Text
                 colorName={
                   log.type === 'error'
-                    ? 'danger'
+                    ? 'error'
+                    : log.type === 'info'
+                    ? 'info'
                     : log.type === 'success'
                     ? 'success'
+                    : log.type === 'warning'
+                    ? 'warning'
                     : 'text'
                 }
               >

@@ -1,5 +1,6 @@
 import { SQLiteDatabase, SQLiteStatement } from 'expo-sqlite';
 
+import { KEY_LOCAL_DB_FACTS_INIT } from '@/core/constants';
 import {
   FACT_GROUP_LIMIT,
   factCategories,
@@ -9,7 +10,7 @@ import {
   addFactsToFactStorageTable,
   updateFactGroupTable,
 } from '@/core/helpers/db/index';
-import { logMessage } from '@/core/helpers/misc';
+import { logMessage, sleep } from '@/core/helpers/misc';
 import {
   getLocalDbFactsInitFromAsyncStorage,
   saveLocalDbFactsInitInAsyncStorage,
@@ -19,13 +20,18 @@ import { TAuthData } from '@/core/types/auth';
 import { TStatus } from '@/core/types/common';
 import { TFactInitData } from '@/core/types/db';
 import { TFactItem, TFavorites } from '@/core/types/fact';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export const resetAllTAbles = async (
   { userId, token }: TAuthData,
   db: SQLiteDatabase
 ) => {
   try {
-    await initFactDataInLocalDb({ userId, token }, db, true);
+    await initFactDataInLocalDb({
+      authData: { userId, token },
+      db,
+      isReset: true,
+    });
   } catch (err: any) {
     console.error(err);
   }
@@ -342,6 +348,23 @@ export const initFactCursorTable = async (
   }
 };
 
+export const clearFactTables = async (db: SQLiteDatabase): Promise<boolean> => {
+  try {
+    // remove tables if exists
+    for (let tableName of localDbTables) {
+      await db.execAsync(`DELETE FROM ${tableName}`);
+    }
+    logMessage(`[ DB ] all local db tables are reset`, 'warning');
+    await AsyncStorage.setItem(KEY_LOCAL_DB_FACTS_INIT, 'false');
+    logMessage(`[ AS ] facts init value is reset in storage`, 'warning');
+    return true;
+  } catch (error: any) {
+    console.error(error);
+    logMessage(`[ DB ] could not clear tables`, 'error');
+    return false;
+  }
+};
+
 export const initFactTables = async (
   { facts, favorites }: TFactInitData,
   db: SQLiteDatabase
@@ -433,6 +456,7 @@ export const initFactTables = async (
     // prevent re-initialization, save KEY_LOCAL_DB_FACTS_INIT in async storage
     const storeInitSuccess = await saveLocalDbFactsInitInAsyncStorage();
     if (!storeInitSuccess) return false;
+    logMessage(`[ DB ] local db initialized`, 'success');
 
     return true;
   } catch (error: any) {
@@ -445,11 +469,17 @@ export const initFactTables = async (
   }
 };
 
-export const initFactDataInLocalDb = async (
-  { userId, token }: TAuthData,
-  db: SQLiteDatabase,
-  isReset?: boolean
-): Promise<TStatus> => {
+export const initFactDataInLocalDb = async ({
+  authData: { userId, token },
+  db,
+  isReset,
+  setFetchingCb,
+}: {
+  authData: TAuthData;
+  db: SQLiteDatabase;
+  isReset?: boolean;
+  setFetchingCb?: (isFetching: boolean) => void;
+}): Promise<TStatus> => {
   // retrieve data from a remote db { facts: TFactItem[]; favorites: TFavorites }
   // fill in the fact tables with the data obtained
   // - save facts in the fact_storage table
@@ -465,10 +495,15 @@ export const initFactDataInLocalDb = async (
     // <clean init> comment lines below to reset all tables data
     if (!isReset) {
       const initialized = await getLocalDbFactsInitFromAsyncStorage();
-      if (initialized) return { success: true };
+      if (initialized === true) return { success: true };
     }
 
+    logMessage('[ FC ] initialize fact data');
+
     // retrieve data from a remote db
+    setFetchingCb && setFetchingCb(true);
+    logMessage('[ DB ] recieving data from the remote db');
+    await sleep(5000);
     const fetchResult = await getDataToInitLocalDb({
       userId,
       token,
@@ -482,12 +517,12 @@ export const initFactDataInLocalDb = async (
       return { success: false };
     }
     logMessage(`[ DB ] data received, initialize local db`);
+    setFetchingCb && setFetchingCb(false);
 
     // fill in the fact tables with the data obtained
     const initSuccess = await initFactTables(fetchResult.data, db);
     if (!initSuccess) return { success: false };
 
-    logMessage(`[ DB ] local db initialized`, 'success');
     return { success: true };
   } catch (error: any) {
     console.error(error);
