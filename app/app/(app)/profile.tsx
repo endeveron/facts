@@ -1,5 +1,8 @@
+import { router } from 'expo-router';
+import { useSQLiteContext } from 'expo-sqlite';
 import { View } from 'react-native';
 
+import { Button } from '@/components/Button';
 import Favorites from '@/components/Favorites';
 import { NavItemName, TNavbarItem } from '@/components/Navbar';
 import ScheduleNotification from '@/components/ScheduleNotification';
@@ -9,10 +12,13 @@ import LogsIcon from '@/components/svg/LogsIcon';
 import PlusSquaredIcon from '@/components/svg/PlusSquaredIcon';
 import TextFileIcon from '@/components/svg/TextFileIcon';
 import { Text } from '@/components/Text';
-import { useSession } from '@/core/context/SessionContext';
+import { useSession } from '@/core/context/SessionProvider';
+import { resetAllTAbles } from '@/core/helpers/db/init';
+import { openNextFact } from '@/core/helpers/db';
 
 const profile = () => {
   const { session, signOut } = useSession();
+  const db = useSQLiteContext();
 
   // only admin can create a new fact
   const isAdmin = session?.user.account.role.index === 3;
@@ -45,6 +51,24 @@ const profile = () => {
       icon: <LogsIcon />,
     });
   }
+
+  const handleDev = async () => {
+    await openNextFact(db, router);
+  };
+
+  const handleResetTables = async () => {
+    await resetAllTAbles(
+      {
+        token: session?.token!,
+        userId: session?.user.id!,
+      },
+      db
+    );
+    // try {
+    // } catch (err: any) {
+    //   console.error(err);
+    // }
+  };
 
   // const scheduleNotification = async () => {
   //   await Notifications.scheduleNotificationAsync({
@@ -111,6 +135,18 @@ const profile = () => {
       </View> */}
       <ScheduleNotification />
       <Favorites />
+      <View className="flex-col items-center mb-4">
+        <Button
+          title="Dev"
+          containerClassName="my-4 w-40"
+          handlePress={handleDev}
+        />
+        {/* <Button
+          title="Reset Tables"
+          containerClassName="my-4 w-40"
+          handlePress={handleResetTables}
+        /> */}
+      </View>
     </ScrollScreen>
   );
 };

@@ -13,8 +13,7 @@ import {
   AUTH_PASSWORD,
   DEFAULT_REDIRECT_URL,
 } from '@/core/constants';
-import { writeLog } from '@/core/context/LoggingProvider';
-import { useSession } from '@/core/context/SessionContext';
+import { useSession } from '@/core/context/SessionProvider';
 import { logMessage } from '@/core/helpers/misc';
 import { useToast } from '@/core/hooks/useToast';
 import { signInSchema, TSignInFormData } from '@/core/utils/validation';
@@ -59,7 +58,6 @@ const SignIn = () => {
     <AuthScreen>
       <>
         <Text className="text-3xl font-pbold mb-6">Sign In</Text>
-
         <Controller
           control={control}
           render={({
@@ -79,7 +77,6 @@ const SignIn = () => {
           )}
           name="email"
         />
-
         <Controller
           control={control}
           render={({

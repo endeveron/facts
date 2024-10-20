@@ -6,9 +6,9 @@ import { useColorScheme } from 'react-native';
 
 import { colors, defaultScheme } from '@/core/constants/colors';
 import { AppStateProvider } from '@/core/context/AppStateProvider';
-import { LoggingProvider } from '@/core/context/LoggingProvider';
-import { PushNotificationsProvider } from '@/core/context/PushNotificationsContext';
-import { SessionProvider } from '@/core/context/SessionContext';
+import NotificationsProvider from '@/core/context/NotificationsProvider';
+import SessionProvider from '@/core/context/SessionProvider';
+import LocalDBProvider from '@/core/context/LocalDBProvider';
 
 // prevent the splash screen from auto-hiding before asset loading is complete
 SplashScreen.preventAutoHideAsync();
@@ -48,15 +48,15 @@ const RootLayout = () => {
   }
 
   return (
-    <LoggingProvider>
-      <AppStateProvider>
-        <SessionProvider>
-          <PushNotificationsProvider>
+    <AppStateProvider>
+      <SessionProvider>
+        <LocalDBProvider>
+          <NotificationsProvider>
             <Slot />
-          </PushNotificationsProvider>
-        </SessionProvider>
-      </AppStateProvider>
-    </LoggingProvider>
+          </NotificationsProvider>
+        </LocalDBProvider>
+      </SessionProvider>
+    </AppStateProvider>
   );
 };
 

@@ -1,19 +1,19 @@
 import { API_BASE_URL } from '@/core/constants';
 import { commonHeaders } from '@/core/constants/api';
+import { TAuthData } from '@/core/types/auth';
 import { TResponse } from '@/core/types/common';
 import { TNotificationSubscription } from '@/core/types/notification';
 
 export const getSubscription = async ({
   token,
   userId,
-}: {
-  token: string;
-  userId: string;
-}): Promise<TResponse<TNotificationSubscription>> => {
+}: TAuthData): Promise<TResponse<TNotificationSubscription>> => {
   const defaultErrmsg = 'Unable to get subscription data';
+  const searchParams = new URLSearchParams({ userId });
+  const params = searchParams.toString();
   try {
     const response = await fetch(
-      `${API_BASE_URL}/notifications/subscription/${userId}`,
+      `${API_BASE_URL}/notifications/subscription?${params}`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -47,10 +47,8 @@ export const postSubscription = async ({
   subscription,
   token,
   userId,
-}: {
+}: TAuthData & {
   subscription: TNotificationSubscription;
-  token: string;
-  userId: string;
 }): Promise<
   TResponse<{
     success: boolean;
@@ -93,10 +91,8 @@ export const patchSubscription = async ({
   subscription,
   token,
   userId,
-}: {
+}: TAuthData & {
   subscription: TNotificationSubscription;
-  token: string;
-  userId: string;
 }): Promise<
   TResponse<{
     success: boolean;
@@ -139,10 +135,8 @@ export const postSchedule = async ({
   schedule,
   token,
   userId,
-}: {
+}: TAuthData & {
   schedule: string;
-  token: string;
-  userId: string;
 }): Promise<
   TResponse<{
     success: boolean;
@@ -185,10 +179,8 @@ export const deleteSchedule = async ({
   schedule,
   token,
   userId,
-}: {
+}: TAuthData & {
   schedule: string;
-  token: string;
-  userId: string;
 }): Promise<
   TResponse<{
     success: boolean;

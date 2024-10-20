@@ -19,7 +19,7 @@ import ShareIcon from '@/components/svg/ShareIcon';
 const screenHeight = Dimensions.get('window').height;
 
 type TFactItemProps = {
-  itemData: TFactItem & { index: number | null };
+  itemData: TFactItem;
   factsTotal: number | null;
   favorites: TFavorites;
   onLike: (factId: string, category: string) => void;
@@ -30,12 +30,9 @@ const FactItem = ({
   itemData,
   factsTotal,
   favorites,
-  // onCopy,
   onLike,
   onShare,
 }: TFactItemProps) => {
-  if (itemData.index === null) return null;
-
   const heartIconColor = useThemeColor('heartIcon');
   const brandGradient = useThemeGradient('brand');
 
@@ -46,10 +43,6 @@ const FactItem = ({
     setIsFavorites((prev) => (prev = !prev));
     onLike(itemData.id, category);
   };
-
-  // const handleCopy = async () => {
-  //   onCopy(itemData.title);
-  // };
 
   const handleShare = async () => {
     onShare(itemData.title);
@@ -66,26 +59,34 @@ const FactItem = ({
       }}
       className="flex-col h-full justify-center relative"
     >
+      {/* Card */}
       <View
         onTouchEnd={handleLike}
         className="relative min-h-[480px] flex-col justify-center p-4"
       >
+        {/* Content */}
         <View className="relative z-30">
+          {/* Category text */}
           <TextNative className="text-white uppercase font-pextralight opacity-70">
             {itemData.index + 1}
             {factsTotal ? ` / ${factsTotal}` : ''}
             {'    '}
             {category}
           </TextNative>
+          {/* Title text */}
           <TextNative className="py-8 text-white font-pbold text-[38px] leading-[46px]">
             {itemData.title}
           </TextNative>
         </View>
+
+        {/* Background */}
         <View className="absolute inset-x-0 inset-y-0 rounded-3xl overflow-hidden z-0">
+          {/* Gradient */}
           <LinearGradient
             colors={brandGradient}
             className="rounded-[48px] h-full z-0"
           />
+          {/* Image */}
           <View className="absolute inset-x-0 inset-y-0 z-10">
             <Image
               className="w-full h-full opacity-30"
@@ -93,6 +94,7 @@ const FactItem = ({
               resizeMode="cover"
             />
           </View>
+          {/* Category icon */}
           <FactCategoryIconBox
             category={category}
             containerClassName="absolute right-7 bottom-7 w-20 h-20 z-20"
@@ -100,14 +102,12 @@ const FactItem = ({
         </View>
       </View>
 
+      {/* Action bar */}
       <View className="mt-8 flex-row justify-center">
         <Card addClassName="flex-row p-4 rounded-full">
           <TouchableOpacity onPress={handleLike} className="mx-4">
             <HeartIcon color={isFavorites ? heartIconColor : undefined} />
           </TouchableOpacity>
-          {/* <TouchableOpacity onPress={handleCopy} className="mx-4">
-            <CopyIcon />
-          </TouchableOpacity> */}
           <TouchableOpacity onPress={handleShare} className="mx-4">
             <ShareIcon />
           </TouchableOpacity>

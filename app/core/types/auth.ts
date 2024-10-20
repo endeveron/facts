@@ -18,12 +18,17 @@ export type TUser = {
   };
 };
 
-export type TAuthData = {
+export type TUserAuthData = {
   token: string;
   user: TUser;
 };
 
-export type TAuthSession = TAuthData | null;
+export type TAuthData = {
+  token: string;
+  userId: string;
+};
+
+export type TAuthSession = TUserAuthData | null;
 
 export type TSessionContext = {
   session: TAuthSession;

@@ -34,16 +34,13 @@ export const ButtonToggle = ({ onChange, isActive }: TButtonToggleProps) => {
         borderColor: mutedColor,
         backgroundColor,
       }}
-      className={classNames(
-        'flex-row rounded-full h-6 w-12 py-3 px-1 flex items-center transition-opacity opacity-80',
-        {
-          'flex-row-reverse': isToggled,
-        }
-      )}
+      className="flex-row rounded-full h-6 w-12 py-3 px-1 flex items-center transition-opacity opacity-80"
     >
       <View
         style={{ backgroundColor: isToggled ? accentColor : mutedColor }}
-        className="h-4 w-4 rounded-full"
+        className={classNames('h-4 w-4 rounded-full', {
+          'translate-x-[20px]': isToggled,
+        })}
       ></View>
     </TouchableOpacity>
   );

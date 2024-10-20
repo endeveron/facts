@@ -1,24 +1,5 @@
 import { router } from 'expo-router';
 import * as TaskManager from 'expo-task-manager';
-
-import { DEFAULT_REDIRECT_URL } from '@/core/constants';
-import {
-  TAuthCredentials,
-  TAuthData,
-  TAuthSession,
-  TSessionContext,
-} from '@/core/types/auth';
-
-import {
-  deleteAuthDataFromSecureStore,
-  deleteFactsDataFromAsyncStorage,
-  deleteNotifSubFromSecureStore,
-  getAuthDataFromSecureStore,
-  saveAuthDataInSecureStore,
-  saveNotifSubIsFetchedInAsyncStorage,
-} from '@/core/helpers/store';
-import { postSignIn, postSignUp } from '@/core/services/auth';
-import { getResetFacts } from '@/core/services/users';
 import {
   createContext,
   PropsWithChildren,
@@ -27,10 +8,25 @@ import {
   useState,
 } from 'react';
 
-import { useLogging } from '@/core/context/LoggingProvider';
+import { DEFAULT_REDIRECT_URL } from '@/core/constants';
 import { logMessage, logStoreData } from '@/core/helpers/misc';
+import {
+  deleteAuthDataFromSecureStore,
+  deleteFactsDataFromAsyncStorage,
+  deleteNotifSubFromSecureStore,
+  getAuthDataFromSecureStore,
+  saveAuthDataInSecureStore,
+  saveNotifSubFetchedInAsyncStorage,
+} from '@/core/helpers/store';
 import { useToast } from '@/core/hooks/useToast';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { postSignIn, postSignUp } from '@/core/services/auth';
+import { getResetFacts } from '@/core/services/users';
+import {
+  TAuthCredentials,
+  TAuthSession,
+  TSessionContext,
+  TUserAuthData,
+} from '@/core/types/auth';
 
 const SessionContext = createContext<TSessionContext>({
   session: null,
@@ -50,16 +46,14 @@ export const useSession = () => {
   return value;
 };
 
-export const SessionProvider = ({ children }: PropsWithChildren) => {
+const SessionProvider = ({ children }: PropsWithChildren) => {
   const { showToast } = useToast();
-  const { addLog } = useLogging();
 
   const [isLoading, setIsLoading] = useState(false);
   const [session, setSession] = useState<TAuthSession>(null);
-  // console.log('session.token', session?.token);
 
   /** Updates auth state, adds auth data to SecureStore. */
-  const saveAuthData = async ({ token, user }: TAuthData) => {
+  const saveAuthData = async ({ token, user }: TUserAuthData) => {
     setSession({ token, user });
     const result = await saveAuthDataInSecureStore({ token, user });
     if (result.error) {
@@ -139,7 +133,10 @@ export const SessionProvider = ({ children }: PropsWithChildren) => {
       // delete facts data from storage
       const factsStorageResult = await deleteFactsDataFromAsyncStorage();
       if (factsStorageResult.error) {
-        throw new Error(factsStorageResult.error.message);
+        logMessage(
+          `[ CL ] unable to delete facts data from storage: ${factsStorageResult.error.message}`,
+          'error'
+        );
       }
       logMessage('[ CL ] facts data removed from storage', 'success');
 
@@ -149,28 +146,40 @@ export const SessionProvider = ({ children }: PropsWithChildren) => {
         userId: session?.user.id as string,
       });
       if (resetFactsRes?.error) {
-        throw new Error(resetFactsRes.error.message);
+        logMessage(
+          `[ CL ] unable to reset facts data in db: ${resetFactsRes.error.message}`,
+          'error'
+        );
       }
       logMessage('[ CL ] facts data is reset in DB', 'success');
 
       // delete auth data from store
       const authRes = await deleteAuthDataFromSecureStore();
       if (authRes?.error) {
-        throw new Error(authRes.error.message);
+        logMessage(
+          `[ CL ] unable to delete auth data from store: ${authRes.error.message}`,
+          'error'
+        );
       }
       logMessage('[ CL ] auth data removed from store', 'success');
 
       // delete notification subscription data from store
       const subRes = await deleteNotifSubFromSecureStore();
       if (subRes?.error) {
-        throw new Error(subRes.error.message);
+        logMessage(
+          `[ CL ] unable to delete notification subscription data from store: ${subRes.error.message}`,
+          'error'
+        );
       }
       logMessage('[ CL ] subscription data removed from store', 'success');
 
       // reset subscription status in storage
-      const subStatRes = await saveNotifSubIsFetchedInAsyncStorage(false);
+      const subStatRes = await saveNotifSubFetchedInAsyncStorage(false);
       if (subStatRes?.error) {
-        throw new Error(subStatRes.error.message);
+        logMessage(
+          `[ CL ] unable to reset subscription status in storage: ${subStatRes.error.message}`,
+          'error'
+        );
       }
       logMessage('[ CL ] subscription status is reset in storage', 'success');
 
@@ -186,8 +195,8 @@ export const SessionProvider = ({ children }: PropsWithChildren) => {
       logMessage('[ AU ] sign out');
       router.replace('/sign-in');
     } catch (error: any) {
-      showToast('Unable to sign out');
-      logMessage(`Unable to clear data. ${error.message}`, 'error');
+      // showToast('Unable to sign out');
+      logMessage(`[ CL ] unable to clear data. ${error.message}`, 'error');
     }
   };
 
@@ -203,3 +212,5 @@ export const SessionProvider = ({ children }: PropsWithChildren) => {
     <SessionContext.Provider value={value}>{children}</SessionContext.Provider>
   );
 };
+
+export default SessionProvider;

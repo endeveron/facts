@@ -1,12 +1,15 @@
 import { NextFunction, Request, Response } from 'express';
 
-import { FACT_ITEMS_LIMIT, FACT_PROPS } from '../constants/facts';
+import {
+  FACT_GROUP_LIMIT,
+  FACT_PROPS,
+  FACT_STORAGE_LIMIT,
+} from '../constants/facts';
 import { HttpError } from '../helpers/error';
 import {
   calculateSumOfMapValues,
   configureFactItems,
   createFactLimitMap,
-  shuffleFactItems,
 } from '../helpers/facts';
 import { isReqValid } from '../helpers/http';
 import logger from '../helpers/logger';
@@ -20,8 +23,10 @@ export const getFacts = async (
   next: NextFunction
 ) => {
   if (!isReqValid(req, next)) return;
-  const userId = req.params.userId;
-  const category = req.params.category === 'all' ? '' : req.params.category;
+  const cat = req.query.category as string;
+  const category = cat === 'all' ? '' : cat;
+  const userId = req.query.userId;
+
   let factItems: TFactItem[] = [];
   let factDeficitMap = new Map<string, number>();
 
@@ -83,7 +88,7 @@ export const getFacts = async (
     if (category) {
       const { facts, length } = await fetchCategoryFacts({
         category,
-        limit: FACT_ITEMS_LIMIT,
+        limit: FACT_GROUP_LIMIT,
         offsetMap,
       });
 
@@ -155,6 +160,68 @@ export const getFacts = async (
         favorites,
       },
     });
+  } catch (err) {
+    logger.r('getUser', err);
+    return next(new HttpError('Unable to retrieve facts.', 500));
+  }
+};
+
+export const getDataToInitLocalDb = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  if (!isReqValid(req, next)) return;
+  const userId = req.query.userId as string;
+
+  try {
+    const user = await UserModel.findById(userId);
+    if (!user) {
+      return next(new HttpError('Could not fetch user data.', 500));
+    }
+
+    const facts = await FactModel.find()
+      .limit(FACT_STORAGE_LIMIT)
+      .select(FACT_PROPS);
+
+    const data = {
+      facts: configureFactItems(facts),
+      favorites: user.facts.favorites,
+    };
+
+    res.status(200).json({ data });
+  } catch (err) {
+    logger.r('getUser', err);
+    return next(new HttpError('Unable to retrieve data for local db.', 500));
+  }
+};
+
+export const getFactsForLocalDbStorage = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  if (!isReqValid(req, next)) return;
+  const offset = req.query.offset as string;
+  const userId = req.query.userId as string;
+
+  try {
+    const user = await UserModel.findById(userId);
+    if (!user) {
+      return next(new HttpError('Could not fetch user data.', 500));
+    }
+
+    const facts = await FactModel.find()
+      .skip(+offset)
+      .limit(FACT_STORAGE_LIMIT)
+      .select(FACT_PROPS);
+
+    const data = {
+      facts: configureFactItems(facts),
+      done: facts.length <= FACT_STORAGE_LIMIT,
+    };
+
+    res.status(200).json({ data });
   } catch (err) {
     logger.r('getUser', err);
     return next(new HttpError('Unable to retrieve facts.', 500));

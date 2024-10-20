@@ -13,7 +13,7 @@ export const getFavorites = async (
   res: Response,
   next: NextFunction
 ) => {
-  const userId = req.params.userId;
+  const userId = req.query.userId as string;
   try {
     const user = await UserModel.findById(userId);
     if (!user) {
@@ -55,7 +55,7 @@ export const resetFacts = async (
   res: Response,
   next: NextFunction
 ) => {
-  const userId = req.params.userId;
+  const userId = req.query.userId as string;
 
   try {
     const user = await UserModel.findById(userId);

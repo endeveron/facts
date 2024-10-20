@@ -1,16 +1,16 @@
 import { API_BASE_URL } from '@/core/constants';
 import { commonHeaders } from '@/core/constants/api';
+import { TAuthData } from '@/core/types/auth';
 import { TResponse } from '@/core/types/common';
+import { TFactInitData } from '@/core/types/db';
 import { TFactData, TFactItem, TFavorites } from '@/core/types/fact';
 
 export const getFacts = async ({
   userId,
   category,
   token,
-}: {
-  userId: string;
-  token: string;
-  category?: string;
+}: TAuthData & {
+  category?: string | null;
 }): Promise<
   | TResponse<{
       facts: TFactItem[];
@@ -18,16 +18,82 @@ export const getFacts = async ({
     }>
   | undefined
 > => {
+  const searchParams = new URLSearchParams({
+    category: category || 'all',
+    userId,
+  });
+  const params = searchParams.toString();
   try {
-    const response = await fetch(
-      `${API_BASE_URL}/facts/${category}/${userId}`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          ...commonHeaders,
-        },
-      }
-    );
+    const response = await fetch(`${API_BASE_URL}/facts/?${params}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        ...commonHeaders,
+      },
+    });
+    if (!response.ok) {
+      return { data: null, error: { message: 'Could not fetch facts.' } };
+    }
+    const result = await response.json();
+    if (result?.data) {
+      return { data: result.data, error: null };
+    }
+  } catch (err: any) {
+    console.error(err);
+    return { data: null, error: { message: err.message } };
+  }
+};
+
+export const getDataToInitLocalDb = async ({
+  userId,
+  token,
+}: TAuthData): Promise<TResponse<TFactInitData> | undefined> => {
+  const searchParams = new URLSearchParams({ userId });
+  const params = searchParams.toString();
+  try {
+    const response = await fetch(`${API_BASE_URL}/facts/init-db?${params}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        ...commonHeaders,
+      },
+    });
+    if (!response.ok) {
+      return { data: null, error: { message: 'Could not fetch facts.' } };
+    }
+    const result = await response.json();
+    if (result?.data) {
+      return { data: result.data, error: null };
+    }
+  } catch (err: any) {
+    console.error(err);
+    return { data: null, error: { message: err.message } };
+  }
+};
+
+export const getFactsForLocalDbStorage = async ({
+  offset,
+  userId,
+  token,
+}: TAuthData & {
+  offset: number;
+}): Promise<
+  | TResponse<{
+      facts: TFactItem[];
+      done: boolean;
+    }>
+  | undefined
+> => {
+  const searchParams = new URLSearchParams({
+    offset: `${offset}`,
+    userId,
+  });
+  const params = searchParams.toString();
+  try {
+    const response = await fetch(`${API_BASE_URL}/facts/storage?${params}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        ...commonHeaders,
+      },
+    });
     if (!response.ok) {
       return { data: null, error: { message: 'Could not fetch facts.' } };
     }

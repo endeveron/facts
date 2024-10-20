@@ -15,7 +15,7 @@ import { checkAuth } from '../middleware/check-auth';
 const router = Router();
 router.use(checkAuth);
 
-router.get('/subscription/:userId', getNotificationSubscription);
+router.get('/subscription', getNotificationSubscription);
 router.post(
   '/subscription',
   body('subscription.expoPushToken').notEmpty(),

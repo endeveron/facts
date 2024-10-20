@@ -15,7 +15,7 @@ export type TFactItem = TFactData & {
 
 export type TCategoryMap = Map<string, number>;
 
-export enum FactCategory {
+export enum FactCategories {
   nature = 'nature',
   human = 'human',
   entertainment = 'entertainment',

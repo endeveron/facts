@@ -8,8 +8,8 @@ import { checkAuth } from '../middleware/check-auth';
 const router = Router();
 router.use(checkAuth);
 
-router.get('/:userId/favorites', getFavorites);
-router.get('/:userId/reset-facts', resetFacts);
+router.get('/favorites', getFavorites);
+router.get('/reset-facts', resetFacts);
 router.post(
   '/evaluate-fact',
   body('factId').isLength({ min: 24, max: 24 }),

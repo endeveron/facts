@@ -25,9 +25,3 @@ app.use('/api/ping', (req, res) => {
 
 // connect to DB
 mongo.connect().then(() => app.listen(process.env.PORT));
-
-// app.listen(port, () => {
-//   return console.log(
-//     `🚀 Express server is listening at http://localhost:${port}`
-//   );
-// });

@@ -6,10 +6,10 @@ import { View } from 'react-native';
 import { Button } from '@/components/Button';
 import CategoryItem from '@/components/CategoryItem';
 import { FormField } from '@/components/FormField';
-import { useSession } from '@/core/context/SessionContext';
+import { useSession } from '@/core/context/SessionProvider';
 import { useToast } from '@/core/hooks/useToast';
 import { postFact } from '@/core/services/facts';
-import { FactCategory } from '@/core/types/fact';
+import { FactCategories } from '@/core/types/fact';
 import { factSchema, TFactFormData } from '@/core/utils/validation';
 
 const CreateFact = () => {
@@ -58,7 +58,7 @@ const CreateFact = () => {
   return (
     <View className="px-4">
       <View className="flex-row flex-wrap -mt-2 -mx-3">
-        {Object.keys(FactCategory).map((name) => (
+        {Object.keys(FactCategories).map((name) => (
           <CategoryItem
             onPress={handleCategory}
             isActive={category === name}

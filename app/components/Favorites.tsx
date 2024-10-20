@@ -1,15 +1,14 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useEffect, useState } from 'react';
 import { View } from 'react-native';
 
 import FavoriteItem from '@/components/FavoriteItem';
-import HeartIcon from '@/components/svg/HeartIcon';
 import { Text } from '@/components/Text';
 import { KEY_FACTS_FAVORITES } from '@/core/constants';
-import { useSession } from '@/core/context/SessionContext';
+import { useSession } from '@/core/context/SessionProvider';
 import { useToast } from '@/core/hooks/useToast';
 import { getFavorites, postEvaluateFact } from '@/core/services/users';
 import { TFactItem } from '@/core/types/fact';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useThemeColor } from '@/core/hooks/useThemeColor';
 
 type TFavoritesState = {

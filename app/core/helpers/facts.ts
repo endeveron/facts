@@ -1,45 +1,22 @@
 import {
+  defaultCategoryRateMap,
   FACT_CATEGORIES_DIST_RATE,
   FACT_GROUP_LIMIT,
-} from '../constants/facts';
-import { FactCategories, TFact, TFactItem } from '../types/fact';
-import logger from './logger';
+} from '@/core/constants/facts';
+import { getNextFact } from '@/core/helpers/db';
+import { logMessage } from '@/core/helpers/misc';
+import { FactCategories } from '@/core/types/fact';
+import { Router } from 'expo-router';
+import { SQLiteDatabase } from 'expo-sqlite';
 
 /**
- * Creates a new Map object with keys from the FactCategories enum set to 0.
+ * Creates a new Map object with keys from the FactCategory enum set to 0.
  * @returns the Map object.
  */
 export const createCategoryMap = () => {
   const map = new Map<string, number>();
   for (let key in FactCategories) map.set(key, 0);
   return map;
-};
-
-/**
- * Serializes an array of facts, converts the _id param, ObjectId > string
- * @param {TFactItem[]} facts - an array of objects of type `TFactItem`.
- * @returns   an array of objects of type `TFactItem`.
- */
-export const configureFactItems = (facts: TFact[]): TFactItem[] => {
-  return facts.map((fact) => ({
-    id: fact._id.toString(),
-    title: fact.title,
-    category: fact.category,
-  }));
-};
-
-/**
- * Shuffles an array of fact items using the Fisher-Yates (also known as Knuth) algorithm.
- * @param {TFactItem[]} factItems - an array of objects of type `TFactItem`.
- * @returns shuffled array of objects of type `TFactItem`.
- */
-export const shuffleFactItems = (factItems: TFactItem[]): TFactItem[] => {
-  const shuffledArray = [...factItems];
-  for (let i = shuffledArray.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [shuffledArray[i], shuffledArray[j]] = [shuffledArray[j], shuffledArray[i]];
-  }
-  return shuffledArray;
 };
 
 const getMapItemWithLargestValue = (
@@ -59,6 +36,11 @@ const getMapItemWithLargestValue = (
   return { key: largestKey, value: largestValue as number };
 };
 
+/**
+ * Calculates the sum of values in a given Map.
+ * @param map - Map<string, number>
+ * @returns the sum of all values in the provided `Map` object.
+ */
 export const calculateSumOfMapValues = (map: Map<string, number>) => {
   return [...map.values()].reduce((acc, value) => acc + value, 0);
 };
@@ -69,8 +51,8 @@ export const calculateSumOfMapValues = (map: Map<string, number>) => {
  * @returns a demand map of facts `Map<string, number>`. The keys represent categories, and the values represent the demand.
  */
 export const createFactLimitMap = (
-  map: Map<string, number>
-): Map<string, number> => {
+  map: Map<string, number> = defaultCategoryRateMap
+): Map<string, number> | null => {
   const resultMap = new Map<string, number>();
 
   // n = ( value / totalRate ) * totalItems
@@ -81,14 +63,7 @@ export const createFactLimitMap = (
 
   // if the total rate is not high enough, return a map with average values
   if (totalRate < FACT_CATEGORIES_DIST_RATE) {
-    return new Map([
-      ['nature', 2],
-      ['science', 2],
-      ['human', 1],
-      ['business', 1],
-      ['entertainment', 1],
-      ['miscellaneous', 1],
-    ]);
+    return defaultCategoryRateMap;
   }
 
   // fill in the result map
@@ -105,8 +80,8 @@ export const createFactLimitMap = (
   // handle the case when the total number of items doesn't equal the initial value
   const itemWithMaxValue = getMapItemWithLargestValue(resultMap);
   if (!itemWithMaxValue) {
-    logger.r('createFactLimitMap: invalid itemWithMaxValue.');
-    return resultMap;
+    logMessage(`[ FH ] createFactLimitMap: invalid itemWithMaxValue`, 'error');
+    return null;
   }
   const { key, value } = itemWithMaxValue;
   // calculate a difference

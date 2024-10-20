@@ -7,20 +7,17 @@ import React, { useEffect, useState } from 'react';
 
 import ScrollScreen from '@/components/ScrollScreen';
 import { Text } from '@/components/Text';
-import {
-  DEV_LOGS_KEY,
-  TLogItem,
-  writeLog,
-} from '@/core/context/LoggingProvider';
-import { sleep } from '@/core/helpers/misc';
+import { sleep, writeLog } from '@/core/helpers/misc';
 import { Button } from '@/components/Button';
 import {
   KEY_AUTH_TOKEN,
   KEY_AUTH_USER,
+  KEY_DEV_LOGS,
   KEY_FACTS_FAVORITES,
   KEY_FACTS_STATE,
   KEY_FACTS_STATE_CAT,
 } from '@/core/constants';
+import { TLogItem } from '@/core/types/common';
 
 const devlogs = () => {
   const [logs, setLogs] = useState<TLogItem[]>([]);
@@ -63,14 +60,13 @@ const devlogs = () => {
   };
 
   const clearLogs = async () => {
-    await AsyncStorage.removeItem(DEV_LOGS_KEY);
+    await AsyncStorage.removeItem(KEY_DEV_LOGS);
     setLogs([]);
   };
 
   useEffect(() => {
     (async () => {
-      await sleep(500);
-      const logsStr = await AsyncStorage.getItem(DEV_LOGS_KEY);
+      const logsStr = await AsyncStorage.getItem(KEY_DEV_LOGS);
       if (logsStr) setLogs(JSON.parse(logsStr));
     })();
   }, []);

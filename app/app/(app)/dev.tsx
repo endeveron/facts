@@ -7,8 +7,10 @@ import CategoriesIcon from '@/components/svg/CategoriesIcon';
 import TextFileIcon from '@/components/svg/TextFileIcon';
 import UserIcon from '@/components/svg/UserIcon';
 import { Text } from '@/components/Text';
-import { useLogging } from '@/core/context/LoggingProvider';
 import { useEffect, useState } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { TLogItem } from '@/core/types/common';
+import { KEY_DEV_LOGS } from '@/core/constants';
 
 const navItems: TNavbarItem[] = [
   {
@@ -29,8 +31,21 @@ const navItems: TNavbarItem[] = [
 ];
 
 const dev = () => {
-  const { logs, clearLogs } = useLogging();
+  // const { logs, clearLogs } = useLogging();
   const [prompt, setPrompt] = useState(false);
+  const [logs, setLogs] = useState<TLogItem[]>([]);
+
+  const clearLogs = async () => {
+    await AsyncStorage.removeItem(KEY_DEV_LOGS);
+    setLogs([]);
+  };
+
+  useEffect(() => {
+    (async () => {
+      const logsStr = await AsyncStorage.getItem(KEY_DEV_LOGS);
+      if (logsStr) setLogs(JSON.parse(logsStr));
+    })();
+  }, []);
 
   return (
     <ScrollScreen title="Logs" navbar={{ navItems }}>

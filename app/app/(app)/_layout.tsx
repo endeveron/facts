@@ -3,7 +3,7 @@ import { useColorScheme } from 'react-native';
 
 import { colors, defaultScheme } from '@/core/constants/colors';
 import { TScreen } from '@/core/types/common';
-import { useSession } from '@/core/context/SessionContext';
+import { useSession } from '@/core/context/SessionProvider';
 
 /**
  * This layout checks whether users are authenticated before

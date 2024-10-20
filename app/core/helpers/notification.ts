@@ -1,7 +1,6 @@
 import Constants from 'expo-constants';
 import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
-import { Platform } from 'react-native';
 
 import {
   API_BASE_URL,
@@ -14,18 +13,18 @@ import {
 import { commonHeaders } from '@/core/constants/api';
 import { consoleClors } from '@/core/constants/colors';
 import { factActions } from '@/core/constants/facts';
-import { writeLog } from '@/core/context/LoggingProvider';
 import { logMessage } from '@/core/helpers/misc';
 import {
   getNotifSubFromSecureStore,
+  saveNotifSubFetchedInAsyncStorage,
   saveNotifSubInSecureStore,
-  saveNotifSubIsFetchedInAsyncStorage,
 } from '@/core/helpers/store';
 import {
   patchSubscription,
   postSubscription,
 } from '@/core/services/notifications';
-import { TNotificationConfig, TResponse } from '@/core/types/common';
+import { TAuthData } from '@/core/types/auth';
+import { TNotificationConfig, TResponse, TStatus } from '@/core/types/common';
 import {
   TNotification,
   TNotificationSubscription,
@@ -39,34 +38,23 @@ export const logNotificationData = (
 ) => {
   const content = notification.request.content;
   if (content.title && content.body) {
-    console.info(
-      `${cyan}%s${green}%s${reset}`,
-      `New notification `,
-      `[ ${notification.request.content.title} ] ${notification.request.content.body}`
-    );
-    writeLog(
-      `New notification: [ ${notification.request.content.title} ] ${notification.request.content.body}`,
-      'success'
-    );
+    const title = notification.request.content.title;
+    const body = notification.request.content.body;
+    logMessage(`[ NL ] new notification [ ${title} ] ${body}`, 'success');
   } else {
     const dataStr = JSON.stringify(notification.request.content.data);
-    console.info(
-      `${cyan}%s${yellow}%s${reset}`,
-      `New data-only notification `,
-      `${dataStr}`
-    );
-    writeLog(`New data-only notification: ${dataStr}`, 'success');
+    logMessage(`[ NL ] new data-only notification: ${dataStr}`, 'success');
   }
 };
 
-export const getSchedulrTime = () => {
+export const getScheduleTime = () => {
   const hours = HOUR.toString().padStart(2, '0');
   const minutes = MINUTE.toString().padStart(2, '0');
   return { hours, minutes };
 };
 
 export const configureSchedule = (): string => {
-  const { hours, minutes } = getSchedulrTime();
+  const { hours, minutes } = getScheduleTime();
   return hours + minutes; // format: 0800
 };
 
@@ -110,10 +98,11 @@ export const handleNotificationBackgroundTask: TaskManagerTaskExecutor = ({
   }
 };
 
-export const handleNotificationClick = (
+export const handleNotificationClick = async (
   response: Notifications.NotificationResponse
 ) => {
   console.info(`${cyan}%s${reset}`, '[ HN ] notification handler');
+  // if (response.actionIdentifier === Notifications.DEFAULT_ACTION_IDENTIFIER)
 
   const actionIdentifier = response.actionIdentifier;
   const content = response.notification.request.content;
@@ -127,48 +116,31 @@ export const handleNotificationClick = (
   console.info(`${cyan}%s${gray}%s${reset}`, '[ NR ] content ', content);
   console.info(`${cyan}%s${gray}%s${reset}`, '[ NR ] trigger ', trigger);
 
-  writeLog(`[ NR ] User tapped notification`, 'success');
-  writeLog(`[ NR ] actionId: ${actionIdentifier}`);
-  writeLog(`[ NR ] content: ${JSON.stringify(content)}`);
-  writeLog(`[ NR ] trigger: ${JSON.stringify(trigger)}`);
+  logMessage(`[ NR ] User tapped notification`, 'success');
+  logMessage(`[ NR ] actionId: ${actionIdentifier}`);
+  logMessage(`[ NR ] content: ${JSON.stringify(content)}`);
+  logMessage(`[ NR ] trigger: ${JSON.stringify(trigger)}`);
 
   // Handle different actions based on the identifier
   switch (response.actionIdentifier) {
     case 'first':
-      writeLog(`[ NA ] first button clicked`, 'success');
+      logMessage(`[ NA ] first button clicked`, 'success');
       break;
     case 'second':
-      writeLog(`[ NA ] second button clicked`, 'success');
+      logMessage(`[ NA ] second button clicked`, 'success');
       break;
     default:
-      writeLog(`[ NA ] default action`, 'error');
+      logMessage(`[ NA ] default action`, 'error');
   }
-
-  // if (response.actionIdentifier === Notifications.DEFAULT_ACTION_IDENTIFIER)
-  //   console.info(`${cyan}%s${reset}`, 'User tapped notification');
-
-  //   // // Handle different actions based on the identifier
-  //   // switch (response.actionIdentifier) {
-  //   //   case 'chat':
-  //   //     // Open chat screen
-  //   //     break;
-  //   //   case 'profile':
-  //   //     // Open profile screen
-  //   //     break;
-  //   //   default:
-  //   //     // Handle unknown actions
-  //   // }
 };
 
 export const sendPushNotification = async ({
   notification,
   userId,
   token,
-}: {
+}: TAuthData & {
   notification: TNotification;
-  userId: string;
-  token: string;
-}): Promise<TResponse<{ success: boolean }>> => {
+}): Promise<TResponse<TStatus>> => {
   try {
     const response = await fetch(`${API_BASE_URL}/notifications/send`, {
       method: 'POST',
@@ -230,13 +202,10 @@ export const saveSubscription = async ({
   userId,
   subscription,
   subscrSource,
-}: {
-  token: string;
-  userId: string;
+}: TAuthData & {
   subscription: TNotificationSubscription;
   subscrSource: string | null;
 }): Promise<TResponse<{ subscription: TNotificationSubscription }>> => {
-  logMessage('[ NS ] service registered, saving subscription');
   const errors: string[] = [];
 
   const saveSubscrInStore = async () => {
@@ -303,7 +272,7 @@ export const saveSubscription = async ({
     };
   } else {
     // save
-    await saveNotifSubIsFetchedInAsyncStorage(true);
+    await saveNotifSubFetchedInAsyncStorage(true);
   }
 
   return {
@@ -317,11 +286,9 @@ export const scheduleNotification = async ({
   minute,
   token,
   userId,
-}: {
+}: TAuthData & {
   hour: number;
   minute: number;
-  token: string;
-  userId: string;
 }): Promise<
   TResponse<{
     success: boolean;
@@ -332,7 +299,7 @@ export const scheduleNotification = async ({
   let subscription: TNotificationSubscription;
 
   try {
-    // schedule push notification
+    // schedule push notification (also with buttons)
     const notificationId = await Notifications.scheduleNotificationAsync({
       content: {
         title: NOTIFICATION_REMINDER_TITLE,
@@ -352,7 +319,7 @@ export const scheduleNotification = async ({
       };
     }
 
-    const { hours, minutes } = getSchedulrTime();
+    const { hours, minutes } = getScheduleTime();
     logMessage(`[ NS ] notification scheduled for ${hours}:${minutes}`);
 
     // get subscription from store
@@ -442,10 +409,7 @@ export const scheduleNotification = async ({
 export const unscheduleNotification = async ({
   token,
   userId,
-}: {
-  token: string;
-  userId: string;
-}): Promise<
+}: TAuthData): Promise<
   TResponse<{
     success: boolean;
   }>
@@ -565,9 +529,7 @@ export const registerPushNotificationService = async ({
   userId,
   subscription,
   subscrSource,
-}: {
-  token: string;
-  userId: string;
+}: TAuthData & {
   subscription: TNotificationSubscription | null;
   subscrSource: string | null;
 }): Promise<
@@ -586,26 +548,7 @@ export const registerPushNotificationService = async ({
   };
 
   try {
-    if (Platform.OS === 'android') {
-      // register background task
-      logMessage('[ NS ] register notification background task');
-      await Notifications.registerTaskAsync(NOTIFICATION_BACKGROUND_TASK);
-
-      // set up notification chanel
-      logMessage('[ NS ] set up notification chanel');
-      await Notifications.setNotificationChannelAsync('default', {
-        name: 'default',
-        importance: Notifications.AndroidImportance.MAX,
-        vibrationPattern: [0, 250, 250, 250],
-        lightColor: '#FF231F7C',
-      });
-
-      // set up notification category 'fact'
-      // using the same category as in `registerForPushNotificationsAsync`
-      logMessage('[ NS ] set up notification category');
-      await Notifications.setNotificationCategoryAsync('fact', factActions);
-    }
-
+    // if (Platform.OS === 'android') {}
     if (Device.isDevice) {
       const { status: existingStatus } =
         await Notifications.getPermissionsAsync();
@@ -635,6 +578,27 @@ export const registerPushNotificationService = async ({
       if (expoPushToken) {
         logMessage('[ NS ] generated expo push token');
         subscription.expoPushToken = expoPushToken;
+
+        // register background task
+        logMessage('[ NS ] register notification background task');
+        await Notifications.registerTaskAsync(NOTIFICATION_BACKGROUND_TASK);
+
+        // set up notification chanel
+        logMessage('[ NS ] set up notification chanel');
+        await Notifications.setNotificationChannelAsync('default', {
+          name: 'default',
+          importance: Notifications.AndroidImportance.MAX,
+          vibrationPattern: [0, 250, 250, 250],
+          lightColor: '#FF231F7C',
+        });
+
+        // specify action buttons, set up notification category 'fact'
+        // using the same category as in `registerForPushNotificationsAsync`
+        logMessage('[ NS ] set up notification category');
+        await Notifications.setNotificationCategoryAsync('fact', factActions);
+
+        logMessage('[ NS ] service registered');
+
         // save subscription
         const subRes = await saveSubscription({
           token,

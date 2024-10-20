@@ -1,19 +1,20 @@
 import { API_BASE_URL } from '@/core/constants';
 import { commonHeaders } from '@/core/constants/api';
-import { TResponse } from '@/core/types/common';
+import { TAuthData } from '@/core/types/auth';
+import { TResponse, TStatus } from '@/core/types/common';
 import { TFactItem } from '@/core/types/fact';
 
 export const getFavorites = async ({
   userId,
   token,
-}: {
-  userId: string;
-  token: string;
-}): Promise<TResponse<{ favorites: TFactItem[] }> | undefined> => {
-  if (!userId)
+}: TAuthData): Promise<TResponse<{ favorites: TFactItem[] }> | undefined> => {
+  if (!userId) {
     return { data: null, error: { message: 'No user ID provided.' } };
+  }
+  const searchParams = new URLSearchParams({ userId });
+  const params = searchParams.toString();
   try {
-    const response = await fetch(`${API_BASE_URL}/users/${userId}/favorites`, {
+    const response = await fetch(`${API_BASE_URL}/users/favorites?${params}`, {
       headers: {
         Authorization: `Bearer ${token}`,
         ...commonHeaders,
@@ -40,11 +41,9 @@ export const postEvaluateFact = async ({
   userId,
   category,
   token,
-}: {
+}: TAuthData & {
   factId: string;
-  userId: string;
   category: string;
-  token: string;
 }): Promise<TResponse<{ status: 'like' | 'dislike' }> | undefined> => {
   try {
     const response = await fetch(`${API_BASE_URL}/users/evaluate-fact`, {
@@ -75,15 +74,15 @@ export const postEvaluateFact = async ({
 export const getResetFacts = async ({
   userId,
   token,
-}: {
-  userId: string;
-  token: string;
-}): Promise<TResponse<{ success: boolean }> | undefined> => {
-  if (!userId)
+}: TAuthData): Promise<TResponse<TStatus> | undefined> => {
+  if (!userId) {
     return { data: null, error: { message: 'No user ID provided.' } };
+  }
+  const searchParams = new URLSearchParams({ userId });
+  const params = searchParams.toString();
   try {
     const response = await fetch(
-      `${API_BASE_URL}/users/${userId}/reset-facts`,
+      `${API_BASE_URL}/users/reset-facts?${params}`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
