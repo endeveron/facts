@@ -1,5 +1,4 @@
 import { useLocalSearchParams } from 'expo-router';
-import { useSQLiteContext } from 'expo-sqlite';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Animated,
@@ -12,13 +11,14 @@ import {
 
 import FactItem from '@/components/FactItem';
 import Navbar, { NavItemName, TNavbarItem } from '@/components/Navbar';
+import Skeleton from '@/components/Skeleton';
 import CategoriesIcon from '@/components/svg/CategoriesIcon';
 import TextFileIcon from '@/components/svg/TextFileIcon';
 import UserIcon from '@/components/svg/UserIcon';
 import { Text } from '@/components/Text';
 import { SHARE_TITLE } from '@/core/constants';
-import { FACTS_LEFT_TO_FETCH_NEW_ITEMS } from '@/core/constants/facts';
 import { useSession } from '@/core/context/SessionProvider';
+import { initFactDataInLocalDb } from '@/core/helpers/db/init';
 import {
   addFactsToCategoryGroup,
   addFactsToGroup,
@@ -27,15 +27,16 @@ import {
   initCategoryDataInLocalDb,
   updateCursorTable,
   updateFavoritesTable,
-} from '@/core/helpers/db/index';
-import { initFactDataInLocalDb } from '@/core/helpers/db/init';
-import { logMessage, sleep } from '@/core/helpers/misc';
+} from '@/core/helpers/db/main';
+import { logMessage, wait } from '@/core/helpers/misc';
 import { TAddFactsToGroupResult, TFactCursor } from '@/core/types/db';
 import { TFactItem } from '@/core/types/fact';
-import Skeleton from '@/components/Skeleton';
+import { FACTS_LEFT_TO_FETCH_NEW_ITEMS } from '@/core/constants/facts';
 
 // get the height of device window
 const windowHeight = Dimensions.get('window').height;
+
+const ANIM_DURATION = 200;
 
 // FlatList config
 const viewabilityConfig = {
@@ -45,7 +46,7 @@ const viewabilityConfig = {
 };
 
 const animTimingConfig = {
-  duration: 200,
+  duration: ANIM_DURATION,
   useNativeDriver: true,
 };
 
@@ -74,10 +75,9 @@ const navItems: TNavbarItem[] = [
 
 const Facts = () => {
   const { session } = useSession();
-  const db = useSQLiteContext();
   if (!session?.token) return null;
 
-  const { category: factCategory, index: factIndex } = useLocalSearchParams();
+  const { category: factCategory, nextIndex } = useLocalSearchParams();
 
   const [fetching, setFetching] = useState(false);
   const [cursor, setCursor] = useState<TFactCursor>();
@@ -92,7 +92,9 @@ const Facts = () => {
   const token = session.token;
   const factsLength = facts.length;
   const category = factCategory ? (factCategory as string) : null;
-  const nextFactIndex = factIndex ? (factIndex as string) : null;
+  const nextFactIndex = nextIndex ? (nextIndex as string) : null;
+
+  // console.log('Facts index', nextFactIndex);
 
   const fadeInList = () => {
     Animated.timing(fadeList, {
@@ -126,7 +128,7 @@ const Facts = () => {
   const setFetchingCb = async (newFetching: boolean) => {
     if (!fetching && newFetching) fadeInSkeleton();
     if (fetching && !newFetching) fadeOutSkeleton();
-    await sleep(200);
+    await wait(ANIM_DURATION);
     setFetching(newFetching);
   };
 
@@ -143,7 +145,8 @@ const Facts = () => {
 
     // update data in favorites table
     const operation = isLike ? 'add' : 'remove';
-    await updateFavoritesTable({ operation, factId }, db);
+    // await updateFavoritesTable({ operation, factId }, db);
+    await updateFavoritesTable({ operation, factId });
 
     // !! keep that code
     // // send request to server
@@ -171,7 +174,7 @@ const Facts = () => {
         // dismissed
       }
     } catch (error: any) {
-      logMessage('[ FC ] unable to share', 'error');
+      await logMessage('[ FC ] unable to share', 'error');
     }
   };
 
@@ -206,7 +209,6 @@ const Facts = () => {
     if (category) {
       updCursor.category = category;
     }
-
     try {
       // process the end of the fact list, get new facts from the local db
       if (leftInGroup === FACTS_LEFT_TO_FETCH_NEW_ITEMS) {
@@ -216,55 +218,50 @@ const Facts = () => {
             category,
             currentGroup: facts,
             cursor: updCursor,
-            db,
+            // db,
           });
         } else {
           addFactsResult = await addFactsToGroup({
             currentGroup: facts,
             cursor: updCursor,
-            db,
+            // db,
           });
         }
         if (!addFactsResult) {
-          logMessage(`[ FC ] unable to get new facts`, 'error');
+          await logMessage(`[ FC ] unable to get new facts`, 'error');
           return;
         }
-
         if (category) {
           // update cursor data
           addFactsResult.newCursor.storageOffset += 1;
           addFactsResult.newCursor.leftInStorage -= 1;
           addFactsResult.newCursor.leftInGroup -= 1;
         }
-
         const { newCursor, newGroup } = addFactsResult;
         setFacts((prev) => (prev = newGroup));
         updCursor = newCursor;
       }
-
       setCursor(updCursor);
       // save updated cursor in local db
       const updateCursorSuccess = await updateCursorTable(
         updCursor,
-        db,
+        // db,
         category
       );
       if (!updateCursorSuccess) {
-        logMessage(`[ FC ] unable to update cursor`, 'error');
+        await logMessage(`[ FC ] unable to update cursor`, 'error');
         return;
       }
-
       if (isUpdate) {
         // update fact offset for the category in the fact_offset table
         const increaseOffset = await increaseFactOffset({
           category: item.category,
-          db,
+          // db,
         });
         if (!increaseOffset) {
-          logMessage(`[ FC ] unable to update fact offset`, 'error');
+          await logMessage(`[ FC ] unable to update fact offset`, 'error');
         }
       }
-
       // // dev
       // const factOffsetMap = await createOffsetMapFromTableData(db);
       // console.log('offsetMap', factOffsetMap);
@@ -296,131 +293,57 @@ const Facts = () => {
     fadeOutList();
   };
 
-  // const fetchData = async () => {
-  //   let fetchedFacts: TFactItem[] = [];
-  //   let fetchedFavorites: string[] = [];
-  //   let currentUpd: TCurrentItem | null = null;
-
-  //   /**
-  //    * - fetch data from db { facts: TFactItem[]; favorites: TFavorites }
-  //    * - save facts and favorites in the local state
-  //    * - save the data of the current item in the local state
-  //    * - recalculate the number of facts not shown
-  //    * - if no curItem init
-  //    * - scroll to curItem
-  //    * - save data in AsyncStorage
-  //    */
-
-  //   const result = await getFacts({
-  //     userId,
-  //     category: category as string,
-  //     token,
-  //   });
-  //   if (result?.error) {
-  //     showToast('Unable to fetch data from db');
-  //     logMessage(
-  //       `[ FC ] unable to fetch data from db: ${result.error.message}`,
-  //       'error'
-  //     );
-  //     return;
-  //   }
-
-  //   // save facts and favorites in the local state
-  //   if (result?.data) {
-  //     logMessage('[ FC ] data fetched from db');
-  //     fetchedFacts = result.data.facts;
-  //     // fadeInList();
-  //     fetchedFavorites = result.data.favorites;
-  //     setFavorites(fetchedFavorites);
-  //     // if (!fetchedFacts.length) setNoMoreFacts(true);
-  //   }
-
-  //   // save the data of the current item in the local state
-  //   // and recalculate the number of facts not shown
-  //   if (!cursor?.curFactId) {
-  //     // initialize data
-  //     logMessage('[ FC ] init current item');
-  //     currentUpd = {
-  //       id: fetchedFacts[0].id,
-  //       index: 0,
-  //     };
-  //   } else {
-  //     // refetch data
-  //     // scroll to current item
-  //     scrollToItem(cursor.curFactIndex);
-  //   }
-  // };
-
   const initFactData = async () => {
-    // initialize local db tables
+    // initialize the local db tables, if necessary
     const { success } = await initFactDataInLocalDb({
       authData: { userId, token },
-      db,
+      // db,
       setFetchingCb,
     });
     if (!success) return;
 
     // get data from the local db
-    const data = await getFactDataFromLocalDb(db);
+    // const data = await getFactDataFromLocalDb(db);
+    const data = await getFactDataFromLocalDb();
     if (!data) return;
-    logMessage('[ FC ] data recieved from local db');
+    await logMessage('[ FC ] facts data recieved from local db');
 
     setCursor((d) => (d = data.cursor));
     setFavorites((d) => (d = data.favorites));
     setFacts((d) => (d = data.facts));
 
-    await sleep(1);
+    await wait(10);
     const index = nextFactIndex ? +nextFactIndex : data.cursor.curFactIndex;
     scrollToItem(index);
   };
 
   // handle fact category data if the url contains a 'category' search param
   const initCategoryData = async () => {
-    logMessage('[ FC ] init category data');
+    await logMessage('[ FC ] init category data');
 
     // get data for a certain category from the local db
-    const data = await initCategoryDataInLocalDb({ category: category!, db });
+    const data = await initCategoryDataInLocalDb(category!);
     if (!data) return;
-    logMessage('[ FC ] category data recieved from local db');
+    await logMessage('[ FC ] category data recieved from local db');
 
     setCursor((d) => (d = data.cursor));
     setFavorites((d) => (d = data.favorites));
     setFacts((d) => (d = data.facts));
 
-    await sleep(1);
+    await wait(10);
     scrollToItem(data.cursor.curFactIndex);
   };
 
   // initialize data, handle the `category` url search param if provided
   useEffect(() => {
-    (async () => {
-      if (category) initCategoryData();
-      else initFactData();
-    })();
+    if (category) initCategoryData();
+    else initFactData();
   }, []);
 
   // fade in list
   useEffect(() => {
     if (factsLength) fadeInList();
   }, [factsLength]);
-
-  // // fade in skeleton
-  // useEffect(() => {
-  //   if (!factsLength) fadeInSkeleton();
-  // }, [factsLength]);
-
-  // useEffect(() => {
-  //   if (!category) return;
-  //   const cb = async () => {
-  //     // const facts = await getFactGroup({ category, db });
-  //     const query = `SELECT * FROM category_group;`;
-  //     const facts: TFactItem[] = await db.getAllAsync<TFactGroupTableItem>(
-  //       query
-  //     );
-  //     console.log('CatGroup', facts);
-  //   };
-  //   cb();
-  // }, [category]);
 
   return (
     <View className="h-full relative">

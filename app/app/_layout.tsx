@@ -5,10 +5,10 @@ import { useEffect } from 'react';
 import { useColorScheme } from 'react-native';
 
 import { colors, defaultScheme } from '@/core/constants/colors';
-import { AppStateProvider } from '@/core/context/AppStateProvider';
-import NotificationsProvider from '@/core/context/NotificationsProvider';
-import SessionProvider from '@/core/context/SessionProvider';
+import AppSync from '@/core/context/AppSync';
 import LocalDBProvider from '@/core/context/LocalDBProvider';
+import NotificProvider from '@/core/context/NotificProvider';
+import SessionProvider from '@/core/context/SessionProvider';
 
 // prevent the splash screen from auto-hiding before asset loading is complete
 SplashScreen.preventAutoHideAsync();
@@ -33,11 +33,15 @@ const RootLayout = () => {
 
   useEffect(() => {
     const prepareApp = async () => {
-      // change the root view background color
-      await SystemUI.setBackgroundColorAsync(colors[scheme].background);
+      try {
+        // change the root view background color
+        await SystemUI.setBackgroundColorAsync(colors[scheme].background);
 
-      // app is ready, hide splash screen
-      await SplashScreen.hideAsync();
+        // app is ready, hide splash screen
+        await SplashScreen.hideAsync();
+      } catch (err: any) {
+        console.error(err);
+      }
     };
 
     loaded && prepareApp();
@@ -48,15 +52,11 @@ const RootLayout = () => {
   }
 
   return (
-    // <AppStateProvider>
-    <SessionProvider>
-      <LocalDBProvider>
-        <NotificationsProvider>
-          <Slot />
-        </NotificationsProvider>
-      </LocalDBProvider>
-    </SessionProvider>
-    // </AppStateProvider>
+    <LocalDBProvider>
+      <SessionProvider>
+        <Slot />
+      </SessionProvider>
+    </LocalDBProvider>
   );
 };
 

@@ -1,5 +1,3 @@
-import { KEY_FACTS_STATE, KEY_FACTS_STATE_CAT } from '@/core/constants/index';
-
 export enum FactCategories {
   nature = 'nature',
   human = 'human',
@@ -35,28 +33,11 @@ export type TCategoryMapObj = {
   [key: string]: number;
 };
 
-// export type TUpdateListDataArgs = {
-//   totalItems?: number;
-//   currentItem?: TCurrentItem;
-// };
-
-// export type TcountNotShownFactsArgs = {
-//   factsLength: number | null;
-//   current: TCurrentItem | null;
-//   notShownNum: number | null;
-//   isRefetch?: boolean;
-// };
-
 export type TFactsState = {
-  facts: TFactItem[];
-  current: TCurrentItem | null;
-  notShownNum: number | null;
+  favorites: string[];
+  categoryRateMap: TCategoryMapObj;
+  offsetMap: TCategoryMapObj;
 };
-
-export enum EFactsStateKey {
-  FACTS_STATE = KEY_FACTS_STATE,
-  FACTS_STATE_CAT = KEY_FACTS_STATE_CAT,
-}
 
 // export type TFactsStorageItems = TFactItem[];
 

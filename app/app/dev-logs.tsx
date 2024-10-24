@@ -7,16 +7,9 @@ import React, { useEffect, useState } from 'react';
 
 import ScrollScreen from '@/components/ScrollScreen';
 import { Text } from '@/components/Text';
-import { sleep, writeLog } from '@/core/helpers/misc';
+import { saveLog } from '@/core/helpers/misc';
 import { Button } from '@/components/Button';
-import {
-  KEY_AUTH_TOKEN,
-  KEY_AUTH_USER,
-  KEY_DEV_LOGS,
-  KEY_FACTS_FAVORITES,
-  KEY_FACTS_STATE,
-  KEY_FACTS_STATE_CAT,
-} from '@/core/constants';
+import { KEY_AUTH_TOKEN, KEY_AUTH_USER, KEY_DEV_LOGS } from '@/core/constants';
 import { TLogItem } from '@/core/types/common';
 
 const devlogs = () => {
@@ -25,20 +18,6 @@ const devlogs = () => {
 
   const clearStorage = async () => {
     try {
-      const clearFacts = async () => {
-        await AsyncStorage.removeItem(KEY_FACTS_STATE);
-        await AsyncStorage.removeItem(KEY_FACTS_STATE_CAT);
-        await AsyncStorage.removeItem(KEY_FACTS_FAVORITES);
-      };
-      const checkFacts = async (): Promise<boolean> => {
-        const itemStr = await AsyncStorage.getItem(KEY_FACTS_FAVORITES);
-        return itemStr === null;
-      };
-      await clearFacts();
-      const factsClean = await checkFacts();
-      if (factsClean) {
-        writeLog('Facts data deleted from AsyncStorage', 'success');
-      }
       const clearAuth = async () => {
         await SecureStore.deleteItemAsync(KEY_AUTH_TOKEN);
         await SecureStore.deleteItemAsync(KEY_AUTH_USER);
@@ -50,25 +29,38 @@ const devlogs = () => {
       await clearAuth();
       const authClean = await checkAuth();
       if (authClean) {
-        writeLog('Auth data deleted from SecureStore', 'success');
+        await saveLog('Auth data deleted from SecureStore', 'success');
       }
       await TaskManager.unregisterAllTasksAsync();
       await Notifications.unregisterForNotificationsAsync();
     } catch (err: any) {
-      writeLog(`Error: ${err.message}`, 'error');
+      await saveLog(`Error: ${err.message}`, 'error');
     }
   };
 
   const clearLogs = async () => {
-    await AsyncStorage.removeItem(KEY_DEV_LOGS);
-    setLogs([]);
+    try {
+      await AsyncStorage.removeItem(KEY_DEV_LOGS);
+      setLogs([]);
+    } catch (err: any) {
+      console.error(err);
+    }
+  };
+
+  const getLogs = async () => {
+    try {
+      const logsStr = await AsyncStorage.getItem(KEY_DEV_LOGS);
+      if (logsStr) {
+        const logData = await JSON.parse(logsStr);
+        setLogs(logData);
+      }
+    } catch (err: any) {
+      console.error(err);
+    }
   };
 
   useEffect(() => {
-    (async () => {
-      const logsStr = await AsyncStorage.getItem(KEY_DEV_LOGS);
-      if (logsStr) setLogs(JSON.parse(logsStr));
-    })();
+    getLogs();
   }, []);
 
   return (

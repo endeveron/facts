@@ -45,6 +45,30 @@ export const getNotificationSubscription = async (
   }
 };
 
+export const deleteNotificationSubscription = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const userId = req.query.userId as string;
+
+  try {
+    const user = await UserModel.findById(userId);
+    if (!user) {
+      return next(
+        new HttpError('Unable to find a user with the specified ID.', 404)
+      );
+    }
+
+    user.notificationSubscr = null;
+    await user.save();
+    res.status(200).json({ data: { success: true } });
+  } catch (err) {
+    logger.r('deleteNotificationSubscription', err);
+    return next(new HttpError('Unable to delete subscription', 500));
+  }
+};
+
 export const createNotificationSubscription = async (
   req: Request,
   res: Response,

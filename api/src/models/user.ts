@@ -47,6 +47,9 @@ const userSchema = new Schema<TUser>(
         of: Number,
         required: [true, 'Fact category offset map is required'],
       },
+      updatedAt: {
+        type: Number,
+      },
     },
     notificationSubscr: {
       type: {

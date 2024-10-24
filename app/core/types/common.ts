@@ -25,15 +25,11 @@ export type TNotificationConfig = {
   data?: object;
 };
 
-export type TAppStateContext = {
-  appState: string;
-};
-
 export type TLogType = 'error' | 'info' | 'success' | 'warning';
 
 export type TLogItem = {
+  timestamp: number;
   date: string;
   message: string;
-  timestamp: number;
   type: TLogType;
 };

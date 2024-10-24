@@ -1,4 +1,4 @@
-import { SQLiteDatabase, SQLiteStatement } from 'expo-sqlite';
+import { SQLiteStatement } from 'expo-sqlite';
 
 import { KEY_LOCAL_DB_FACTS_INIT } from '@/core/constants';
 import {
@@ -9,8 +9,8 @@ import {
 import {
   addFactsToFactStorageTable,
   updateFactGroupTable,
-} from '@/core/helpers/db/index';
-import { logMessage, sleep } from '@/core/helpers/misc';
+} from '@/core/helpers/db/main';
+import { logMessage, wait } from '@/core/helpers/misc';
 import {
   getLocalDbFactsInitFromAsyncStorage,
   saveLocalDbFactsInitInAsyncStorage,
@@ -21,30 +21,15 @@ import { TStatus } from '@/core/types/common';
 import { TFactInitData } from '@/core/types/db';
 import { TFactItem, TFavorites } from '@/core/types/fact';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
-export const resetAllTAbles = async (
-  { userId, token }: TAuthData,
-  db: SQLiteDatabase
-) => {
-  try {
-    await initFactDataInLocalDb({
-      authData: { userId, token },
-      db,
-      isReset: true,
-    });
-  } catch (err: any) {
-    console.error(err);
-  }
-};
+import { getLocalDb } from '@/core/helpers/db';
 
 /** create tables */
 
-export const createFactStorageTable = async (
-  db: SQLiteDatabase
-): Promise<boolean> => {
+export const createFactStorageTable = async (): // // db: SQLiteDatabase
+Promise<boolean> => {
   try {
+    const db = await getLocalDb();
     await db.execAsync(`
-      PRAGMA journal_mode = 'wal';
       CREATE TABLE IF NOT EXISTS fact_storage (
         id VARCHAR(24) PRIMARY KEY, 
         category VARCHAR(16) NOT NULL, 
@@ -53,16 +38,16 @@ export const createFactStorageTable = async (
     `);
     return true;
   } catch (error: any) {
-    logMessage(`[ DB ] could not create fact_storage table`, 'error');
-    console.error(error);
+    await logMessage(`[ DB ] could not create fact_storage table`, 'error');
+    console.error(`createFactStorageTable: ${error}`);
     return false;
   }
 };
 
-export const createFactGroupTable = async (
-  db: SQLiteDatabase
-): Promise<boolean> => {
+export const createFactGroupTable = async (): // // db: SQLiteDatabase
+Promise<boolean> => {
   try {
+    const db = await getLocalDb();
     await db.execAsync(`
       CREATE TABLE IF NOT EXISTS fact_group (
         id VARCHAR(24) PRIMARY KEY, 
@@ -73,16 +58,16 @@ export const createFactGroupTable = async (
     `);
     return true;
   } catch (error: any) {
-    logMessage(`[ DB ] could not create fact_group table`, 'error');
-    console.error(error);
+    await logMessage(`[ DB ] could not create fact_group table`, 'error');
+    console.error(`createFactGroupTable: ${error}`);
     return false;
   }
 };
 
-export const createCategoryGroupTable = async (
-  db: SQLiteDatabase
-): Promise<boolean> => {
+export const createCategoryGroupTable = async (): // // db: SQLiteDatabase
+Promise<boolean> => {
   try {
+    const db = await getLocalDb();
     await db.execAsync(`
       CREATE TABLE IF NOT EXISTS category_group (
         id VARCHAR(24) PRIMARY KEY, 
@@ -93,16 +78,16 @@ export const createCategoryGroupTable = async (
     `);
     return true;
   } catch (error: any) {
-    logMessage(`[ DB ] could not create category_group table`, 'error');
-    console.error(error);
+    await logMessage(`[ DB ] could not create category_group table`, 'error');
+    console.error(`createCategoryGroupTable: ${error}`);
     return false;
   }
 };
 
-export const createFavoritesTable = async (
-  db: SQLiteDatabase
-): Promise<boolean> => {
+export const createFavoritesTable = async (): // // db: SQLiteDatabase
+Promise<boolean> => {
   try {
+    const db = await getLocalDb();
     await db.execAsync(`
       CREATE TABLE IF NOT EXISTS favorites (
         id VARCHAR(24) PRIMARY KEY
@@ -110,16 +95,16 @@ export const createFavoritesTable = async (
     `);
     return true;
   } catch (error: any) {
-    logMessage(`[ DB ] could not create favorites table`, 'error');
-    console.error(error);
+    await logMessage(`[ DB ] could not create favorites table`, 'error');
+    console.error(`createFavoritesTable: ${error}`);
     return false;
   }
 };
 
-export const createFactCursorTable = async (
-  db: SQLiteDatabase
-): Promise<boolean> => {
+export const createFactCursorTable = async (): // db: SQLiteDatabase
+Promise<boolean> => {
   try {
+    const db = await getLocalDb();
     await db.execAsync(`
       CREATE TABLE IF NOT EXISTS fact_cursor (
         id SMALLINT PRIMARY KEY, 
@@ -134,16 +119,16 @@ export const createFactCursorTable = async (
     `);
     return true;
   } catch (error: any) {
-    logMessage(`[ DB ] could not create fact_cursor table`, 'error');
-    console.error(error);
+    await logMessage(`[ DB ] could not create fact_cursor table`, 'error');
+    console.error(`createFactCursorTable: ${error}`);
     return false;
   }
 };
 
-export const createCategoryCursorTable = async (
-  db: SQLiteDatabase
-): Promise<boolean> => {
+export const createCategoryCursorTable = async (): // db: SQLiteDatabase
+Promise<boolean> => {
   try {
+    const db = await getLocalDb();
     await db.execAsync(`
       CREATE TABLE IF NOT EXISTS category_cursor (
         category VARCHAR(16) PRIMARY KEY,
@@ -158,16 +143,16 @@ export const createCategoryCursorTable = async (
     `);
     return true;
   } catch (error: any) {
-    logMessage(`[ DB ] could not create category_cursor table`, 'error');
-    console.error(error);
+    await logMessage(`[ DB ] could not create category_cursor table`, 'error');
+    console.error(`createCategoryCursorTable: ${error}`);
     return false;
   }
 };
 
-export const createCategoryRateTable = async (
-  db: SQLiteDatabase
-): Promise<boolean> => {
+export const createCategoryRateTable = async (): // db: SQLiteDatabase
+Promise<boolean> => {
   try {
+    const db = await getLocalDb();
     await db.execAsync(`
       CREATE TABLE IF NOT EXISTS fact_category_rate (
         id VARCHAR(24) PRIMARY KEY, 
@@ -177,16 +162,19 @@ export const createCategoryRateTable = async (
     `);
     return true;
   } catch (error: any) {
-    logMessage(`[ DB ] could not create fact_category_rate table`, 'error');
-    console.error(error);
+    await logMessage(
+      `[ DB ] could not create fact_category_rate table`,
+      'error'
+    );
+    console.error(`createCategoryRateTable: ${error}`);
     return false;
   }
 };
 
-export const createFactOffsetTable = async (
-  db: SQLiteDatabase
-): Promise<boolean> => {
+export const createFactOffsetTable = async (): // db: SQLiteDatabase
+Promise<boolean> => {
   try {
+    const db = await getLocalDb();
     await db.execAsync(`
       CREATE TABLE IF NOT EXISTS fact_offset (
         category VARCHAR(16) PRIMARY KEY, 
@@ -195,8 +183,8 @@ export const createFactOffsetTable = async (
     `);
     return true;
   } catch (error: any) {
-    logMessage(`[ DB ] could not create fact_offset table`, 'error');
-    console.error(error);
+    await logMessage(`[ DB ] could not create fact_offset table`, 'error');
+    console.error(`createFactOffsetTable: ${error}`);
     return false;
   }
 };
@@ -204,11 +192,12 @@ export const createFactOffsetTable = async (
 /** init table data */
 
 export const initFavoritesTable = async (
-  favorites: TFavorites,
-  db: SQLiteDatabase
+  favorites: TFavorites
+  // db: SQLiteDatabase
 ): Promise<boolean> => {
   let statement: SQLiteStatement | null = null;
   try {
+    const db = await getLocalDb();
     statement = await db.prepareAsync(
       'INSERT INTO favorites (id) VALUES ($id)'
     );
@@ -219,19 +208,19 @@ export const initFavoritesTable = async (
     }
     return true;
   } catch (error: any) {
-    logMessage(`[ DB ] could not add data to favorites table`, 'error');
-    console.error(error);
+    await logMessage(`[ DB ] could not add data to favorites table`, 'error');
+    console.error(`initFavoritesTable: ${error}`);
     return false;
   } finally {
     if (statement) await statement.finalizeAsync();
   }
 };
 
-export const initCategoryRateTable = async (
-  db: SQLiteDatabase
-): Promise<boolean> => {
+export const initCategoryRateTable = async (): // db: SQLiteDatabase
+Promise<boolean> => {
   let statement: SQLiteStatement | null = null;
   try {
+    const db = await getLocalDb();
     statement = await db.prepareAsync(`
       INSERT INTO fact_category_rate (id, category, rate) 
       VALUES ($id, $category, $rate)
@@ -246,8 +235,8 @@ export const initCategoryRateTable = async (
     }
     return true;
   } catch (error: any) {
-    logMessage(`[ DB ] could not init fact_category_rate table`, 'error');
-    console.error(error);
+    await logMessage(`[ DB ] could not init fact_category_rate table`, 'error');
+    console.error(`initCategoryRateTable: ${error}`);
     return false;
   } finally {
     if (statement) await statement.finalizeAsync();
@@ -255,13 +244,13 @@ export const initCategoryRateTable = async (
 };
 
 export const initFactOffsetTable = async (
-  factGroup: TFactItem[],
-  db: SQLiteDatabase
+  factGroup: TFactItem[]
+  // db: SQLiteDatabase
 ): Promise<boolean> => {
   let statement: SQLiteStatement | null = null;
 
   if (!factGroup?.length) {
-    logMessage(
+    await logMessage(
       `[ DB ] could not init fact_offset table: invalid factGroup`,
       'error'
     );
@@ -271,6 +260,7 @@ export const initFactOffsetTable = async (
   // get the category of the first item of fact group
   const firstItemCategory = factGroup[0].category;
   try {
+    const db = await getLocalDb();
     // populate fact_offset table with 0
     statement = await db.prepareAsync(`
       INSERT INTO fact_offset (category, offset)
@@ -287,8 +277,8 @@ export const initFactOffsetTable = async (
     }
     return true;
   } catch (error: any) {
-    logMessage(`[ DB ] could not init fact_offset table`, 'error');
-    console.error(error);
+    await logMessage(`[ DB ] could not init fact_offset table`, 'error');
+    console.error(`initFactOffsetTable: ${error}`);
     return false;
   } finally {
     if (statement) await statement.finalizeAsync();
@@ -298,12 +288,12 @@ export const initFactOffsetTable = async (
 export const initFactCursorTable = async (
   factGroup: TFactItem[],
   factStorageLength: number,
-  db: SQLiteDatabase,
+  // db: SQLiteDatabase,
   done?: boolean
 ): Promise<boolean> => {
   const factGroupLength = factGroup.length;
   if (!factGroupLength || !factStorageLength) {
-    logMessage(
+    await logMessage(
       `[ DB ] could not init fact_cursor table: invalid arguments`,
       'error'
     );
@@ -339,50 +329,63 @@ export const initFactCursorTable = async (
     );
   `;
   try {
+    const db = await getLocalDb();
     await db.execAsync(query);
     return true;
   } catch (error: any) {
-    logMessage(`[ DB ] could not init fact_cursor table`, 'error');
-    console.error(error);
+    await logMessage(`[ DB ] could not init fact_cursor table`, 'error');
+    console.error(`initFactCursorTable: ${error}`);
     return false;
   }
 };
 
-export const clearFactTables = async (db: SQLiteDatabase): Promise<boolean> => {
+export const clearFactTables = async (): // db: SQLiteDatabase
+Promise<boolean> => {
   try {
+    const db = await getLocalDb();
     // remove tables if exists
     for (let tableName of localDbTables) {
       await db.execAsync(`DELETE FROM ${tableName}`);
     }
-    logMessage(`[ DB ] all local db tables are reset`, 'warning');
+    await logMessage(`[ DB ] all local db tables are reset`, 'warning');
     await AsyncStorage.setItem(KEY_LOCAL_DB_FACTS_INIT, 'false');
-    logMessage(`[ AS ] facts init value is reset in storage`, 'warning');
+    await logMessage(`[ ST ] facts init value is reset in storage`, 'warning');
     return true;
   } catch (error: any) {
-    console.error(error);
-    logMessage(`[ DB ] could not clear tables`, 'error');
+    await logMessage(`[ DB ] could not clear tables`, 'error');
+    console.error(`clearFactTables: ${error}`);
     return false;
   }
 };
 
-export const initFactTables = async (
-  { facts, favorites }: TFactInitData,
-  db: SQLiteDatabase
-): Promise<boolean> => {
+export const initFactTables = async ({
+  facts,
+  favorites,
+}: TFactInitData): // db: SQLiteDatabase
+Promise<boolean> => {
   try {
+    const db = await getLocalDb();
     // remove tables if exists
     for (let tableName of localDbTables) {
       await db.execAsync(`DROP TABLE IF EXISTS ${tableName}`);
     }
     // create tables
-    const storeSuccess = await createFactStorageTable(db);
-    const groupSuccess = await createFactGroupTable(db);
-    const catGroupSuccess = await createCategoryGroupTable(db);
-    const favSuccess = await createFavoritesTable(db);
-    const cursorSuccess = await createFactCursorTable(db);
-    const catCursorSuccess = await createCategoryCursorTable(db);
-    const rateSuccess = await createCategoryRateTable(db);
-    const offsetSuccess = await createFactOffsetTable(db);
+    // const storeSuccess = await createFactStorageTable(db);
+    // const groupSuccess = await createFactGroupTable(db);
+    // const catGroupSuccess = await createCategoryGroupTable(db);
+    // const favSuccess = await createFavoritesTable(db);
+    // const cursorSuccess = await createFactCursorTable(db);
+    // const catCursorSuccess = await createCategoryCursorTable(db);
+    // const rateSuccess = await createCategoryRateTable(db);
+    // const offsetSuccess = await createFactOffsetTable(db);
+    const storeSuccess = await createFactStorageTable();
+    const groupSuccess = await createFactGroupTable();
+    const catGroupSuccess = await createCategoryGroupTable();
+    const favSuccess = await createFavoritesTable();
+    const cursorSuccess = await createFactCursorTable();
+    const catCursorSuccess = await createCategoryCursorTable();
+    const rateSuccess = await createCategoryRateTable();
+    const offsetSuccess = await createFactOffsetTable();
     if (
       !storeSuccess ||
       !groupSuccess ||
@@ -399,7 +402,8 @@ export const initFactTables = async (
     // populate tables
 
     // fact_storage table
-    const storageSuccess = await addFactsToFactStorageTable(facts, db);
+    // const storageSuccess = await addFactsToFactStorageTable(facts, db);
+    const storageSuccess = await addFactsToFactStorageTable(facts);
     if (!storageSuccess) return false;
     // const factsInStorage = await db.getAllAsync<TFactStorageTableItem>(
     //   'SELECT * FROM fact_storage'
@@ -409,14 +413,16 @@ export const initFactTables = async (
     // fact_group table
     // add the first 8 facts to the fact group
     const factGroup = facts.slice(0, FACT_GROUP_LIMIT);
-    const setFactGroupSuccess = await updateFactGroupTable(factGroup, db);
+    // const setFactGroupSuccess = await updateFactGroupTable(factGroup, db);
+    const setFactGroupSuccess = await updateFactGroupTable(factGroup);
     if (!setFactGroupSuccess) return false;
     // const factsInGroup: TFactGroupTableItem[] =
     //   await db.getAllAsync<TFactGroupTableItem>('SELECT * FROM fact_group');
     // console.log('fact_group:', factsInGroup);
 
     // favorites table
-    const initFavSuccess = await initFavoritesTable(favorites, db);
+    // const initFavSuccess = await initFavoritesTable(favorites, db);
+    const initFavSuccess = await initFavoritesTable(favorites);
     if (!initFavSuccess) return false;
     // const factFavoritesData = await db.getAllAsync<TFavoritesTableItem>(
     //   'SELECT * FROM favorites'
@@ -426,8 +432,8 @@ export const initFactTables = async (
     // fact_cursor table
     const initCursorSuccess = await initFactCursorTable(
       factGroup,
-      facts.length,
-      db
+      facts.length
+      // db
     );
     if (!initCursorSuccess) return false;
     // const updCursorError = await updateCursorTable(initialCursorData, db);
@@ -438,7 +444,8 @@ export const initFactTables = async (
     // console.log('fact_cursor:', cursorData);
 
     // fact_category_rate table
-    const initCatRateMapSuccess = await initCategoryRateTable(db);
+    // const initCatRateMapSuccess = await initCategoryRateTable(db);
+    const initCatRateMapSuccess = await initCategoryRateTable();
     if (!initCatRateMapSuccess) return false;
     // const catRateMapData = await db.getAllAsync<TRateMapTableItem>(
     //   'SELECT * FROM fact_category_rate'
@@ -446,7 +453,8 @@ export const initFactTables = async (
     // console.log('fact_category_rate:', catRateMapData);
 
     // fact_offset table
-    const initOffserSuccess = await initFactOffsetTable(factGroup, db);
+    // const initOffserSuccess = await initFactOffsetTable(factGroup, db);
+    const initOffserSuccess = await initFactOffsetTable(factGroup);
     if (!initOffserSuccess) return false;
     // const offsetData = await db.getAllAsync<TOffsetTableItem>(
     //   'SELECT * FROM fact_offset'
@@ -456,27 +464,27 @@ export const initFactTables = async (
     // prevent re-initialization, save KEY_LOCAL_DB_FACTS_INIT in async storage
     const storeInitSuccess = await saveLocalDbFactsInitInAsyncStorage();
     if (!storeInitSuccess) return false;
-    logMessage(`[ DB ] local db initialized`, 'success');
+    await logMessage(`[ DB ] local db initialized`, 'success');
 
     return true;
   } catch (error: any) {
-    console.error(error);
-    logMessage(
+    await logMessage(
       `[ DB ] ${error.message || 'unable to initialize fact tables'}`,
       'error'
     );
+    console.error(`initFactTables: ${error}`);
     return false;
   }
 };
 
 export const initFactDataInLocalDb = async ({
   authData: { userId, token },
-  db,
+  // db,
   isReset,
   setFetchingCb,
 }: {
   authData: TAuthData;
-  db: SQLiteDatabase;
+  // db: SQLiteDatabase;
   isReset?: boolean;
   setFetchingCb?: (isFetching: boolean) => void;
 }): Promise<TStatus> => {
@@ -498,34 +506,35 @@ export const initFactDataInLocalDb = async ({
       if (initialized === true) return { success: true };
     }
 
-    logMessage('[ FC ] initialize fact data');
+    await logMessage('[ FC ] initialize fact data');
 
     // retrieve data from a remote db
     setFetchingCb && setFetchingCb(true);
-    logMessage('[ DB ] recieving data from the remote db');
-    await sleep(5000);
+    await logMessage('[ DB ] recieving facts data from remote db');
+    await wait(3000);
     const fetchResult = await getDataToInitLocalDb({
       userId,
       token,
     });
     if (fetchResult?.error) {
-      logMessage(`[ DB ] ${fetchResult.error.message}`, 'error');
+      await logMessage(`[ DB ] ${fetchResult.error.message}`, 'error');
       return { success: false };
     }
     if (!fetchResult || !fetchResult?.data) {
-      logMessage(`[ DB ] could not fetch facts data`, 'error');
+      await logMessage(`[ DB ] could not recieve facts data`, 'error');
       return { success: false };
     }
-    logMessage(`[ DB ] data received, initialize local db`);
+    await logMessage(`[ DB ] facts data received, initialize local db`);
     setFetchingCb && setFetchingCb(false);
 
     // fill in the fact tables with the data obtained
-    const initSuccess = await initFactTables(fetchResult.data, db);
+    // const initSuccess = await initFactTables(fetchResult.data, db);
+    const initSuccess = await initFactTables(fetchResult.data);
     if (!initSuccess) return { success: false };
 
     return { success: true };
   } catch (error: any) {
-    console.error(error);
+    console.error(`initFactDataInLocalDb: ${error}`);
     return { success: false };
   }
 };

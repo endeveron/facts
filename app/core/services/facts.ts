@@ -3,7 +3,12 @@ import { commonHeaders } from '@/core/constants/api';
 import { TAuthData } from '@/core/types/auth';
 import { TResponse } from '@/core/types/common';
 import { TFactInitData } from '@/core/types/db';
-import { TFactData, TFactItem, TFavorites } from '@/core/types/fact';
+import {
+  TFactData,
+  TFactItem,
+  TFactsState,
+  TFavorites,
+} from '@/core/types/fact';
 
 export const getFacts = async ({
   userId,
@@ -133,6 +138,43 @@ export const postFact = async ({
     });
     if (!response.ok) {
       return { data: null, error: { message: 'Unable to add fact.' } };
+    }
+    const result = await response.json();
+    if (result?.data) {
+      return { data: result.data, error: null };
+    }
+  } catch (err: any) {
+    console.error(err);
+    return { data: null, error: { message: err.message } };
+  }
+};
+
+export const postFactState = async ({
+  factState,
+  token,
+  userId,
+}: TAuthData & {
+  factState: TFactsState;
+}): Promise<
+  | TResponse<{
+      updatedAt: number;
+    }>
+  | undefined
+> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/facts/state`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        ...commonHeaders,
+      },
+      body: JSON.stringify({
+        factState,
+        userId,
+      }),
+    });
+    if (!response.ok) {
+      return { data: null, error: { message: 'Unable to save fact state.' } };
     }
     const result = await response.json();
     if (result?.data) {

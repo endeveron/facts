@@ -34,7 +34,9 @@ const Navbar = ({ navItems, onPress }: Tnavbar) => {
   if (!navItems?.length) return null;
 
   const handlePress = async (name: NavItemName, path: string) => {
-    if (onPress) await onPress(name);
+    if (onPress) {
+      await onPress(name);
+    }
     router.push(path as Href<string>);
   };
 

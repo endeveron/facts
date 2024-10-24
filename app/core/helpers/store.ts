@@ -4,13 +4,10 @@ import * as SecureStore from 'expo-secure-store';
 import {
   KEY_AUTH_TOKEN,
   KEY_AUTH_USER,
-  KEY_FACTS_FAVORITES,
-  KEY_FACTS_STATE,
-  KEY_FACTS_STATE_CAT,
+  KEY_FACTS_STATE_TIMESTAMP,
   KEY_LOCAL_DB_FACTS_INIT,
   KEY_NOTIF_SUBSCR,
   KEY_NOTIF_SUBSCR_FETCHED,
-  KEY_NOTIF_SUBSCR_INIT,
 } from '@/core/constants';
 import { logMessage } from '@/core/helpers/misc';
 import { TUserAuthData } from '@/core/types/auth';
@@ -121,10 +118,6 @@ export const saveNotifSubInSecureStore = async (
   try {
     const subscrDataStr = JSON.stringify(subscription);
     await SecureStore.setItemAsync(KEY_NOTIF_SUBSCR, subscrDataStr);
-    // console.info(
-    //   `${gray}%s${reset}`,
-    //   'Notification subscription data saved in secure store'
-    // );
     return {
       data: { success: true },
       error: null,
@@ -193,11 +186,11 @@ export const deleteNotifSubFromSecureStore = async (): Promise<
  * @returns a Promise that resolves to an object of type
  * `TResponse` TStatus indicating success or failure.
  */
-export const saveNotifSubFetchedInAsyncStorage = async (
-  isFetched: boolean
-): Promise<TResponse<TStatus>> => {
+export const saveNotifSubFetchedInAsyncStorage = async (): Promise<
+  TResponse<TStatus>
+> => {
   try {
-    await AsyncStorage.setItem(KEY_NOTIF_SUBSCR_FETCHED, `${isFetched}`);
+    await AsyncStorage.setItem(KEY_NOTIF_SUBSCR_FETCHED, '1');
     return {
       data: { success: true },
       error: null,
@@ -208,7 +201,33 @@ export const saveNotifSubFetchedInAsyncStorage = async (
       data: null,
       error: {
         message:
-          err.message ?? 'Could not save subscription fetched status in store',
+          err.message ?? 'could not remove subscription status from storage',
+      },
+    };
+  }
+};
+
+/**
+ * Removes notification subscription fetched from AsyncStorage.
+ * @returns a Promise that resolves to an object of type
+ * `TResponse` TStatus indicating success or failure.
+ */
+export const removeNotifSubFetchedFromAsyncStorage = async (): Promise<
+  TResponse<TStatus>
+> => {
+  try {
+    await AsyncStorage.removeItem(KEY_NOTIF_SUBSCR_FETCHED);
+    return {
+      data: { success: true },
+      error: null,
+    };
+  } catch (err: any) {
+    console.error(err);
+    return {
+      data: null,
+      error: {
+        message:
+          err.message ?? 'could not remove subscription status from storage',
       },
     };
   }
@@ -228,7 +247,55 @@ export const getNotifSubFetchedFromAsyncStorage = async (): Promise<
   } catch (err: any) {
     console.error(err);
     logMessage(
-      '[ NS ] unable to get the notification subscription fetched status from storage',
+      '[ NS ] unable to get the notification subscription status from storage',
+      'error'
+    );
+    return null;
+  }
+};
+
+/**
+ * Saves notification subscription fetched status in AsyncStorage.
+ * @returns a Promise that resolves to an object of type
+ * `TResponse` TStatus indicating success or failure.
+ */
+export const saveFactsUpdTimestampInAsyncStorage = async (
+  updatedAt: number
+): Promise<TResponse<TStatus>> => {
+  try {
+    await AsyncStorage.setItem(KEY_FACTS_STATE_TIMESTAMP, `${updatedAt}`);
+    return {
+      data: { success: true },
+      error: null,
+    };
+  } catch (err: any) {
+    console.error(err);
+    return {
+      data: null,
+      error: {
+        message:
+          err.message ?? 'Could not save the facts update timestamp in storage',
+      },
+    };
+  }
+};
+
+/**
+ * Get notification subscription fetched status in AsyncStorage.
+ * @returns a Promise that resolves to an object of type
+ * `TResponse` isFetched: boolean
+ */
+export const getFactsUpdTimestampFromAsyncStorage = async (): Promise<
+  number | null
+> => {
+  try {
+    const result = await AsyncStorage.getItem(KEY_FACTS_STATE_TIMESTAMP);
+    if (!result) return null;
+    return +result;
+  } catch (err: any) {
+    console.error(err);
+    logMessage(
+      '[ NS ] unable to get the facts update timestamp from storage',
       'error'
     );
     return null;
@@ -243,8 +310,8 @@ export const saveLocalDbFactsInitInAsyncStorage =
       await AsyncStorage.setItem(KEY_LOCAL_DB_FACTS_INIT, 'true');
       return true;
     } catch (error: any) {
-      logMessage('[ AS ] unable to store facts init value', 'error');
-      console.error(error);
+      logMessage('[ ST ] unable to store facts init value', 'error');
+      console.error(`saveLocalDbFactsInitInAsyncStorage: ${error}`);
       return false;
     }
   };
@@ -257,7 +324,7 @@ export const getLocalDbFactsInitFromAsyncStorage = async (): Promise<
     return isInit === 'true';
   } catch (err: any) {
     console.error(err);
-    logMessage('[ AS ] unable to get facts init value', 'error');
+    logMessage('[ ST ] unable to get facts init value', 'error');
     return null;
   }
 };
@@ -358,83 +425,3 @@ export const getLocalDbFactsInitFromAsyncStorage = async (): Promise<
 
 // export const removeNotifScheduleFromAsyncStorage =
 //   async (): Promise<void> => {};
-
-/**
- * Deletes facts data from AsyncStorage.
- * @returns a Promise that resolves to an object of type
- * `TResponse` TStatus indicating success or failure.
- */
-export const deleteFactsDataFromAsyncStorage = async (): Promise<
-  TResponse<TStatus>
-> => {
-  const errMessage = 'Could not clear facts data';
-  try {
-    const clear = async () => {
-      // await AsyncStorage.removeItem(KEY_FACTS_NEXT_ITEM);
-      await AsyncStorage.removeItem(KEY_FACTS_FAVORITES);
-      await AsyncStorage.removeItem(KEY_FACTS_STATE);
-      await AsyncStorage.removeItem(KEY_FACTS_STATE_CAT);
-    };
-    const check = async (): Promise<boolean> => {
-      const itemStr = await AsyncStorage.getItem(KEY_FACTS_FAVORITES);
-      return itemStr === null;
-    };
-
-    await clear();
-    const clean = await check();
-    if (clean) {
-      // console.info(`${red}%s${reset}`, 'Facts data deleted from AsyncStorage');
-      return {
-        data: { success: true },
-        error: null,
-      };
-    } else {
-      console.error(errMessage);
-      return {
-        data: null,
-        error: { message: errMessage },
-      };
-    }
-  } catch (err: any) {
-    console.error(err);
-    return {
-      data: null,
-      error: { message: err.message ?? errMessage },
-    };
-  }
-};
-
-// /**
-//  * Retrieves the next fact item from AsyncStorage.
-//  * @returns a Promise that resolves to an object of type
-//  * `TResponse` { nextFactItem: TFactItem }
-//  */
-// export const getNextFactFromAsyncStorage = async (): Promise<
-//   TResponse<TFactItem>
-// > => {
-//   let data = null;
-//   try {
-//     const nextFactItemStr = await AsyncStorage.getItem(KEY_FACTS_NEXT_ITEM);
-
-//     if (nextFactItemStr) {
-//       const nextFactItem: TFactItem = JSON.parse(nextFactItemStr);
-//       data = nextFactItem;
-//       console.info(
-//         `${green}%s${gray}%s${reset}`,
-//         `The next fact item fetched from AsyncStorage `,
-//         `${nextFactItem.title.slice(0, 30)}...`
-//       );
-//     }
-
-//     return {
-//       data,
-//       error: null,
-//     };
-//   } catch (err: any) {
-//     console.error(err);
-//     return {
-//       data: null,
-//       error: { message: err.message ?? 'Unable to restore the next fact item' },
-//     };
-//   }
-// };

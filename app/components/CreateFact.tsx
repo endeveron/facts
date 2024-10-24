@@ -48,7 +48,7 @@ const CreateFact = () => {
         reset(); // form
       }
     } catch (error: unknown) {
-      console.error(error);
+      console.error(`CreateFact: ${error}`);
       showToast('Unable to save fact in db');
     } finally {
       setIsLoading(false);

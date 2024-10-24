@@ -42,12 +42,12 @@ const SignUp = () => {
         password: data.password,
       });
       if (registered) {
-        logMessage('[ AU ] signed up');
+        await logMessage('[ AU ] signed up');
         router.replace(DEFAULT_REDIRECT_URL);
       }
     } catch (error: any) {
       showToast('Unable to register');
-      logMessage(
+      await logMessage(
         `[ AU ] sign up error: ${error.message || JSON.stringify(error)}`,
         'error'
       );

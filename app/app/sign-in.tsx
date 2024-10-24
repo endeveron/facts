@@ -40,13 +40,13 @@ const SignIn = () => {
         password: data.password,
       });
       if (loggedIn) {
-        logMessage('[ AU ] signed in');
+        await logMessage('[ AU ] signed in');
         router.replace(DEFAULT_REDIRECT_URL);
       }
     } catch (error: any) {
-      console.error(error);
+      console.error(`SignIn: ${error}`);
       showToast('Unable to login');
-      logMessage(
+      await logMessage(
         `[ AU ] sign in error: ${error.message || JSON.stringify(error)}`,
         'error'
       );

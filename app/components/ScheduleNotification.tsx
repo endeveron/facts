@@ -3,7 +3,7 @@ import { View } from 'react-native';
 
 import { ButtonToggle } from '@/components/ButtonToggle';
 import { Text } from '@/components/Text';
-import { useNotifications } from '@/core/context/NotificationsProvider';
+import { useNotifications } from '@/core/context/NotificProvider';
 import { useSession } from '@/core/context/SessionProvider';
 
 const ScheduleNotification = () => {

@@ -4,16 +4,15 @@ import * as Notifications from 'expo-notifications';
 
 import {
   API_BASE_URL,
-  HOUR,
-  MINUTE,
   NOTIFICATION_BACKGROUND_TASK,
   NOTIFICATION_REMINDER_BODY,
   NOTIFICATION_REMINDER_TITLE,
+  NOTIFICATION_TIME_SHIFT,
 } from '@/core/constants';
 import { commonHeaders } from '@/core/constants/api';
 import { consoleClors } from '@/core/constants/colors';
 import { factActions } from '@/core/constants/facts';
-import { logMessage } from '@/core/helpers/misc';
+import { getTimeFromNow, logMessage } from '@/core/helpers/misc';
 import {
   getNotifSubFromSecureStore,
   saveNotifSubFetchedInAsyncStorage,
@@ -31,29 +30,38 @@ import {
 } from '@/core/types/notification';
 import { TaskManagerTaskExecutor } from 'expo-task-manager';
 
-const { cyan, green, gray, yellow, reset } = consoleClors;
-
-export const logNotificationData = (
+export const logNotificationData = async (
   notification: Notifications.Notification
 ) => {
-  const content = notification.request.content;
-  if (content.title && content.body) {
-    const title = notification.request.content.title;
-    const body = notification.request.content.body;
-    logMessage(`[ NL ] new notification [ ${title} ] ${body}`, 'success');
-  } else {
-    const dataStr = JSON.stringify(notification.request.content.data);
-    logMessage(`[ NL ] new data-only notification: ${dataStr}`, 'success');
+  try {
+    const content = notification.request.content;
+    if (content.title && content.body) {
+      const title = notification.request.content.title;
+      const body = notification.request.content.body;
+      await logMessage(
+        `[ NL ] new notification [ ${title} ] ${body}`,
+        'warning'
+      );
+    } else {
+      const dataStr = JSON.stringify(notification.request.content.data);
+      await logMessage(
+        `[ NL ] new data-only notification: ${dataStr}`,
+        'warning'
+      );
+    }
+  } catch (error: any) {
+    console.error(`logNotificationData ${error}`);
   }
 };
 
 export const getScheduleTime = () => {
-  const hours = HOUR.toString().padStart(2, '0');
-  const minutes = MINUTE.toString().padStart(2, '0');
+  const { hour, minute } = getTimeFromNow(NOTIFICATION_TIME_SHIFT);
+  const hours = hour.toString().padStart(2, '0');
+  const minutes = minute.toString().padStart(2, '0');
   return { hours, minutes };
 };
 
-export const configureSchedule = (): string => {
+export const createScheduleString = (): string => {
   const { hours, minutes } = getScheduleTime();
   return hours + minutes; // format: 0800
 };
@@ -66,72 +74,53 @@ export const configureSchedule = (): string => {
  */
 export const handleForegroundNotification = async (
   notification: Notifications.Notification
-): Promise<Notifications.NotificationBehavior> => {
-  logMessage(
-    `[ NL ] foreground notification data: ${JSON.stringify(
-      notification.request.content.data
-    )}`
-  );
-  return {
-    shouldShowAlert: true,
-    shouldPlaySound: false,
-    shouldSetBadge: false,
-  };
-};
+): Promise<Notifications.NotificationBehavior> => ({
+  shouldShowAlert: true,
+  shouldPlaySound: false,
+  shouldSetBadge: false,
+});
 
-/**
- * Handles the behavior when notifications are received while the app is in the background.
- */
-export const handleNotificationBackgroundTask: TaskManagerTaskExecutor = ({
+/**  Handles the behavior when notifications are received while the app is in the background. */
+export const handleBackgroundNotification: TaskManagerTaskExecutor = async ({
   data,
   error,
   executionInfo,
 }) => {
   if (error) {
-    logMessage(
-      `[ BT ] background task doesn't ran ${error?.message || ''}`,
+    await logMessage(
+      `[ BT ] background notification: ${error?.message || ''}`,
       'error'
     );
   }
   if (data) {
-    logMessage(`[ BT ] running background task`);
-    logMessage(`[ BT ] background task data: ${JSON.stringify(data)}`);
+    await logMessage(
+      `[ BT ] background notification data: ${JSON.stringify(data)}`
+    );
   }
 };
 
 export const handleNotificationClick = async (
   response: Notifications.NotificationResponse
 ) => {
-  console.info(`${cyan}%s${reset}`, '[ HN ] notification handler');
-  // if (response.actionIdentifier === Notifications.DEFAULT_ACTION_IDENTIFIER)
+  await logMessage(`[ NR ] user tapped notification`, 'warning');
 
-  const actionIdentifier = response.actionIdentifier;
-  const content = response.notification.request.content;
-  const trigger = response.notification.request.trigger;
-
-  console.info(
-    `${cyan}%s${yellow}%s${reset}`,
-    '[ NR ] actionId ',
-    actionIdentifier
-  );
-  console.info(`${cyan}%s${gray}%s${reset}`, '[ NR ] content ', content);
-  console.info(`${cyan}%s${gray}%s${reset}`, '[ NR ] trigger ', trigger);
-
-  logMessage(`[ NR ] User tapped notification`, 'success');
-  logMessage(`[ NR ] actionId: ${actionIdentifier}`);
-  logMessage(`[ NR ] content: ${JSON.stringify(content)}`);
-  logMessage(`[ NR ] trigger: ${JSON.stringify(trigger)}`);
+  // const actionIdentifier = response.actionIdentifier;
+  // const content = response.notification.request.content;
+  // const trigger = response.notification.request.trigger;
+  // await logMessage(`[ NR ] actionId: ${actionIdentifier}`);
+  // await logMessage(`[ NR ] content: ${JSON.stringify(content)}`);
+  // await logMessage(`[ NR ] trigger: ${JSON.stringify(trigger)}`);
 
   // Handle different actions based on the identifier
   switch (response.actionIdentifier) {
     case 'first':
-      logMessage(`[ NA ] first button clicked`, 'success');
+      await logMessage(`[ NA ] first button clicked`, 'success');
       break;
     case 'second':
-      logMessage(`[ NA ] second button clicked`, 'success');
+      await logMessage(`[ NA ] second button clicked`, 'success');
       break;
-    default:
-      logMessage(`[ NA ] default action`, 'error');
+    // default:
+    //   await logMessage(`[ NA ] default action`, 'warning');
   }
 };
 
@@ -159,7 +148,7 @@ export const sendPushNotification = async ({
     }
     const result = await response.json();
     if (result?.data?.tickets?.length) {
-      logMessage('Push notification successfully sent', 'success');
+      await logMessage('Push notification successfully sent', 'success');
     }
     return { data: result.data, error: null };
   } catch (err: any) {
@@ -202,84 +191,94 @@ export const saveSubscription = async ({
   token,
   userId,
   subscription,
-  subscrSource,
-}: TAuthData & {
+}: // subscrSource,
+TAuthData & {
   subscription: TNotificationSubscription;
-  subscrSource: string | null;
+  // subscrSource: string | null;
 }): Promise<TResponse<{ subscription: TNotificationSubscription }>> => {
   const errors: string[] = [];
 
-  const saveSubscrInStore = async () => {
-    const resData = await saveNotifSubInSecureStore(subscription);
-    if (resData.error) {
-      errors.push(resData.error.message);
-    } else {
-      logMessage('[ NS ] subscription saved in store');
-    }
-  };
-
-  const createSubscrInDatabase = async () => {
-    const resData = await postSubscription({
-      subscription,
-      token,
-      userId,
-    });
-    if (resData.error) {
-      errors.push(resData.error.message);
-    } else {
-      logMessage('[ NS ] subscription created in db');
-    }
-  };
-
-  const updateSubscrInDatabase = async () => {
-    const resData = await patchSubscription({
-      subscription,
-      token,
-      userId,
-    });
-    if (resData.error) {
-      errors.push(resData.error.message);
-    }
-    logMessage('[ NS ] subscription updated in db');
-  };
-
-  switch (subscrSource) {
-    case null:
-      {
-        await saveSubscrInStore();
-        await createSubscrInDatabase();
+  try {
+    const saveSubscrInStore = async () => {
+      const resData = await saveNotifSubInSecureStore(subscription);
+      if (resData.error) {
+        errors.push(resData.error.message);
+      } else {
+        await logMessage('[ NS ] subscription saved in store');
       }
-      break;
-    case 'store':
-      await updateSubscrInDatabase();
-      break;
-    case 'db':
-      await saveSubscrInStore();
-      break;
-    default: {
+    };
+
+    const saveSubscrInRemoteDb = async () => {
+      const resData = await postSubscription({
+        subscription,
+        token,
+        userId,
+      });
+      if (resData.error) {
+        errors.push(resData.error.message);
+      } else {
+        await logMessage('[ NS ] subscription saved in db');
+      }
+    };
+
+    await saveSubscrInStore();
+    await saveSubscrInRemoteDb();
+
+    if (errors.length) {
+      const message = errors.join('. ');
+      await logMessage(message, 'error');
       return {
         data: null,
-        error: { message: 'Invalid subscription source' },
+        error: { message },
+      };
+    } else {
+      await saveNotifSubFetchedInAsyncStorage();
+      await logMessage('[ NS ] subscription created', 'success');
+      return {
+        data: { subscription },
+        error: null,
       };
     }
-  }
 
-  if (errors.length) {
-    const message = errors.join('. ');
-    logMessage(message, 'error');
+    // const updateSubscrInDatabase = async () => {
+    //   const resData = await patchSubscription({
+    //     subscription,
+    //     token,
+    //     userId,
+    //   });
+    //   if (resData.error) {
+    //     errors.push(resData.error.message);
+    //   }
+    //   await logMessage('[ NS ] subscription updated in db');
+    // };
+
+    // switch (subscrSource) {
+    //   case null:
+    //     {
+    //       await saveSubscrInStore();
+    //       await createSubscrInDatabase();
+    //     }
+    //     break;
+    //   case 'store':
+    //     await updateSubscrInDatabase();
+    //     break;
+    //   case 'db':
+    //     await saveSubscrInStore();
+    //     break;
+    //   default: {
+    //     return {
+    //       data: null,
+    //       error: { message: 'Invalid subscription source' },
+    //     };
+    //   }
+    // }
+  } catch (error: any) {
+    console.error(error);
     return {
       data: null,
-      error: { message },
+      error: { message: 'unable to save subscription' },
     };
-  } else {
-    // save
-    await saveNotifSubFetchedInAsyncStorage(true);
   }
-
-  return {
-    data: { subscription },
-    error: null,
-  };
 };
 
 export const scheduleNotification = async ({
@@ -295,12 +294,18 @@ export const scheduleNotification = async ({
     success: boolean;
   }>
 > => {
-  // create schedule
-  const schedule = configureSchedule();
+  // - create schedule string
+  // - schedule local notification
+  // - get subscription from secure store
+  // - update it and save in secure store
+  // - update subscription in remote db
+
+  // create schedule string
+  const schedule = createScheduleString();
   let subscription: TNotificationSubscription;
 
   try {
-    // schedule push notification (also with buttons)
+    // schedule local notification (also with buttons)
     const notificationId = await Notifications.scheduleNotificationAsync({
       content: {
         title: NOTIFICATION_REMINDER_TITLE,
@@ -313,20 +318,23 @@ export const scheduleNotification = async ({
       },
     });
     if (!notificationId) {
-      logMessage(`[ NS ] unable to scedule notification`, 'error');
+      await logMessage(`[ NS ] unable to scedule notification`, 'error');
       return {
         data: { success: false },
-        error: { message: 'Unable to get notification id' },
+        error: { message: 'unable to get notification id' },
       };
     }
 
     const { hours, minutes } = getScheduleTime();
-    logMessage(`[ NS ] notification scheduled for ${hours}:${minutes}`);
+    await logMessage(`[ NS ] notification scheduled for ${hours}:${minutes}`);
 
     // get subscription from store
     const storeRes = await getNotifSubFromSecureStore();
     if (storeRes.error) {
-      logMessage(`[ NS ] subscription: ${storeRes.error.message}`, 'error');
+      await logMessage(
+        `[ NS ] subscription: ${storeRes.error.message}`,
+        'error'
+      );
       return {
         data: { success: false },
         error: {
@@ -336,24 +344,30 @@ export const scheduleNotification = async ({
     }
 
     if (!storeRes.data) {
-      logMessage(`[ NS ] subscription: unable to get data from store`, 'error');
+      await logMessage(
+        `[ NS ] subscription: unable to get data from store`,
+        'error'
+      );
       return {
         data: { success: false },
         error: {
-          message: 'Unable to get data from store',
+          message: 'unable to get data from store',
         },
       };
     }
 
-    // update
+    // update subscription
     subscription = storeRes.data;
     subscription.isActive = true;
     subscription.schedule = schedule;
 
-    // save subscription in store
+    // save subscription in secure store
     const saveRes = await saveNotifSubInSecureStore(subscription);
     if (saveRes.error) {
-      logMessage(`[ NS ] subscription: ${saveRes.error.message}`, 'error');
+      await logMessage(
+        `[ NS ] subscription: ${saveRes.error.message}`,
+        'error'
+      );
       return {
         data: { success: false },
         error: {
@@ -361,9 +375,9 @@ export const scheduleNotification = async ({
         },
       };
     }
-    logMessage(`[ NS ] subscription updated in store`);
+    await logMessage(`[ NS ] subscription updated in store`);
 
-    // save subscription in db
+    // update subscription in remote db
     const dbRes = await patchSubscription({
       subscription,
       token,
@@ -371,7 +385,7 @@ export const scheduleNotification = async ({
     });
 
     if (dbRes.error) {
-      logMessage(`[ NS ] subscription: ${dbRes.error.message}`, 'error');
+      await logMessage(`[ NS ] subscription: ${dbRes.error.message}`, 'error');
       return {
         data: { success: false },
         error: {
@@ -381,7 +395,10 @@ export const scheduleNotification = async ({
     }
 
     if (!dbRes.data) {
-      logMessage(`[ NS ] subscription: unable to save data in db`, 'error');
+      await logMessage(
+        `[ NS ] subscription: unable to save data in db`,
+        'error'
+      );
       return {
         data: { success: false },
         error: {
@@ -390,14 +407,14 @@ export const scheduleNotification = async ({
       };
     }
 
-    logMessage(`[ NS ] subscription updated in db`);
+    await logMessage(`[ NS ] subscription updated in db`);
 
     return {
       data: { success: true },
       error: null,
     };
   } catch (error: any) {
-    console.error(error);
+    console.error(`scheduleNotification: ${error}`);
     return {
       data: { success: false },
       error: {
@@ -415,10 +432,16 @@ export const unscheduleNotification = async ({
     success: boolean;
   }>
 > => {
+  // - get subscription from secure store
+  // - cancel it, update in store
+  // - cancel all push- and locally scheduled notifications
+  // - update subscription in remote db
+
   try {
+    // get subscription from secure store
     const storeRes = await getNotifSubFromSecureStore();
     if (storeRes.error) {
-      logMessage(`[ NS ] unschedule: ${storeRes.error.message}`, 'error');
+      await logMessage(`[ NS ] unschedule: ${storeRes.error.message}`, 'error');
       return {
         data: { success: false },
         error: {
@@ -428,11 +451,14 @@ export const unscheduleNotification = async ({
     }
 
     if (!storeRes.data) {
-      logMessage(`[ NS ] unschedule: unable to get data from store`, 'error');
+      await logMessage(
+        `[ NS ] unschedule: unable to get data from store`,
+        'error'
+      );
       return {
         data: { success: false },
         error: {
-          message: 'Unable to get data from store',
+          message: 'unable to get data from store',
         },
       };
     }
@@ -442,14 +468,10 @@ export const unscheduleNotification = async ({
     subscription.isActive = false;
     subscription.schedule = null;
 
-    await Notifications.cancelAllScheduledNotificationsAsync();
-    await Notifications.unregisterForNotificationsAsync();
-    logMessage(`[ NS ] subscription canceled`);
-
     // save subscription to store
     const saveRes = await saveNotifSubInSecureStore(subscription);
     if (saveRes.error) {
-      logMessage(
+      await logMessage(
         `[ NS ] cancel subscription: ${saveRes.error.message}`,
         'error'
       );
@@ -460,8 +482,15 @@ export const unscheduleNotification = async ({
         },
       };
     }
-    logMessage(`[ NS ] subscription updated in store`);
+    await logMessage(`[ NS ] subscription updated in store`);
 
+    // cancel all push- and locally scheduled notifications
+    const isResetSussess = await resetNotificationSubscriptions();
+    if (isResetSussess) {
+      await logMessage(`[ NS ] subscription canceled`, 'success');
+    }
+
+    // update subscription in remote db
     const dbRes = await patchSubscription({
       subscription,
       token,
@@ -469,7 +498,10 @@ export const unscheduleNotification = async ({
     });
 
     if (dbRes.error) {
-      logMessage(`[ NS ] cancel subscription: ${dbRes.error.message}`, 'error');
+      await logMessage(
+        `[ NS ] cancel subscription: ${dbRes.error.message}`,
+        'error'
+      );
       return {
         data: { success: false },
         error: {
@@ -479,7 +511,7 @@ export const unscheduleNotification = async ({
     }
 
     if (!dbRes.data) {
-      logMessage(
+      await logMessage(
         `[ NS ] cancel subscription: unable to save data in db`,
         'error'
       );
@@ -490,25 +522,25 @@ export const unscheduleNotification = async ({
         },
       };
     }
-    logMessage(`[ NS ] subscription updated in db`);
+    await logMessage(`[ NS ] subscription updated in db`);
 
     return {
       data: { success: true },
       error: null,
     };
   } catch (error: any) {
-    console.error(error);
+    console.error(`unscheduleNotification: ${error}`);
     return {
       data: { success: false },
       error: {
-        message: error?.message ?? 'Could not cancel subscription',
+        message: error?.message ?? 'could not cancel subscription',
       },
     };
   }
 };
 
-const handleRegistrationError = (errorMessage: string) => {
-  logMessage(
+const handleRegistrationError = async (errorMessage: string) => {
+  await logMessage(
     `Push notification service registration error: ${errorMessage}`,
     'error'
   );
@@ -529,10 +561,10 @@ export const registerPushNotificationService = async ({
   token,
   userId,
   subscription,
-  subscrSource,
-}: TAuthData & {
+}: // subscrSource,
+TAuthData & {
   subscription: TNotificationSubscription | null;
-  subscrSource: string | null;
+  // subscrSource: string | null;
 }): Promise<
   | TResponse<{
       subscription: TNotificationSubscription;
@@ -545,7 +577,7 @@ export const registerPushNotificationService = async ({
   subscription = subscription ?? {
     expoPushToken,
     isActive: true,
-    schedule: configureSchedule(),
+    schedule: createScheduleString(),
   };
 
   try {
@@ -577,15 +609,15 @@ export const registerPushNotificationService = async ({
       ).data;
 
       if (expoPushToken) {
-        logMessage('[ NS ] generated expo push token');
+        await logMessage('[ NS ] generated expo push token');
         subscription.expoPushToken = expoPushToken;
 
         // register background task
-        logMessage('[ NS ] register notification background task');
+        await logMessage('[ NS ] register notification background task');
         await Notifications.registerTaskAsync(NOTIFICATION_BACKGROUND_TASK);
 
         // set up notification chanel
-        logMessage('[ NS ] set up notification chanel');
+        await logMessage('[ NS ] set up notification chanel');
         await Notifications.setNotificationChannelAsync('default', {
           name: 'default',
           importance: Notifications.AndroidImportance.MAX,
@@ -595,23 +627,21 @@ export const registerPushNotificationService = async ({
 
         // specify action buttons, set up notification category 'fact'
         // using the same category as in `registerForPushNotificationsAsync`
-        logMessage('[ NS ] set up notification category');
+        await logMessage('[ NS ] set up notification category');
         await Notifications.setNotificationCategoryAsync('fact', factActions);
-
-        logMessage('[ NS ] service registered');
 
         // save subscription
         const subRes = await saveSubscription({
           token,
           userId,
           subscription,
-          subscrSource,
+          // subscrSource,
         });
 
         if (subRes.error) {
           return handleRegistrationError(subRes.error.message);
         } else {
-          logMessage('[ NS ] notification service is ready', 'success');
+          await logMessage('[ NS ] notification service is ready', 'success');
         }
       }
 
@@ -624,6 +654,61 @@ export const registerPushNotificationService = async ({
     return handleRegistrationError(
       error?.message ?? 'Unable to register service'
     );
+  }
+};
+
+export const resetNotificationSubscriptions = async (): Promise<boolean> => {
+  try {
+    // cancel all push notifications, unsubscribe the user from receiving them.
+    // local notifications can still be scheduled and triggered within the app
+    await Notifications.unregisterForNotificationsAsync();
+    await logMessage(`[ NS ] push notifications canceled`);
+
+    // cancel all locally scheduled notifications.
+    // push notifications can still be recieved, if the app is subscribed for them
+    await Notifications.cancelAllScheduledNotificationsAsync();
+    await logMessage(`[ NS ] local notifications canceled`);
+
+    return true;
+  } catch (error: any) {
+    await logMessage('[ NS ] unable to clear subscriptions', 'error');
+    console.error(`clearSubscriptions ${error}`);
+    return false;
+  }
+};
+
+export const logScheduledNotifications = async () => {
+  try {
+    const notifications: any =
+      await Notifications.getAllScheduledNotificationsAsync();
+    if (notifications && notifications.length) {
+      await logMessage(`[ NS ] scheduled notifications:`);
+      for (let data of notifications) {
+        let time = '';
+        let info = '';
+        const hh = data?.trigger?.hour;
+        const mm = data?.trigger?.minute;
+        const hours = hh ? hh.toString().padStart(2, '0') : null;
+        const minutes = mm ? mm.toString().padStart(2, '0') : null;
+        const title = data?.content?.title;
+        const body = data?.content?.body;
+        if (hours && minutes) time = ` ${hours}:${minutes}`;
+        if (title && body) info = ` [ ${title} ] ${body}`;
+        if (time || info) {
+          await logMessage(`[ NS ] -${time}${info}`);
+        } else {
+          const dataStr = JSON.stringify(data);
+          await logMessage(`[ NS ] - ${dataStr}`);
+        }
+      }
+    } else if (notifications) {
+      await logMessage(`[ NS ] no scheduled notifications`);
+    } else {
+      await logMessage(`[ NS ] unable to get notifications`, 'error');
+    }
+  } catch (error: any) {
+    await logMessage(`[ NS ] unable to get notifications`, 'error');
+    console.error(`logScheduledNotifications ${error}`);
   }
 };
 

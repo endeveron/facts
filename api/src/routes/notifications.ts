@@ -8,6 +8,7 @@ import {
   createNotificationSchedule,
   deleteNotificationSchedule,
   updateNotificationSubscription,
+  deleteNotificationSubscription,
 } from '../controllers/notifications';
 import { handleHttpError } from '../helpers/error';
 import { checkAuth } from '../middleware/check-auth';
@@ -53,6 +54,7 @@ router.post(
   body('userId').isLength({ min: 24, max: 24 }),
   sendNotification
 );
+router.delete('/subscription', deleteNotificationSubscription);
 
 router.use(handleHttpError);
 

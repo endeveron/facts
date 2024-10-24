@@ -43,6 +43,46 @@ export const getSubscription = async ({
   }
 };
 
+export const deleteSubscription = async ({
+  token,
+  userId,
+}: TAuthData): Promise<TResponse<TNotificationSubscription>> => {
+  const defaultErrmsg = 'Unable to delete subscription';
+  const searchParams = new URLSearchParams({ userId });
+  const params = searchParams.toString();
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/notifications/subscription?${params}`,
+      {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          ...commonHeaders,
+        },
+      }
+    );
+    if (!response.ok) {
+      return {
+        data: null,
+        error: { message: defaultErrmsg },
+      };
+    }
+
+    const result = await response.json();
+    if (result?.error) return { data: null, error: result.error };
+    if (result?.data || result?.data === null) {
+      return { data: result.data, error: null };
+    }
+    return { data: null, error: { message: defaultErrmsg } };
+  } catch (err: any) {
+    console.error(err);
+    return {
+      data: null,
+      error: { message: err.message || defaultErrmsg },
+    };
+  }
+};
+
 export const postSubscription = async ({
   subscription,
   token,

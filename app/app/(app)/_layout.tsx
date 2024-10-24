@@ -4,6 +4,8 @@ import { useColorScheme } from 'react-native';
 import { colors, defaultScheme } from '@/core/constants/colors';
 import { TScreen } from '@/core/types/common';
 import { useSession } from '@/core/context/SessionProvider';
+import NotificProvider from '@/core/context/NotificProvider';
+import AppSync from '@/core/context/AppSync';
 
 /**
  * This layout checks whether users are authenticated before
@@ -28,20 +30,24 @@ const AppLayout = () => {
   }
 
   return (
-    <Stack>
-      {screens.map((screen: TScreen) => (
-        <Stack.Screen
-          name={screen.name}
-          options={{
-            headerShown: false,
-            contentStyle: {
-              backgroundColor: colors[scheme].background,
-            },
-          }}
-          key={screen.name}
-        />
-      ))}
-    </Stack>
+    <NotificProvider>
+      <AppSync>
+        <Stack>
+          {screens.map((screen: TScreen) => (
+            <Stack.Screen
+              name={screen.name}
+              options={{
+                headerShown: false,
+                contentStyle: {
+                  backgroundColor: colors[scheme].background,
+                },
+              }}
+              key={screen.name}
+            />
+          ))}
+        </Stack>
+      </AppSync>
+    </NotificProvider>
   );
 };
 

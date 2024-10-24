@@ -1,4 +1,3 @@
-import { createCategoryMap } from '@/core/helpers/facts';
 import { enumToArray } from '@/core/helpers/misc';
 import { FactCategories } from '@/core/types/fact';
 

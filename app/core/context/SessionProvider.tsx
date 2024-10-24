@@ -12,11 +12,10 @@ import { DEFAULT_REDIRECT_URL } from '@/core/constants';
 import { logMessage, logStoreData } from '@/core/helpers/misc';
 import {
   deleteAuthDataFromSecureStore,
-  deleteFactsDataFromAsyncStorage,
   deleteNotifSubFromSecureStore,
   getAuthDataFromSecureStore,
+  removeNotifSubFetchedFromAsyncStorage,
   saveAuthDataInSecureStore,
-  saveNotifSubFetchedInAsyncStorage,
 } from '@/core/helpers/store';
 import { useToast } from '@/core/hooks/useToast';
 import { postSignIn, postSignUp } from '@/core/services/auth';
@@ -89,7 +88,7 @@ const SessionProvider = ({ children }: PropsWithChildren) => {
       setIsLoading(false);
       if (result?.error) {
         showToast(result.error.message);
-        logMessage(result.error.message, 'error');
+        console.error(result.error.message);
         return false;
       }
       if (result?.data) {
@@ -98,7 +97,7 @@ const SessionProvider = ({ children }: PropsWithChildren) => {
       }
     } catch (error: any) {
       showToast(error.message);
-      logMessage(error.message, 'error');
+      console.error(error.message);
       return false;
     }
   };
@@ -114,7 +113,7 @@ const SessionProvider = ({ children }: PropsWithChildren) => {
 
       if (result?.error) {
         showToast(result.error.message);
-        logMessage(result.error.message, 'error');
+        console.error(result.error.message);
         return false;
       }
       if (result?.data) {
@@ -123,80 +122,79 @@ const SessionProvider = ({ children }: PropsWithChildren) => {
       }
     } catch (error: any) {
       showToast(error.message);
-      logMessage(error.message, 'error');
+      console.error(error.message);
       return false;
     }
   };
 
   const signOut = async () => {
     try {
-      // delete facts data from storage
-      const factsStorageResult = await deleteFactsDataFromAsyncStorage();
-      if (factsStorageResult.error) {
-        logMessage(
-          `[ CL ] unable to delete facts data from storage: ${factsStorageResult.error.message}`,
-          'error'
-        );
-      }
-      logMessage('[ CL ] facts data removed from storage', 'success');
-
-      // reset facts data in db
+      // reset facts data in remote db
       const resetFactsRes = await getResetFacts({
         token: session?.token as string,
         userId: session?.user.id as string,
       });
       if (resetFactsRes?.error) {
-        logMessage(
+        await logMessage(
           `[ CL ] unable to reset facts data in db: ${resetFactsRes.error.message}`,
           'error'
         );
       }
-      logMessage('[ CL ] facts data is reset in DB', 'success');
+      await logMessage('[ CL ] facts data is reset in DB', 'success');
 
       // delete auth data from store
       const authRes = await deleteAuthDataFromSecureStore();
       if (authRes?.error) {
-        logMessage(
+        await logMessage(
           `[ CL ] unable to delete auth data from store: ${authRes.error.message}`,
           'error'
         );
       }
-      logMessage('[ CL ] auth data removed from store', 'success');
+      await logMessage('[ CL ] auth data removed from store', 'success');
 
       // delete notification subscription data from store
       const subRes = await deleteNotifSubFromSecureStore();
       if (subRes?.error) {
-        logMessage(
+        await logMessage(
           `[ CL ] unable to delete notification subscription data from store: ${subRes.error.message}`,
           'error'
         );
       }
-      logMessage('[ CL ] subscription data removed from store', 'success');
+      await logMessage(
+        '[ CL ] subscription data removed from store',
+        'success'
+      );
 
       // reset subscription status in storage
-      const subStatRes = await saveNotifSubFetchedInAsyncStorage(false);
+      const subStatRes = await removeNotifSubFetchedFromAsyncStorage();
       if (subStatRes?.error) {
-        logMessage(
+        await logMessage(
           `[ CL ] unable to reset subscription status in storage: ${subStatRes.error.message}`,
           'error'
         );
       }
-      logMessage('[ CL ] subscription status is reset in storage', 'success');
+      await logMessage(
+        '[ CL ] subscription status is reset in storage',
+        'success'
+      );
 
       // unregister tasts
       await TaskManager.unregisterAllTasksAsync();
-      logMessage('[ CL ] all tasks unregistered', 'success');
+      await logMessage('[ CL ] all tasks unregistered', 'success');
 
       // dev
       await logStoreData();
 
       // reset auth session
       setSession(null);
-      logMessage('[ AU ] sign out');
+      await logMessage('[ AU ] sign out');
       router.replace('/sign-in');
     } catch (error: any) {
       // showToast('Unable to sign out');
-      logMessage(`[ CL ] unable to clear data. ${error.message}`, 'error');
+      await logMessage(
+        `[ CL ] unable to clear data. ${error.message}`,
+        'error'
+      );
     }
   };
 

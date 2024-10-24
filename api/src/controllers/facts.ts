@@ -253,3 +253,34 @@ export const postFact = async (
     return next(new HttpError('Unable to add fact to database.', 500));
   }
 };
+
+export const postFactState = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  if (!isReqValid(req, next)) return;
+  const { factState, userId } = req.body;
+
+  try {
+    const user = await UserModel.findById(userId);
+    if (!user) {
+      return next(new HttpError('Could not fetch user data.', 500));
+    }
+
+    const updatedAt = Date.now();
+
+    user.facts = {
+      ...factState,
+      updatedAt,
+    };
+    await user.save();
+
+    res.status(201).json({
+      data: { updatedAt },
+    });
+  } catch (err) {
+    logger.r('postFact', err);
+    return next(new HttpError('Unable to save fact state.', 500));
+  }
+};

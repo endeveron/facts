@@ -1,3 +1,5 @@
+import * as BackgroundFetch from 'expo-background-fetch';
+
 import {
   defaultCategoryRateMap,
   FACT_CATEGORIES_DIST_RATE,
@@ -47,9 +49,9 @@ export const calculateSumOfMapValues = (map: Map<string, number>) => {
  * @param map - a fact offset map `Map<string, number>`. The keys represent categories, and the values represent the rate of category.
  * @returns a demand map of facts `Map<string, number>`. The keys represent categories, and the values represent the demand.
  */
-export const createFactLimitMap = (
+export const createFactLimitMap = async (
   map: Map<string, number> = defaultCategoryRateMap
-): Map<string, number> | null => {
+): Promise<Map<string, number> | null> => {
   const resultMap = new Map<string, number>();
 
   // n = ( value / totalRate ) * totalItems
@@ -77,7 +79,10 @@ export const createFactLimitMap = (
   // handle the case when the total number of items doesn't equal the initial value
   const itemWithMaxValue = getMapItemWithLargestValue(resultMap);
   if (!itemWithMaxValue) {
-    logMessage(`[ FH ] createFactLimitMap: invalid itemWithMaxValue`, 'error');
+    await logMessage(
+      `[ FH ] createFactLimitMap: invalid itemWithMaxValue`,
+      'error'
+    );
     return null;
   }
   const { key, value } = itemWithMaxValue;

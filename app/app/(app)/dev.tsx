@@ -1,16 +1,15 @@
-import { TouchableOpacity, View } from 'react-native';
+import { View } from 'react-native';
 
-import { Button } from '@/components/Button';
 import { NavItemName, TNavbarItem } from '@/components/Navbar';
 import ScrollScreen from '@/components/ScrollScreen';
 import CategoriesIcon from '@/components/svg/CategoriesIcon';
 import TextFileIcon from '@/components/svg/TextFileIcon';
 import UserIcon from '@/components/svg/UserIcon';
 import { Text } from '@/components/Text';
-import { useEffect, useState } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { clearLogsInDB, getLogsFromDB } from '@/core/helpers/db/logs';
 import { TLogItem } from '@/core/types/common';
-import { KEY_DEV_LOGS } from '@/core/constants';
+import { useSQLiteContext } from 'expo-sqlite';
+import { useEffect, useState } from 'react';
 
 const navItems: TNavbarItem[] = [
   {
@@ -31,20 +30,50 @@ const navItems: TNavbarItem[] = [
 ];
 
 const dev = () => {
-  // const { logs, clearLogs } = useLogging();
+  // const db = useSQLiteContext();
   const [prompt, setPrompt] = useState(false);
   const [logs, setLogs] = useState<TLogItem[]>([]);
 
   const clearLogs = async () => {
-    await AsyncStorage.removeItem(KEY_DEV_LOGS);
-    setLogs([]);
+    try {
+      // await AsyncStorage.removeItem(KEY_DEV_LOGS);
+      // await clearLogsInDB(db);
+      await clearLogsInDB();
+      setLogs([]);
+    } catch (err: any) {
+      console.error(err);
+    }
+  };
+
+  const getLogs = async () => {
+    try {
+      // const logsStr = await AsyncStorage.getItem(KEY_DEV_LOGS);
+      // if (logsStr) {
+      //   const logData: TLogItem[] = await JSON.parse(logsStr);
+      //   setLogs(logData);
+      // }
+      // const logData: TLogItem[] = await getLogsFromDB(db);
+      const logData: TLogItem[] = await getLogsFromDB();
+      if (logData) {
+        setLogs(logData);
+      }
+    } catch (err: any) {
+      console.error(err);
+    }
   };
 
   useEffect(() => {
-    (async () => {
-      const logsStr = await AsyncStorage.getItem(KEY_DEV_LOGS);
-      if (logsStr) setLogs(JSON.parse(logsStr));
-    })();
+    getLogs();
+
+    // set up the interval
+    const intervalId = setInterval(() => {
+      getLogs();
+    }, 5000);
+
+    // clean up the interval when the component unmounts
+    return () => {
+      clearInterval(intervalId);
+    };
   }, []);
 
   return (
@@ -72,13 +101,22 @@ const dev = () => {
               </Text>
             </View>
           ) : (
-            <Text
-              onPress={() => setPrompt(true)}
-              colorName="muted"
-              className="absolute right-6 -top-12 uppercase text-sm"
-            >
-              clear
-            </Text>
+            <View className="absolute right-6 -top-12 flex-row justify-end">
+              {/* <Text
+                onPress={() => getLogs()}
+                colorName="muted"
+                className="uppercase text-sm mr-8"
+              >
+                update
+              </Text> */}
+              <Text
+                onPress={() => setPrompt(true)}
+                colorName="muted"
+                className="uppercase text-sm"
+              >
+                clear
+              </Text>
+            </View>
           )
         ) : null}
 

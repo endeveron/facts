@@ -1,5 +1,5 @@
 import * as Notifications from 'expo-notifications';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import * as TaskManager from 'expo-task-manager';
 import {
   createContext,
@@ -10,15 +10,19 @@ import {
   useState,
 } from 'react';
 
-import { HOUR, MINUTE, NOTIFICATION_BACKGROUND_TASK } from '@/core/constants';
-import { useSession } from '@/core/context/SessionProvider';
-import { openNextFact } from '@/core/helpers/db';
-import { logMessage } from '@/core/helpers/misc';
 import {
+  NOTIFICATION_BACKGROUND_TASK,
+  NOTIFICATION_TIME_SHIFT,
+} from '@/core/constants';
+import { useSession } from '@/core/context/SessionProvider';
+import { openNextFact } from '@/core/helpers/db/main';
+import { getTimeFromNow, logMessage } from '@/core/helpers/misc';
+import {
+  handleBackgroundNotification,
   handleForegroundNotification,
-  handleNotificationBackgroundTask,
   handleNotificationClick,
   logNotificationData,
+  logScheduledNotifications,
   registerPushNotificationService,
   scheduleNotification,
   unscheduleNotification,
@@ -26,17 +30,18 @@ import {
 import {
   getNotifSubFetchedFromAsyncStorage,
   getNotifSubFromSecureStore,
+  saveNotifSubInSecureStore,
 } from '@/core/helpers/store';
 import { useToast } from '@/core/hooks/useToast';
 import { getSubscription } from '@/core/services/notifications';
 import { TNotificationSubscription } from '@/core/types/notification';
-import { useSQLiteContext } from 'expo-sqlite';
 
 // define a task to handle the behavior when notifications are received when app is backgrounded
+// needs to be called in the global scope
 // ! background event listeners are not supported in Expo Go
 TaskManager.defineTask(
   NOTIFICATION_BACKGROUND_TASK,
-  handleNotificationBackgroundTask
+  handleBackgroundNotification
 );
 
 // handle the behavior when notifications are received when app is foregrounded
@@ -44,7 +49,7 @@ Notifications.setNotificationHandler({
   handleNotification: handleForegroundNotification,
 });
 
-type TNotifContextProps = {
+type TNotificContextProps = {
   isSubscription: boolean;
   setIsSubscription: (value: boolean) => void;
   scheduleDailyNotification: () => Promise<void>;
@@ -55,7 +60,7 @@ type TNotifContextProps = {
   // sendNotification: (config: TNotificationConfig) => Promise<void>;
 };
 
-const NotificationsContext = createContext<TNotifContextProps>({
+const NotificContext = createContext<TNotificContextProps>({
   isSubscription: false,
   setIsSubscription: () => {},
   scheduleDailyNotification: async () => {},
@@ -67,48 +72,51 @@ const NotificationsContext = createContext<TNotifContextProps>({
 });
 
 export const useNotifications = () => {
-  return useContext(NotificationsContext);
+  const value = useContext(NotificContext);
+  if (process.env.NODE_ENV !== 'production') {
+    if (!value) {
+      throw new Error(
+        'useNotifications must be wrapped in a <NotificProvider />'
+      );
+    }
+  }
+  return value;
 };
 
-const NotificationsProvider = ({ children }: PropsWithChildren) => {
+const NotificProvider = ({ children }: PropsWithChildren) => {
+  // console.log('NotificProvider');
   const { session } = useSession();
-  const db = useSQLiteContext();
   const { showToast } = useToast();
 
   const [isSubscription, setIsSubscription] = useState(false);
-  // const [expoPushToken, setExpoPushToken] = useState('');
-  // const [notification, setNotification] = useState<
-  //   Notifications.Notification | undefined
-  // >(undefined);
-  // const [response, setResponse] =
-  //   useState<Notifications.NotificationResponse | null>(null);
 
   const notificationListener = useRef<Notifications.Subscription>();
   const responseListener = useRef<Notifications.Subscription>();
 
-  const userId = session?.user.id;
-  const token = session?.token;
+  const userId = session!.user.id;
+  const token = session!.token;
 
   const registerService = async (
-    subscription: TNotificationSubscription | null,
-    subscrSource: string | null
+    subscription: TNotificationSubscription | null
+    // subscrSource: string | null
   ) => {
     if (!token || !userId) return;
+
     try {
       // get the token for expo push notifications
       const serviceRes = await registerPushNotificationService({
         token,
         userId,
         subscription,
-        subscrSource,
+        // subscrSource,
       });
 
       if (!serviceRes) {
-        logMessage(`[ NS ] service is not registered`);
+        await logMessage(`[ NS ] service is not registered`);
       }
 
       if (serviceRes?.error) {
-        logMessage(serviceRes.error.message);
+        await logMessage(serviceRes.error.message);
       }
       if (serviceRes?.data) {
         const expoPushToken = serviceRes.data.subscription.expoPushToken;
@@ -120,39 +128,37 @@ const NotificationsProvider = ({ children }: PropsWithChildren) => {
         }
       }
 
+      await logScheduledNotifications();
+
       // create a listener for recieved notifications
       notificationListener.current =
-        Notifications.addNotificationReceivedListener((notification) => {
-          // setNotification(notification);
-          logNotificationData(notification);
+        Notifications.addNotificationReceivedListener(async (notification) => {
+          await logNotificationData(notification);
         });
 
       // create a listener for notification click
       responseListener.current =
         Notifications.addNotificationResponseReceivedListener(
           async (response) => {
-            // setResponse(response);
             await handleNotificationClick(response);
-            await openNextFact(db, router);
+            await openNextFact(router);
           }
         );
     } catch (error: any) {
-      logMessage(error?.message ?? 'Unable to register service');
-      // setExpoPushToken(`${error}`);
+      await logMessage(error?.message ?? 'Unable to register service');
     }
   };
 
   const initService = async () => {
-    let subscription: TNotificationSubscription | null = null;
-    let subscrSource: string | null = null;
-    const defaultErrorMsg = 'Could not handle subscription';
+    const defaultErrorMsg = 'unable to handle subscription';
 
-    logMessage('[ NS ] notification service is launched');
+    await logMessage('[ NS ] start notification service');
 
     const loadSubscriptionDataFromStore = async () => {
       const result = await getNotifSubFromSecureStore();
+
       if (result.error) {
-        logMessage(`[ NS ] ${result.error.message}`, 'error');
+        await logMessage(`[ NS ] ${result.error.message}`, 'error');
         return;
       }
       if (!result || result.error) {
@@ -161,12 +167,14 @@ const NotificationsProvider = ({ children }: PropsWithChildren) => {
       }
       if (!result.data) return;
 
-      logMessage('[ NS ] data already recieved');
+      await logMessage('[ NS ] subscription data already recieved');
 
       // update local state
       const isActive = result.data.isActive;
       setIsSubscription(isActive);
-      logMessage(`[ NS ] subscription is ${isActive ? 'active' : 'inactive'}`);
+      await logMessage(
+        `[ NS ] subscription is ${isActive ? 'enabled' : 'disabled'}`
+      );
 
       return {
         subscription: result.data,
@@ -175,71 +183,48 @@ const NotificationsProvider = ({ children }: PropsWithChildren) => {
     };
 
     const fetchSubscriptionDataFromRemoteDb = async () => {
-      logMessage('[ NS ] fetch subscription from remote db');
-
-      if (!userId || !token) {
-        logMessage(`[ NS ] ${defaultErrorMsg}. Invalid auth data`, 'error');
-        showToast(defaultErrorMsg);
-        return;
-      }
+      await logMessage('[ NS ] fetching subscription data');
 
       // fetch data
       const result = await getSubscription({ token, userId });
-      if (!result) {
-        logMessage(
-          `[ NS ] ${defaultErrorMsg}. Unable to fetch subscription from db`,
-          'error'
-        );
-        return;
-      }
       if (result.error) {
-        logMessage(`[ NS ] ${result.error.message}`, 'error');
-        return;
-      }
-      if (result.data) {
-        if (result.data.isActive === false) {
-          logMessage('[ NS ] subscription is not active, exit');
-          return;
-        }
-
-        logMessage('[ NS ] data fetched from db');
-        subscription = result.data;
-        subscrSource = 'db';
-      } else {
-        // subscription is not created
-        logMessage('[ NS ] no subscription in db');
+        await logMessage(`[ NS ] ${result.error.message}`, 'error');
+        return null;
       }
 
-      return {
-        subscription: result.data,
-        subscrSource: 'db',
-      };
+      const subscription = result.data;
+
+      if (subscription === null) {
+        await logMessage('[ NS ] no subscription in remote db');
+        return null;
+      }
+
+      await logMessage('[ NS ] subscription fetched from remote db');
+
+      if (subscription.isActive === false) {
+        await logMessage('[ NS ] subscription is disabled');
+      }
+
+      // save subscription data in the secure store
+      await saveNotifSubInSecureStore(subscription);
+
+      return subscription;
     };
 
     try {
-      // prevent the receipt of unnecessary data
+      // exit if subscription already exists
       const isSubFetched = await getNotifSubFetchedFromAsyncStorage();
 
-      // try to get subscription data from the secure store
+      // if data has already been fetched, get it from the secure store
       if (isSubFetched) {
-        const data = await loadSubscriptionDataFromStore();
-        if (data) {
-          subscription = data.subscription;
-          subscrSource = data.subscrSource;
-        }
+        await loadSubscriptionDataFromStore();
+      } else {
+        // fetch data from the remote db
+        const subscription = await fetchSubscriptionDataFromRemoteDb();
+        await registerService(subscription);
       }
-
-      // try to fetch data from the remote db
-      if (!subscrSource) {
-        const data = await fetchSubscriptionDataFromRemoteDb();
-        if (!data) return;
-        subscription = data.subscription;
-        subscrSource = data.subscrSource;
-      }
-
-      registerService(subscription, subscrSource);
     } catch (error: any) {
-      logMessage(`[ NS ] ${error.message || defaultErrorMsg}`, 'error');
+      await logMessage(`[ NS ] ${error.message || defaultErrorMsg}`, 'error');
       showToast(defaultErrorMsg);
     }
   };
@@ -247,19 +232,21 @@ const NotificationsProvider = ({ children }: PropsWithChildren) => {
   const scheduleDailyNotification = async () => {
     if (!token || !userId) return;
     try {
+      const { hour, minute } = getTimeFromNow(NOTIFICATION_TIME_SHIFT);
       const result = await scheduleNotification({
-        hour: HOUR,
-        minute: MINUTE,
+        // hour: HOUR,
+        // minute: MINUTE,
+        hour,
+        minute,
         token,
         userId,
       });
       if (result.error) {
-        logMessage(`[ NS ] schedule: ${result.error.message}`, 'error');
+        await logMessage(`[ NS ] schedule: ${result.error.message}`, 'error');
         showToast(result.error.message);
       }
       if (result.data?.success) {
-        logMessage(`[ NS ] schedule activated`, 'success');
-        // showToast('Daily notification activated');
+        await logMessage(`[ NS ] schedule enabled`, 'success');
         setIsSubscription(true);
       }
     } catch (err: any) {
@@ -274,11 +261,11 @@ const NotificationsProvider = ({ children }: PropsWithChildren) => {
       userId: session.user.id,
     });
     if (result.error) {
-      logMessage(`[ NS ] unschedule: ${result.error.message}`, 'error');
+      await logMessage(`[ NS ] unschedule: ${result.error.message}`, 'error');
       showToast(result.error.message);
     }
     if (result.data?.success) {
-      logMessage(`[ NS ] schedule canceled`, 'success');
+      await logMessage(`[ NS ] schedule canceled`, 'success');
       // showToast('Daily notification canceled');
       setIsSubscription(false);
     }
@@ -293,36 +280,43 @@ const NotificationsProvider = ({ children }: PropsWithChildren) => {
   //   // });
   // };
 
-  // init
   useEffect(() => {
-    if (session) initService();
-  }, [session]);
-
-  // clean up before dismount
-  useEffect(() => {
-    return () => {
-      notificationListener.current &&
-        Notifications.removeNotificationSubscription(
-          notificationListener.current
-        );
-      responseListener.current &&
-        Notifications.removeNotificationSubscription(responseListener.current);
-    };
+    initService();
   }, []);
 
-  // dev
   useEffect(() => {
+    // dev
     const getTasks = async () => {
-      const tasks = await TaskManager.getRegisteredTasksAsync();
-      if (tasks.length) {
-        const formatedTasks = tasks.reduce((acc: string[], cur) => {
-          acc.push(cur.taskName);
-          return acc;
-        }, []);
-        logMessage(`[ TM ] tasks: ${formatedTasks.join(', ')}`);
+      try {
+        const tasks = await TaskManager.getRegisteredTasksAsync();
+        if (tasks.length) {
+          const formatedTasks = tasks.reduce((acc: string[], cur) => {
+            acc.push(cur.taskName);
+            return acc;
+          }, []);
+          await logMessage(`[ TM ] tasks: ${formatedTasks.join(', ')}`);
+        }
+      } catch (err: any) {
+        console.error(err);
       }
     };
     getTasks();
+
+    // clean up before dismount
+    return () => {
+      if (notificationListener.current) {
+        notificationListener.current.remove();
+      }
+      if (responseListener.current) {
+        responseListener.current.remove();
+      }
+      // notificationListener.current &&
+      //   Notifications.removeNotificationSubscription(
+      //     notificationListener.current
+      //   );
+      // responseListener.current &&
+      //   Notifications.removeNotificationSubscription(responseListener.current);
+    };
   }, []);
 
   const value = {
@@ -337,10 +331,8 @@ const NotificationsProvider = ({ children }: PropsWithChildren) => {
   };
 
   return (
-    <NotificationsContext.Provider value={value}>
-      {children}
-    </NotificationsContext.Provider>
+    <NotificContext.Provider value={value}>{children}</NotificContext.Provider>
   );
 };
 
-export default NotificationsProvider;
+export default NotificProvider;

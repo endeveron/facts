@@ -33,7 +33,7 @@ export const sendNotificationToSingleClient = async (
     let ticketChunk = await expo.sendPushNotificationsAsync(chunk[0]);
     ticket = ticketChunk[0];
   } catch (error: unknown) {
-    console.error(error);
+    console.error(`sendNotificationToSingleClient: ${error}`);
     return {
       data: null,
       error: `Could not send chunk`,
@@ -76,7 +76,7 @@ export const sendNotificationToClients = async (
       let ticketChunk = await expo.sendPushNotificationsAsync(chunk);
       tickets.push(...ticketChunk);
     } catch (error: unknown) {
-      console.error(error);
+      console.error(`sendNotificationToClients: ${error}`);
       errors.push('Could not send chunk');
     }
   }

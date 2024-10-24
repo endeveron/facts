@@ -13,7 +13,7 @@ type TFavoriteItemProps = {
 const FavoriteItem = ({ itemData, onDislike }: TFavoriteItemProps) => {
   const [showPrompt, setShowPrompt] = useState(false);
 
-  const handleDislike = () => {
+  const handleDislike = async () => {
     onDislike(itemData.id, itemData.category);
   };
 
