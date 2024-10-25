@@ -14,10 +14,7 @@ import {
   createFactLimitMap,
 } from '@/core/helpers/facts';
 import { formatObjectKeys, logMessage } from '@/core/helpers/misc';
-import {
-  getFactsUpdTimestampFromAsyncStorage,
-  saveFactsUpdTimestampInAsyncStorage,
-} from '@/core/helpers/store';
+import { saveFactsUpdTimestampInAsyncStorage } from '@/core/helpers/store';
 import { postFactState } from '@/core/services/facts';
 import { TAuthData } from '@/core/types/auth';
 import {
@@ -79,7 +76,6 @@ export const getFactDataFromLocalDb =
   async (): Promise<FactDataFromLocalDb | null> => {
     const errorMessage = `[ DB ] unable to get data from local db`;
     try {
-      const db = await getLocalDb();
       // get cursor data from the fact_cursor table
       const cursor = await getCursor();
       if (!cursor) {
@@ -113,8 +109,6 @@ export const initCategoryDataInLocalDb = async (
   // - create a category cursor object
 
   try {
-    const db = await getLocalDb();
-
     // get favorites
     const favorites = await getFavoriteIdArray();
 
@@ -158,7 +152,6 @@ export const initCategoryDataInLocalDb = async (
     // save the increased offset in the fact_offset table
     const incrOffsetSuccess = await increaseFactOffset({
       category,
-      // db,
     });
     if (!incrOffsetSuccess) return null;
 
@@ -290,7 +283,6 @@ export const getFactsFromStorage = async ({
    */
 
   try {
-    const db = await getLocalDb();
     await logMessage(`[ DB ] recieving new facts from fact_storage table`);
 
     // create category rate map from table data if categoryRateMap is not specified
@@ -661,7 +653,7 @@ export const initCategoryCursorTable = async (
   }
 };
 
-export const updateFactGroupTable = async (
+export const addFactsToFactGroupTable = async (
   facts: TFactItem[]
 ): Promise<boolean> => {
   let statement: SQLiteStatement | null = null;
@@ -704,7 +696,7 @@ export const updateFactGroupTable = async (
     return true;
   } catch (error: any) {
     await logMessage(`[ DB ] could not update fact_group table`, 'error');
-    console.error(`updateFactGroupTable: ${error}`);
+    console.error(`addFactsToFactGroupTable: ${error}`);
     return false;
   } finally {
     if (statement) await statement.finalizeAsync();
@@ -764,7 +756,7 @@ export const initCategoryGroupTable = async (
   }
 };
 
-export const updateCategoryGroupTable = async ({
+export const addFactsToCategoryGroupTable = async ({
   category,
   cursor,
   facts,
@@ -778,7 +770,7 @@ export const updateCategoryGroupTable = async ({
   try {
     const db = await getLocalDb();
 
-    // get facts for the current category from the fact_group table
+    // get facts for the current category from the category_group table
     const factsInGroup = await getFactGroup(category);
 
     // const query = `SELECT * FROM category_group;`;
@@ -814,8 +806,11 @@ export const updateCategoryGroupTable = async ({
 
     return true;
   } catch (error: any) {
-    await logMessage(`[ DB ] could not update category_group table`, 'error');
-    console.error(`updateCategoryGroupTable: ${error}`);
+    await logMessage(
+      `[ DB ] could not add facts to category_group table`,
+      'error'
+    );
+    console.error(`addFactsToCategoryGroupTable: ${error}`);
     return false;
   } finally {
     if (statement) await statement.finalizeAsync();
@@ -947,30 +942,11 @@ export const addFactsToCategoryGroup = async ({
   const curGroupLength = currentGroup.length;
 
   try {
-    const db = await getLocalDb();
     // get the current offset value from the fact_offset table
     let offset = await getCategoryOffset(category);
     if (offset === null) return null;
 
-    /**
-     *  The intersection of facts
-     *  prev group:
-     *  ...
-     * 	4: "The world’s termites outweigh..."
-     * !5: "Bullfrogs do not sleep"
-     * !6: "A snail breathes through its foot"
-     * !7: "An ant’s sense of smell is stronger..."
-     *
-     *  new group:
-     * !8: "Bullfrogs do not sleep"
-     * !9: "A snail breathes through its foot"
-     * !10: "An ant’s sense of smell is stronger..."
-     *  11: "Lizards communicate by doing push-ups"
-     *  ...
-     */
-
-    // calculate an additional offset to prevent the intersection of facts
-    offset += FACT_GROUP_LIMIT - cursor.curFactIndex;
+    offset += curGroupLength - cursor.curFactIndex;
 
     // get new category group from fact_storage using the offset
     const dataFromStorage = await getCategoryFactsFromStorage({
@@ -1018,16 +994,38 @@ export const addFactsToCategoryGroup = async ({
       done: cursor.done,
     };
 
+    console.log(
+      'BB curGroup',
+      currentGroup.map((f) => ({
+        i: f.index,
+        t: f.title,
+      }))
+    );
+    console.log(
+      'BB stoGroup',
+      facts.map((f) => ({
+        i: f.index,
+        t: f.title,
+      }))
+    );
+
     // add facts to the category_group table
-    const updGroupSuccess = await updateCategoryGroupTable({
+    const updGroupSuccess = await addFactsToCategoryGroupTable({
       category,
       cursor: newCursor,
-      // db,
       facts,
     });
     if (!updGroupSuccess) return null;
 
     const newGroup = await getFactGroup(category);
+
+    console.log(
+      'BB newGroup',
+      facts.map((f) => ({
+        i: f.index,
+        t: f.title,
+      }))
+    );
 
     return {
       newCursor,
@@ -1038,6 +1036,130 @@ export const addFactsToCategoryGroup = async ({
     console.error(`addFactsToCategoryGroup: ${error}`);
     return null;
   }
+};
+
+/** Common for fact_group and category_group tables */
+export const updateFactGroupTable = async (
+  newGroup: TFactItem[],
+  category: string | null
+): Promise<boolean> => {
+  let statement: SQLiteStatement | null = null;
+  const tableName = category ? 'category_group' : 'fact_group';
+
+  try {
+    const db = await getLocalDb();
+
+    // create query
+    const clearFactQuery = `DELETE FROM fact_group`;
+    const clearCategoryQuery = `
+      DELETE FROM category_group
+      WHERE category = '${category}'
+    `;
+    const clearQuery = category ? clearCategoryQuery : clearFactQuery;
+
+    // clear table
+    await db.execAsync(clearQuery);
+
+    // add new fact group to table
+    const addQuery = `
+      INSERT INTO ${tableName} (id, 'index', category, title) 
+      VALUES ($id, $index, $category, $title);
+    `;
+    statement = await db.prepareAsync(addQuery);
+    // the correct indexes are assigned by the truncateFactsOnScroll() method
+    for (let fact of newGroup) {
+      await statement.executeAsync({
+        $id: fact.id,
+        $index: fact.index,
+        $category: fact.category,
+        $title: fact.title,
+      });
+    }
+
+    return true;
+  } catch (error: any) {
+    await logMessage(`[ DB ] could not update ${tableName} table`, 'error');
+    console.error(`updateFactGroupTable: ${error}`);
+    return false;
+  } finally {
+    if (statement) await statement.finalizeAsync();
+  }
+};
+
+export const addFactsOnScroll = async ({
+  category,
+  currentGroup,
+  cursor,
+}: {
+  category: string | null;
+  currentGroup: TFactItem[];
+  cursor: TFactCursor;
+}): Promise<TAddFactsToGroupResult> => {
+  let addFactsResult: TAddFactsToGroupResult = null;
+  if (category) {
+    addFactsResult = await addFactsToCategoryGroup({
+      category,
+      currentGroup,
+      cursor,
+    });
+  } else {
+    addFactsResult = await addFactsToGroup({
+      currentGroup,
+      cursor,
+    });
+  }
+  if (!addFactsResult) {
+    await logMessage(`[ FC ] unable to get new facts`, 'error');
+    return null;
+  }
+  // if (category) {
+  //   // update cursor data
+  //   addFactsResult.newCursor.storageOffset += 1;
+  //   addFactsResult.newCursor.leftInStorage -= 1;
+  //   addFactsResult.newCursor.leftInGroup -= 1;
+  // }
+
+  return addFactsResult;
+};
+
+export const truncateFactsOnScroll = async ({
+  category,
+  currentGroup,
+  cursor,
+}: {
+  category: string | null;
+  currentGroup: TFactItem[];
+  cursor: TFactCursor;
+  // }): Promise<TAddFactsToGroupResult> => {
+}) => {
+  // - remove first N items
+  // - update cursor.curFactIndex prev - N
+  // - update cursor.groupLength
+  // - update indexes index = prev - N
+  // - update fact / category group table
+
+  const removeCount = FACT_GROUP_LIMIT;
+  const truncatedGroup = currentGroup.slice(removeCount);
+  const newCursor: TFactCursor = { ...cursor };
+  newCursor.curFactIndex = cursor.curFactIndex - removeCount;
+  newCursor.groupLength = cursor.groupLength - removeCount;
+
+  const newGroup = truncatedGroup.map(({ index, ...rest }) => ({
+    index: index - removeCount,
+    ...rest,
+  }));
+
+  // console.log('truncatedGroup', truncatedGroup);
+  // console.log('newGroup', newGroup);
+  // console.log('newCursor', newCursor);
+
+  // await updateCursorTable(newCursor, category);
+  await updateFactGroupTable(newGroup, category);
+
+  return {
+    newCursor,
+    newGroup,
+  };
 };
 
 export const openNextFact = async (router: Router) => {

@@ -52,7 +52,6 @@ const Favorites = () => {
     }));
 
     // update data in favorites table
-    // await updateFavoritesTable({ operation: 'remove', factId }, db);
     await updateFavoritesTable({ operation: 'remove', factId });
   };
 
@@ -60,7 +59,6 @@ const Favorites = () => {
   useEffect(() => {
     (async () => {
       // get favorite id array from local db
-      // const favItems = await getFavoriteFacts(db);
       const favItems = await getFavoriteFacts();
       if (favItems) {
         setState(({ favorites, ...state }) => ({

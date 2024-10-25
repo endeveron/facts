@@ -20,8 +20,10 @@ import { SHARE_TITLE } from '@/core/constants';
 import { useSession } from '@/core/context/SessionProvider';
 import { initFactDataInLocalDb } from '@/core/helpers/db/init';
 import {
+  addFactsOnScroll,
   addFactsToCategoryGroup,
   addFactsToGroup,
+  truncateFactsOnScroll,
   getFactDataFromLocalDb,
   increaseFactOffset,
   initCategoryDataInLocalDb,
@@ -31,7 +33,12 @@ import {
 import { logMessage, wait } from '@/core/helpers/misc';
 import { TAddFactsToGroupResult, TFactCursor } from '@/core/types/db';
 import { TFactItem } from '@/core/types/fact';
-import { FACTS_LEFT_TO_FETCH_NEW_ITEMS } from '@/core/constants/facts';
+import {
+  FACT_GROUP_LIMIT,
+  FACTS_LEFT_TO_FETCH_NEW_ITEMS,
+  FACTS_LENGTH_TO_DECREASE_LIST,
+} from '@/core/constants/facts';
+import { createOffsetMapFromTableData } from '@/core/helpers/db/maps';
 
 // get the height of device window
 const windowHeight = Dimensions.get('window').height;
@@ -145,17 +152,7 @@ const Facts = () => {
 
     // update data in favorites table
     const operation = isLike ? 'add' : 'remove';
-    // await updateFavoritesTable({ operation, factId }, db);
     await updateFavoritesTable({ operation, factId });
-
-    // !! keep that code
-    // // send request to server
-    // await postEvaluateFact({
-    //   userId,
-    //   factId,
-    //   category,
-    //   token,
-    // });
   };
 
   const handleShare = async (title: string) => {
@@ -209,45 +206,49 @@ const Facts = () => {
     if (category) {
       updCursor.category = category;
     }
+
     try {
-      // process the end of the fact list, get new facts from the local db
+      // get new facts from the local db in the end of the fact list
       if (leftInGroup === FACTS_LEFT_TO_FETCH_NEW_ITEMS) {
-        let addFactsResult: TAddFactsToGroupResult = null;
-        if (category) {
-          addFactsResult = await addFactsToCategoryGroup({
-            category,
-            currentGroup: facts,
-            cursor: updCursor,
-            // db,
-          });
-        } else {
-          addFactsResult = await addFactsToGroup({
-            currentGroup: facts,
-            cursor: updCursor,
-            // db,
-          });
-        }
-        if (!addFactsResult) {
-          await logMessage(`[ FC ] unable to get new facts`, 'error');
-          return;
-        }
-        if (category) {
-          // update cursor data
-          addFactsResult.newCursor.storageOffset += 1;
-          addFactsResult.newCursor.leftInStorage -= 1;
-          addFactsResult.newCursor.leftInGroup -= 1;
-        }
+        const addFactsResult = await addFactsOnScroll({
+          category,
+          currentGroup: facts,
+          cursor: updCursor,
+        });
+        if (!addFactsResult) return;
+
         const { newCursor, newGroup } = addFactsResult;
-        setFacts((prev) => (prev = newGroup));
         updCursor = newCursor;
+
+        // update local state
+        setFacts((prev) => (prev = newGroup));
       }
-      setCursor(updCursor);
+
+      // remove old facts if the fact list length is greater than FACTS_LENGTH_TO_DECREASE_LIST
+      if (
+        updCursor.curFactIndex >= FACT_GROUP_LIMIT &&
+        facts.length >= FACTS_LENGTH_TO_DECREASE_LIST
+      ) {
+        const cropFactsResult = await truncateFactsOnScroll({
+          category,
+          currentGroup: facts,
+          cursor: updCursor,
+        });
+        if (!cropFactsResult) return;
+
+        const { newCursor, newGroup } = cropFactsResult;
+        updCursor = newCursor;
+
+        // update local state
+        setFacts((prev) => (prev = newGroup));
+        setCursor(updCursor);
+        scrollToItem(newCursor.curFactIndex);
+      } else {
+        setCursor(updCursor);
+      }
+
       // save updated cursor in local db
-      const updateCursorSuccess = await updateCursorTable(
-        updCursor,
-        // db,
-        category
-      );
+      const updateCursorSuccess = await updateCursorTable(updCursor, category);
       if (!updateCursorSuccess) {
         await logMessage(`[ FC ] unable to update cursor`, 'error');
         return;
@@ -256,15 +257,14 @@ const Facts = () => {
         // update fact offset for the category in the fact_offset table
         const increaseOffset = await increaseFactOffset({
           category: item.category,
-          // db,
         });
         if (!increaseOffset) {
           await logMessage(`[ FC ] unable to update fact offset`, 'error');
         }
       }
-      // // dev
-      // const factOffsetMap = await createOffsetMapFromTableData(db);
-      // console.log('offsetMap', factOffsetMap);
+      // dev
+      const factOffsetMap = await createOffsetMapFromTableData();
+      console.log('offsetMap', factOffsetMap);
     } catch (err: any) {
       console.error(err);
     }
@@ -297,13 +297,11 @@ const Facts = () => {
     // initialize the local db tables, if necessary
     const { success } = await initFactDataInLocalDb({
       authData: { userId, token },
-      // db,
       setFetchingCb,
     });
     if (!success) return;
 
     // get data from the local db
-    // const data = await getFactDataFromLocalDb(db);
     const data = await getFactDataFromLocalDb();
     if (!data) return;
     await logMessage('[ FC ] facts data recieved from local db');

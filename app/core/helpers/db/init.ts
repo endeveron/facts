@@ -8,7 +8,7 @@ import {
 } from '@/core/constants/facts';
 import {
   addFactsToFactStorageTable,
-  updateFactGroupTable,
+  addFactsToFactGroupTable,
 } from '@/core/helpers/db/main';
 import { logMessage, wait } from '@/core/helpers/misc';
 import {
@@ -25,8 +25,7 @@ import { getLocalDb } from '@/core/helpers/db';
 
 /** create tables */
 
-export const createFactStorageTable = async (): // // db: SQLiteDatabase
-Promise<boolean> => {
+export const createFactStorageTable = async (): Promise<boolean> => {
   try {
     const db = await getLocalDb();
     await db.execAsync(`
@@ -44,8 +43,7 @@ Promise<boolean> => {
   }
 };
 
-export const createFactGroupTable = async (): // // db: SQLiteDatabase
-Promise<boolean> => {
+export const createFactGroupTable = async (): Promise<boolean> => {
   try {
     const db = await getLocalDb();
     await db.execAsync(`
@@ -64,8 +62,7 @@ Promise<boolean> => {
   }
 };
 
-export const createCategoryGroupTable = async (): // // db: SQLiteDatabase
-Promise<boolean> => {
+export const createCategoryGroupTable = async (): Promise<boolean> => {
   try {
     const db = await getLocalDb();
     await db.execAsync(`
@@ -84,8 +81,7 @@ Promise<boolean> => {
   }
 };
 
-export const createFavoritesTable = async (): // // db: SQLiteDatabase
-Promise<boolean> => {
+export const createFavoritesTable = async (): Promise<boolean> => {
   try {
     const db = await getLocalDb();
     await db.execAsync(`
@@ -101,8 +97,7 @@ Promise<boolean> => {
   }
 };
 
-export const createFactCursorTable = async (): // db: SQLiteDatabase
-Promise<boolean> => {
+export const createFactCursorTable = async (): Promise<boolean> => {
   try {
     const db = await getLocalDb();
     await db.execAsync(`
@@ -125,8 +120,7 @@ Promise<boolean> => {
   }
 };
 
-export const createCategoryCursorTable = async (): // db: SQLiteDatabase
-Promise<boolean> => {
+export const createCategoryCursorTable = async (): Promise<boolean> => {
   try {
     const db = await getLocalDb();
     await db.execAsync(`
@@ -149,8 +143,7 @@ Promise<boolean> => {
   }
 };
 
-export const createCategoryRateTable = async (): // db: SQLiteDatabase
-Promise<boolean> => {
+export const createCategoryRateTable = async (): Promise<boolean> => {
   try {
     const db = await getLocalDb();
     await db.execAsync(`
@@ -171,8 +164,7 @@ Promise<boolean> => {
   }
 };
 
-export const createFactOffsetTable = async (): // db: SQLiteDatabase
-Promise<boolean> => {
+export const createFactOffsetTable = async (): Promise<boolean> => {
   try {
     const db = await getLocalDb();
     await db.execAsync(`
@@ -193,7 +185,6 @@ Promise<boolean> => {
 
 export const initFavoritesTable = async (
   favorites: TFavorites
-  // db: SQLiteDatabase
 ): Promise<boolean> => {
   let statement: SQLiteStatement | null = null;
   try {
@@ -216,8 +207,7 @@ export const initFavoritesTable = async (
   }
 };
 
-export const initCategoryRateTable = async (): // db: SQLiteDatabase
-Promise<boolean> => {
+export const initCategoryRateTable = async (): Promise<boolean> => {
   let statement: SQLiteStatement | null = null;
   try {
     const db = await getLocalDb();
@@ -245,7 +235,6 @@ Promise<boolean> => {
 
 export const initFactOffsetTable = async (
   factGroup: TFactItem[]
-  // db: SQLiteDatabase
 ): Promise<boolean> => {
   let statement: SQLiteStatement | null = null;
 
@@ -288,7 +277,6 @@ export const initFactOffsetTable = async (
 export const initFactCursorTable = async (
   factGroup: TFactItem[],
   factStorageLength: number,
-  // db: SQLiteDatabase,
   done?: boolean
 ): Promise<boolean> => {
   const factGroupLength = factGroup.length;
@@ -339,8 +327,7 @@ export const initFactCursorTable = async (
   }
 };
 
-export const clearFactTables = async (): // db: SQLiteDatabase
-Promise<boolean> => {
+export const clearFactTables = async (): Promise<boolean> => {
   try {
     const db = await getLocalDb();
     // remove tables if exists
@@ -361,8 +348,7 @@ Promise<boolean> => {
 export const initFactTables = async ({
   facts,
   favorites,
-}: TFactInitData): // db: SQLiteDatabase
-Promise<boolean> => {
+}: TFactInitData): Promise<boolean> => {
   try {
     const db = await getLocalDb();
     // remove tables if exists
@@ -370,14 +356,6 @@ Promise<boolean> => {
       await db.execAsync(`DROP TABLE IF EXISTS ${tableName}`);
     }
     // create tables
-    // const storeSuccess = await createFactStorageTable(db);
-    // const groupSuccess = await createFactGroupTable(db);
-    // const catGroupSuccess = await createCategoryGroupTable(db);
-    // const favSuccess = await createFavoritesTable(db);
-    // const cursorSuccess = await createFactCursorTable(db);
-    // const catCursorSuccess = await createCategoryCursorTable(db);
-    // const rateSuccess = await createCategoryRateTable(db);
-    // const offsetSuccess = await createFactOffsetTable(db);
     const storeSuccess = await createFactStorageTable();
     const groupSuccess = await createFactGroupTable();
     const catGroupSuccess = await createCategoryGroupTable();
@@ -402,7 +380,6 @@ Promise<boolean> => {
     // populate tables
 
     // fact_storage table
-    // const storageSuccess = await addFactsToFactStorageTable(facts, db);
     const storageSuccess = await addFactsToFactStorageTable(facts);
     if (!storageSuccess) return false;
     // const factsInStorage = await db.getAllAsync<TFactStorageTableItem>(
@@ -413,15 +390,13 @@ Promise<boolean> => {
     // fact_group table
     // add the first 8 facts to the fact group
     const factGroup = facts.slice(0, FACT_GROUP_LIMIT);
-    // const setFactGroupSuccess = await updateFactGroupTable(factGroup, db);
-    const setFactGroupSuccess = await updateFactGroupTable(factGroup);
+    const setFactGroupSuccess = await addFactsToFactGroupTable(factGroup);
     if (!setFactGroupSuccess) return false;
     // const factsInGroup: TFactGroupTableItem[] =
     //   await db.getAllAsync<TFactGroupTableItem>('SELECT * FROM fact_group');
     // console.log('fact_group:', factsInGroup);
 
     // favorites table
-    // const initFavSuccess = await initFavoritesTable(favorites, db);
     const initFavSuccess = await initFavoritesTable(favorites);
     if (!initFavSuccess) return false;
     // const factFavoritesData = await db.getAllAsync<TFavoritesTableItem>(
@@ -433,10 +408,8 @@ Promise<boolean> => {
     const initCursorSuccess = await initFactCursorTable(
       factGroup,
       facts.length
-      // db
     );
     if (!initCursorSuccess) return false;
-    // const updCursorError = await updateCursorTable(initialCursorData, db);
     // if (updCursorError) return { success: false };
     // const cursorData = await db.getAllAsync<TCursorTableItem>(
     //   'SELECT * FROM fact_cursor'
@@ -444,7 +417,6 @@ Promise<boolean> => {
     // console.log('fact_cursor:', cursorData);
 
     // fact_category_rate table
-    // const initCatRateMapSuccess = await initCategoryRateTable(db);
     const initCatRateMapSuccess = await initCategoryRateTable();
     if (!initCatRateMapSuccess) return false;
     // const catRateMapData = await db.getAllAsync<TRateMapTableItem>(
@@ -453,7 +425,6 @@ Promise<boolean> => {
     // console.log('fact_category_rate:', catRateMapData);
 
     // fact_offset table
-    // const initOffserSuccess = await initFactOffsetTable(factGroup, db);
     const initOffserSuccess = await initFactOffsetTable(factGroup);
     if (!initOffserSuccess) return false;
     // const offsetData = await db.getAllAsync<TOffsetTableItem>(
@@ -479,12 +450,10 @@ Promise<boolean> => {
 
 export const initFactDataInLocalDb = async ({
   authData: { userId, token },
-  // db,
   isReset,
   setFetchingCb,
 }: {
   authData: TAuthData;
-  // db: SQLiteDatabase;
   isReset?: boolean;
   setFetchingCb?: (isFetching: boolean) => void;
 }): Promise<TStatus> => {
@@ -528,7 +497,6 @@ export const initFactDataInLocalDb = async ({
     setFetchingCb && setFetchingCb(false);
 
     // fill in the fact tables with the data obtained
-    // const initSuccess = await initFactTables(fetchResult.data, db);
     const initSuccess = await initFactTables(fetchResult.data);
     if (!initSuccess) return { success: false };
 

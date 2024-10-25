@@ -37,7 +37,6 @@ const dev = () => {
   const clearLogs = async () => {
     try {
       // await AsyncStorage.removeItem(KEY_DEV_LOGS);
-      // await clearLogsInDB(db);
       await clearLogsInDB();
       setLogs([]);
     } catch (err: any) {
@@ -52,7 +51,6 @@ const dev = () => {
       //   const logData: TLogItem[] = await JSON.parse(logsStr);
       //   setLogs(logData);
       // }
-      // const logData: TLogItem[] = await getLogsFromDB(db);
       const logData: TLogItem[] = await getLogsFromDB();
       if (logData) {
         setLogs(logData);

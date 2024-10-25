@@ -10,6 +10,8 @@ const FACT_STORAGE_LIMIT = FACT_GROUP_LIMIT * 128;
 const FACT_CATEGORIES_DIST_RATE = 48;
 /** The number of facts left in group to trigger the retrieval of new group */
 const FACTS_LEFT_TO_FETCH_NEW_ITEMS = 2;
+/** The length of fact list to remove old items */
+const FACTS_LENGTH_TO_DECREASE_LIST = FACT_GROUP_LIMIT * 3;
 
 const factActions = [
   {
@@ -56,6 +58,7 @@ export {
   FACT_STORAGE_LIMIT,
   FACT_CATEGORIES_DIST_RATE,
   FACTS_LEFT_TO_FETCH_NEW_ITEMS,
+  FACTS_LENGTH_TO_DECREASE_LIST,
   factActions,
   factCategories,
   defaultCategoryRateMap,
