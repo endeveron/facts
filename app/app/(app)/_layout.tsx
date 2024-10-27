@@ -30,24 +30,24 @@ const AppLayout = () => {
   }
 
   return (
-    //<NotificProvider>
-    //<AppSync>
-    <Stack>
-      {screens.map((screen: TScreen) => (
-        <Stack.Screen
-          name={screen.name}
-          options={{
-            headerShown: false,
-            contentStyle: {
-              backgroundColor: colors[scheme].background,
-            },
-          }}
-          key={screen.name}
-        />
-      ))}
-    </Stack>
-    //</AppSync>
-    //</NotificProvider>
+    <NotificProvider>
+      <AppSync>
+        <Stack>
+          {screens.map((screen: TScreen) => (
+            <Stack.Screen
+              name={screen.name}
+              options={{
+                headerShown: false,
+                contentStyle: {
+                  backgroundColor: colors[scheme].background,
+                },
+              }}
+              key={screen.name}
+            />
+          ))}
+        </Stack>
+      </AppSync>
+    </NotificProvider>
   );
 };
 

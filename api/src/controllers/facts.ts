@@ -1,10 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 
-import {
-  FACT_GROUP_LIMIT,
-  FACT_PROPS,
-  FACT_STORAGE_LIMIT,
-} from '../constants/facts';
+import { FACT_GROUP_LIMIT, FACT_STORAGE_LIMIT } from '../constants/facts';
 import { HttpError } from '../helpers/error';
 import {
   calculateSumOfMapValues,
@@ -66,8 +62,7 @@ export const getFacts = async (
         category,
       })
         .skip(offset)
-        .limit(limit)
-        .select(FACT_PROPS);
+        .limit(limit);
 
       const length = facts.length;
       if (!length)
@@ -161,7 +156,7 @@ export const getFacts = async (
       },
     });
   } catch (err) {
-    logger.r('getUser', err);
+    logger.r('getFacts', err);
     return next(new HttpError('Unable to retrieve facts.', 500));
   }
 };
@@ -180,9 +175,7 @@ export const getDataToInitLocalDb = async (
       return next(new HttpError('Could not fetch user data.', 500));
     }
 
-    const facts = await FactModel.find()
-      .limit(FACT_STORAGE_LIMIT)
-      .select(FACT_PROPS);
+    const facts = await FactModel.find().limit(FACT_STORAGE_LIMIT);
 
     const data = {
       facts: configureFactItems(facts),
@@ -191,7 +184,7 @@ export const getDataToInitLocalDb = async (
 
     res.status(200).json({ data });
   } catch (err) {
-    logger.r('getUser', err);
+    logger.r('getDataToInitLocalDb', err);
     return next(new HttpError('Unable to retrieve data for local db.', 500));
   }
 };
@@ -213,8 +206,7 @@ export const getFactsForLocalDbStorage = async (
 
     const facts = await FactModel.find()
       .skip(+offset)
-      .limit(FACT_STORAGE_LIMIT)
-      .select(FACT_PROPS);
+      .limit(FACT_STORAGE_LIMIT);
 
     const data = {
       facts: configureFactItems(facts),
@@ -223,7 +215,7 @@ export const getFactsForLocalDbStorage = async (
 
     res.status(200).json({ data });
   } catch (err) {
-    logger.r('getUser', err);
+    logger.r('getFactsForLocalDbStorage', err);
     return next(new HttpError('Unable to retrieve facts.', 500));
   }
 };

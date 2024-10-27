@@ -82,8 +82,8 @@ export const createFactLimitMap = (
   // if the total rate is not high enough, return a map with average values
   if (totalRate < FACT_CATEGORIES_DIST_RATE) {
     return new Map([
-      ['nature', 2],
-      ['science', 2],
+      ['nature', 1],
+      ['science', 1],
       ['human', 1],
       ['business', 1],
       ['entertainment', 1],

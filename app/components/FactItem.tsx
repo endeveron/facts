@@ -61,7 +61,7 @@ const FactItem = ({
     >
       {/* Card */}
       <View
-        onTouchEnd={handleLike}
+        // onTouchEnd={handleLike}
         className="relative min-h-[480px] flex-col justify-center p-4"
       >
         {/* Content */}
@@ -80,7 +80,7 @@ const FactItem = ({
         </View>
 
         {/* Background */}
-        <View className="absolute inset-x-0 inset-y-0 rounded-3xl overflow-hidden z-0">
+        <View className="absolute inset-x-0 inset-y-0 rounded-[48px] overflow-hidden z-0">
           {/* Gradient */}
           <LinearGradient
             colors={brandGradient}

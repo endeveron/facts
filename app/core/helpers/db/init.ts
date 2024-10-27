@@ -457,7 +457,8 @@ export const initFactDataInLocalDb = async ({
   isReset?: boolean;
   setFetchingCb?: (isFetching: boolean) => void;
 }): Promise<TStatus> => {
-  // retrieve data from a remote db { facts: TFactItem[]; favorites: TFavorites }
+  // check if the local db data is initialized
+  // if doesn't, retrieve data from a remote db { facts: TFactItem[]; favorites: TFavorites }
   // fill in the fact tables with the data obtained
   // - save facts in the fact_storage table
   // - save the first 8 facts in the fact_group table

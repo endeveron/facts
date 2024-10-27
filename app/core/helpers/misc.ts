@@ -42,16 +42,6 @@ export const saveLog = async (message: string, type?: TLogType) => {
     type: type ?? 'info',
   };
 
-  // // get logs from storage
-  // let logsFromStorage: TLogItem[] = [];
-  // const logsFromStorageStr = await AsyncStorage.getItem(KEY_DEV_LOGS);
-  // if (logsFromStorageStr) logsFromStorage = JSON.parse(logsFromStorageStr);
-  // // add new log
-  // const newLogs = [log, ...logsFromStorage];
-  // // save to storage
-  // const logsStr = JSON.stringify(newLogs);
-  // await AsyncStorage.setItem(KEY_DEV_LOGS, logsStr);
-
   await addLogToDB(log);
 };
 

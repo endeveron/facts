@@ -1,13 +1,14 @@
 import { enumToArray } from '@/core/helpers/misc';
 import { FactCategories } from '@/core/types/fact';
 
+const factCategories = enumToArray(FactCategories);
+
 /** Limitation on the number of facts to be received per request */
-const FACT_GROUP_LIMIT = 8;
+const FACT_GROUP_LIMIT = factCategories.length;
 /** Limitation on the number of facts to be received for the local db */
-// const FACT_STORAGE_LIMIT = FACT_GROUP_LIMIT * 8;
 const FACT_STORAGE_LIMIT = FACT_GROUP_LIMIT * 128;
 /** Total rate of all categories (sum of values) to enable proportional distribution */
-const FACT_CATEGORIES_DIST_RATE = 48;
+const FACT_CATEGORIES_DIST_RATE = FACT_GROUP_LIMIT * 6;
 /** The number of facts left in group to trigger the retrieval of new group */
 const FACTS_LEFT_TO_FETCH_NEW_ITEMS = 2;
 /** The length of fact list to remove old items */
@@ -30,15 +31,13 @@ const factActions = [
   },
 ];
 
-const factCategories = enumToArray(FactCategories);
-
 const defaultCategoryRateMap = new Map([
-  ['nature', 2],
+  ['nature', 1],
   ['human', 1],
   ['entertainment', 1],
   ['science', 1],
   ['business', 1],
-  ['miscellaneous', 2],
+  ['miscellaneous', 1],
 ]);
 
 const localDbTables = [

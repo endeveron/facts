@@ -182,12 +182,12 @@ const profile = () => {
             containerClassName="m-2 px-6"
             handlePress={handleReset}
           />
-          <Button
+          {/* <Button
             title="Development"
             // variant="secondary"
             containerClassName="m-2 px-6 w-40"
             handlePress={handleDev}
-          />
+          /> */}
         </View>
       </View>
 

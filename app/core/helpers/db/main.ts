@@ -82,11 +82,17 @@ export const getFactDataFromLocalDb =
         // logMessage(errorMessage, 'error');
         return null;
       }
+
+      // handle the case when the user returns to the facts screen
+      // after visiting the categories, update storage offset
+      const offsetMap = await createOffsetMapFromTableData();
+      if (!offsetMap) return null;
+      const totalOffset = calculateSumOfMapValues(offsetMap);
+      cursor.storageOffset = totalOffset;
+
       const favorites = await getFavoriteIdArray();
       const facts = await getFactGroup();
-      // console.log('cursor', cursor);
-      // console.log('favorites', favorites);
-      // console.log('facts', facts);
+
       return {
         cursor,
         favorites,
@@ -107,6 +113,7 @@ export const initCategoryDataInLocalDb = async (
   // - initialize the category_group table
   // - update category offset and save in the fact_offset table
   // - create a category cursor object
+  // - save the cursor into the category_cursor table
 
   try {
     // get favorites
@@ -177,6 +184,7 @@ export const initCategoryDataInLocalDb = async (
       done: false,
     };
 
+    // save cursor data into the category_cursor table
     const cursorInitSuccess = await initCategoryCursorTable(cursor);
     if (!cursorInitSuccess) return null;
 
@@ -732,7 +740,7 @@ export const initCategoryGroupTable = async (
 
     const { facts } = factsResult;
 
-    // init category group table
+    // init category_group table
     statement = await db.prepareAsync(`
       INSERT INTO category_group (id, 'index', category, title) 
       VALUES ($id, $index, $category, $title)
@@ -904,8 +912,8 @@ export const addFactsToGroup = async ({
       curFactId: cursor.curFactId,
       groupLength: updGroupLength,
       leftInGroup: cursor.leftInGroup + newFactsLength,
-      leftInStorage: cursor.leftInStorage - newFactsLength,
-      storageOffset: updGroupLength,
+      leftInStorage: cursor.leftInStorage,
+      storageOffset: cursor.storageOffset,
       done,
     };
 
@@ -971,9 +979,6 @@ export const addFactsToCategoryGroup = async ({
       };
     }
 
-    // update the fact group length
-    const updGroupLength = curGroupLength + newFactsLength;
-
     // check fact deficit (the length of the received facts is less than expected)
     if (deficit > 0) {
       await logMessage(
@@ -983,6 +988,7 @@ export const addFactsToCategoryGroup = async ({
     }
 
     // update the cursor
+    const updGroupLength = curGroupLength + newFactsLength;
     const newCursor = {
       category: cursor.category,
       curFactIndex: cursor.curFactIndex,
@@ -994,20 +1000,20 @@ export const addFactsToCategoryGroup = async ({
       done: cursor.done,
     };
 
-    console.log(
-      'BB curGroup',
-      currentGroup.map((f) => ({
-        i: f.index,
-        t: f.title,
-      }))
-    );
-    console.log(
-      'BB stoGroup',
-      facts.map((f) => ({
-        i: f.index,
-        t: f.title,
-      }))
-    );
+    // console.log(
+    //   'BB curGroup',
+    //   currentGroup.map((f) => ({
+    //     i: f.index,
+    //     t: f.title,
+    //   }))
+    // );
+    // console.log(
+    //   'BB stoGroup',
+    //   facts.map((f) => ({
+    //     i: f.index,
+    //     t: f.title,
+    //   }))
+    // );
 
     // add facts to the category_group table
     const updGroupSuccess = await addFactsToCategoryGroupTable({
@@ -1019,13 +1025,13 @@ export const addFactsToCategoryGroup = async ({
 
     const newGroup = await getFactGroup(category);
 
-    console.log(
-      'BB newGroup',
-      facts.map((f) => ({
-        i: f.index,
-        t: f.title,
-      }))
-    );
+    // console.log(
+    //   'BB newGroup',
+    //   facts.map((f) => ({
+    //     i: f.index,
+    //     t: f.title,
+    //   }))
+    // );
 
     return {
       newCursor,
@@ -1112,12 +1118,6 @@ export const addFactsOnScroll = async ({
     await logMessage(`[ FC ] unable to get new facts`, 'error');
     return null;
   }
-  // if (category) {
-  //   // update cursor data
-  //   addFactsResult.newCursor.storageOffset += 1;
-  //   addFactsResult.newCursor.leftInStorage -= 1;
-  //   addFactsResult.newCursor.leftInGroup -= 1;
-  // }
 
   return addFactsResult;
 };

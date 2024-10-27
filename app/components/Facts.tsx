@@ -1,5 +1,5 @@
 import { useLocalSearchParams } from 'expo-router';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import {
   Animated,
   Dimensions,
@@ -17,28 +17,25 @@ import TextFileIcon from '@/components/svg/TextFileIcon';
 import UserIcon from '@/components/svg/UserIcon';
 import { Text } from '@/components/Text';
 import { SHARE_TITLE } from '@/core/constants';
-import { useSession } from '@/core/context/SessionProvider';
-import { initFactDataInLocalDb } from '@/core/helpers/db/init';
-import {
-  addFactsOnScroll,
-  addFactsToCategoryGroup,
-  addFactsToGroup,
-  truncateFactsOnScroll,
-  getFactDataFromLocalDb,
-  increaseFactOffset,
-  initCategoryDataInLocalDb,
-  updateCursorTable,
-  updateFavoritesTable,
-} from '@/core/helpers/db/main';
-import { logMessage, wait } from '@/core/helpers/misc';
-import { TAddFactsToGroupResult, TFactCursor } from '@/core/types/db';
-import { TFactItem } from '@/core/types/fact';
 import {
   FACT_GROUP_LIMIT,
   FACTS_LEFT_TO_FETCH_NEW_ITEMS,
   FACTS_LENGTH_TO_DECREASE_LIST,
 } from '@/core/constants/facts';
-import { createOffsetMapFromTableData } from '@/core/helpers/db/maps';
+import { useSession } from '@/core/context/SessionProvider';
+import { initFactDataInLocalDb } from '@/core/helpers/db/init';
+import {
+  addFactsOnScroll,
+  getFactDataFromLocalDb,
+  increaseFactOffset,
+  initCategoryDataInLocalDb,
+  truncateFactsOnScroll,
+  updateCursorTable,
+  updateFavoritesTable,
+} from '@/core/helpers/db/main';
+import { logMessage, wait } from '@/core/helpers/misc';
+import { TFactCursor } from '@/core/types/db';
+import { TFactItem } from '@/core/types/fact';
 
 // get the height of device window
 const windowHeight = Dimensions.get('window').height;
@@ -80,6 +77,8 @@ const navItems: TNavbarItem[] = [
   },
 ];
 
+const SCROLL_DELAY = 500;
+
 const Facts = () => {
   const { session } = useSession();
   if (!session?.token) return null;
@@ -90,10 +89,12 @@ const Facts = () => {
   const [cursor, setCursor] = useState<TFactCursor>();
   const [favorites, setFavorites] = useState<string[]>([]);
   const [facts, setFacts] = useState<TFactItem[]>([]);
+  const [scrollEnabled, setScrollEnabled] = useState(true);
 
+  const fadeListRef = useRef(new Animated.Value(0)).current;
+  const fadeSkeletonRef = useRef(new Animated.Value(0)).current;
   const flatListRef = useRef<FlatList<TFactItem>>(null);
-  const fadeList = useRef(new Animated.Value(0)).current;
-  const fadeSkeleton = useRef(new Animated.Value(0)).current;
+  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const userId = session.user.id;
   const token = session.token;
@@ -101,10 +102,8 @@ const Facts = () => {
   const category = factCategory ? (factCategory as string) : null;
   const nextFactIndex = nextIndex ? (nextIndex as string) : null;
 
-  // console.log('Facts index', nextFactIndex);
-
   const fadeInList = () => {
-    Animated.timing(fadeList, {
+    Animated.timing(fadeListRef, {
       toValue: 1,
       delay: 100,
       ...animTimingConfig,
@@ -112,21 +111,21 @@ const Facts = () => {
   };
 
   const fadeOutList = () => {
-    Animated.timing(fadeList, {
+    Animated.timing(fadeListRef, {
       toValue: 0,
       ...animTimingConfig,
     }).start();
   };
 
   const fadeInSkeleton = () => {
-    Animated.timing(fadeSkeleton, {
+    Animated.timing(fadeSkeletonRef, {
       toValue: 1,
       ...animTimingConfig,
     }).start();
   };
 
   const fadeOutSkeleton = () => {
-    Animated.timing(fadeSkeleton, {
+    Animated.timing(fadeSkeletonRef, {
       toValue: 0,
       ...animTimingConfig,
     }).start();
@@ -180,11 +179,21 @@ const Facts = () => {
     flatListRef.current?.scrollToIndex({
       index,
       animated: false,
-      // animated: true,
     });
   };
 
+  const preventFastScrolling = () => {
+    setScrollEnabled(false);
+    if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
+    scrollTimeoutRef.current = setTimeout(
+      () => setScrollEnabled(true),
+      SCROLL_DELAY
+    );
+  };
+
   const handleScroll = async (item: TFactItem) => {
+    preventFastScrolling();
+
     // update cursor data
     const prevLeftInGroup = cursor!.leftInGroup;
     const newLeftInGroup = facts.length - item.index - 1;
@@ -262,9 +271,9 @@ const Facts = () => {
           await logMessage(`[ FC ] unable to update fact offset`, 'error');
         }
       }
-      // dev
-      const factOffsetMap = await createOffsetMapFromTableData();
-      console.log('offsetMap', factOffsetMap);
+      // // dev
+      // const factOffsetMap = await createOffsetMapFromTableData();
+      // console.log('offsetMap', factOffsetMap);
     } catch (err: any) {
       console.error(err);
     }
@@ -332,10 +341,18 @@ const Facts = () => {
     scrollToItem(data.cursor.curFactIndex);
   };
 
-  // initialize data, handle the `category` url search param if provided
+  // initialize data on mount, clear timeout on dismount
   useEffect(() => {
+    // handle the `category` url search param if provided
     if (category) initCategoryData();
     else initFactData();
+
+    // clear timeout on component unmount
+    return () => {
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
+      }
+    };
   }, []);
 
   // fade in list
@@ -395,13 +412,16 @@ const Facts = () => {
       </View>
       <Navbar navItems={navItems} onPress={handleNavbarPress} />
       {factsLength && cursor?.curFactId ? (
-        <Animated.View style={{ opacity: fadeList }}>
+        <Animated.View style={{ opacity: fadeListRef }}>
           <FlatList
             ref={flatListRef}
             data={facts}
             className="relative"
             snapToAlignment="start" // 'start' - important to avoid item displacement on lazy load
             decelerationRate="normal"
+            initialNumToRender={FACT_GROUP_LIMIT}
+            maxToRenderPerBatch={FACT_GROUP_LIMIT}
+            scrollEnabled={scrollEnabled} // control scrolling dynamically
             snapToInterval={windowHeight}
             keyExtractor={(item) => item.id}
             getItemLayout={getItemLayout}
@@ -422,7 +442,7 @@ const Facts = () => {
       ) : fetching ? (
         <Animated.View
           className="flex-1 items-center justify-center"
-          style={{ opacity: fadeSkeleton }}
+          style={{ opacity: fadeSkeletonRef }}
         >
           <Skeleton containerClassName="h-[480px] -translate-y-16 p-4">
             <Text className="h-4 w-1/5 -mt-4 rounded-full bg-slate-600 opacity-80"></Text>
@@ -435,4 +455,4 @@ const Facts = () => {
   );
 };
 
-export default Facts;
+export default memo(Facts);

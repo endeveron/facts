@@ -1,6 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
 
-import { FACT_PROPS } from '../constants/facts';
 import { HttpError } from '../helpers/error';
 import { createCategoryMap } from '../helpers/facts';
 import { isReqValid } from '../helpers/http';
@@ -31,7 +30,7 @@ export const getFavorites = async (
 
     const favoriteFacts = await FactModel.find({
       _id: { $in: favoriteIdArr },
-    }).select(FACT_PROPS);
+    });
 
     const serializedFavorites = favoriteFacts.map(
       ({ _id, title, category }) => ({
@@ -75,8 +74,8 @@ export const resetFacts = async (
       data: {},
     });
   } catch (err) {
-    logger.r('getUser', err);
-    return next(new HttpError('Unable to retrieve user data.', 500));
+    logger.r('resetFacts', err);
+    return next(new HttpError('Unable to reset facts.', 500));
   }
 };
 
