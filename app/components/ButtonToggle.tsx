@@ -1,6 +1,6 @@
 import classNames from 'classnames';
 import { useEffect, useState } from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { View } from 'react-native';
 import Animated, {
   useSharedValue,
   withRepeat,

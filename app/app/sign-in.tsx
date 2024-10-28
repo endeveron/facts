@@ -40,7 +40,7 @@ const SignIn = () => {
         password: data.password,
       });
       if (loggedIn) {
-        await logMessage('[ AU ] signed in');
+        await logMessage('[ AU ] signed in', 'success');
         router.replace(DEFAULT_REDIRECT_URL);
       }
     } catch (error: any) {

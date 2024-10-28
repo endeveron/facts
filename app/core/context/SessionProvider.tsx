@@ -129,18 +129,18 @@ const SessionProvider = ({ children }: PropsWithChildren) => {
 
   const signOut = async () => {
     try {
-      // reset facts data in remote db
-      const resetFactsRes = await getResetFacts({
-        token: session?.token as string,
-        userId: session?.user.id as string,
-      });
-      if (resetFactsRes?.error) {
-        await logMessage(
-          `[ CL ] unable to reset facts data in db: ${resetFactsRes.error.message}`,
-          'error'
-        );
-      }
-      await logMessage('[ CL ] facts data is reset in DB', 'success');
+      // // reset facts data in remote db
+      // const resetFactsRes = await getResetFacts({
+      //   token: session?.token as string,
+      //   userId: session?.user.id as string,
+      // });
+      // if (resetFactsRes?.error) {
+      //   await logMessage(
+      //     `[ CL ] unable to reset facts data in db: ${resetFactsRes.error.message}`,
+      //     'error'
+      //   );
+      // }
+      // await logMessage('[ CL ] facts data is reset in DB', 'success');
 
       // delete auth data from store
       const authRes = await deleteAuthDataFromSecureStore();
@@ -152,38 +152,38 @@ const SessionProvider = ({ children }: PropsWithChildren) => {
       }
       await logMessage('[ CL ] auth data removed from store', 'success');
 
-      // delete notification subscription data from store
-      const subRes = await deleteNotifSubFromSecureStore();
-      if (subRes?.error) {
-        await logMessage(
-          `[ CL ] unable to delete notification subscription data from store: ${subRes.error.message}`,
-          'error'
-        );
-      }
-      await logMessage(
-        '[ CL ] subscription data removed from store',
-        'success'
-      );
+      // // delete notification subscription data from store
+      // const subRes = await deleteNotifSubFromSecureStore();
+      // if (subRes?.error) {
+      //   await logMessage(
+      //     `[ CL ] unable to delete notification subscription data from store: ${subRes.error.message}`,
+      //     'error'
+      //   );
+      // }
+      // await logMessage(
+      //   '[ CL ] subscription data removed from store',
+      //   'success'
+      // );
 
-      // reset subscription status in storage
-      const subStatRes = await removeNotifSubFetchedFromAsyncStorage();
-      if (subStatRes?.error) {
-        await logMessage(
-          `[ CL ] unable to reset subscription status in storage: ${subStatRes.error.message}`,
-          'error'
-        );
-      }
-      await logMessage(
-        '[ CL ] subscription status is reset in storage',
-        'success'
-      );
+      // // reset subscription status in storage
+      // const subStatRes = await removeNotifSubFetchedFromAsyncStorage();
+      // if (subStatRes?.error) {
+      //   await logMessage(
+      //     `[ CL ] unable to reset subscription status in storage: ${subStatRes.error.message}`,
+      //     'error'
+      //   );
+      // }
+      // await logMessage(
+      //   '[ CL ] subscription status is reset in storage',
+      //   'success'
+      // );
 
       // unregister tasts
       await TaskManager.unregisterAllTasksAsync();
       await logMessage('[ CL ] all tasks unregistered', 'success');
 
-      // dev
-      await logStoreData();
+      // // dev
+      // await logStoreData();
 
       // reset auth session
       setSession(null);

@@ -6,7 +6,6 @@ import {
   KEY_AUTH_USER,
   KEY_FACTS_STATE_TIMESTAMP,
   KEY_LOCAL_DB_FACTS_INIT,
-  KEY_NOTIF_PERMISSION_GRANTED,
   KEY_NOTIF_SUBSCR,
   KEY_NOTIF_SUBSCR_FETCHED,
 } from '@/core/constants';
@@ -327,100 +326,3 @@ export const getLocalDbFactsInitFromAsyncStorage = async (): Promise<
     return null;
   }
 };
-
-// /**
-//  * Stores notifications schedule in AsyncStorage.
-//  * @param args - object of type { hour: number }
-//  * @returns a Promise that resolves to an object of type
-//  * `TResponse` TStatus indicating success or failure.
-//  */
-// export const saveNotifScheduleInAsyncStorage = async (
-//   schedule: string
-// ): Promise<TResponse<TStatus>> => {
-//   try {
-//     const subResult = await getNotifSubFromSecureStore();
-//     if (subResult.error) {
-//       logMessage(
-//         `[ NS ] get subscription from store: ${subResult.error.message}`,
-//         'error'
-//       );
-//       return {
-//         data: null,
-//         error: { message: subResult.error.message },
-//       };
-//     }
-//     const getErrMessage = 'Could not get schedule from store';
-//     if (!subResult || !subResult.data) {
-//       logMessage(
-//         `[ NS ] get subscription from store: ${getErrMessage}`,
-//         'error'
-//       );
-//       return {
-//         data: null,
-//         error: { message: getErrMessage },
-//       };
-//     }
-
-//     const subscription = subResult.data;
-//     subscription.schedule = schedule;
-
-//     const saveRes = await saveNotifSubInSecureStore(subscription);
-//     if (saveRes.error) {
-//       logMessage(
-//         `[ NS ] save subscription in store: ${saveRes.error.message}`,
-//         'error'
-//       );
-//       return {
-//         data: null,
-//         error: { message: saveRes.error.message },
-//       };
-//     }
-//     const saveErrMessage = 'Could not save subscription in store';
-//     if (!saveRes || !saveRes.data) {
-//       logMessage(
-//         `[ NS ] save subscription in store: ${saveErrMessage}`,
-//         'error'
-//       );
-//       return {
-//         data: null,
-//         error: { message: saveErrMessage },
-//       };
-//     }
-
-//     return {
-//       data: { success: true },
-//       error: null,
-//     };
-//   } catch (err: any) {
-//     console.error(err);
-//     return {
-//       data: null,
-//       error: { message: 'Could not save schedule' },
-//     };
-//   }
-// };
-
-// /**
-//  * Retrieves notifications schedule from AsyncStorage.
-//  * @returns a Promise that resolves to an object of type
-//  * `TResponse` schedule: string
-//  */
-// export const getNotifScheduleFromAsyncStorage = async (): Promise<
-//   TResponse<string | null>
-// > => {
-//   const result = await AsyncStorage.getItem(KEY_NOTIF_SUBSCR);
-//   if (!result) {
-//     return {
-//       data: null,
-//       error: { message: 'Unable to get data from store' },
-//     };
-//   }
-//   const subscription = JSON.parse(result);
-//   return {
-//     data: subscription.schedule,
-//     error: null,
-//   };
-// };
-
-// export const removeNotifScheduleFromAsyncStorage =
-//   async (): Promise<void> => {};
