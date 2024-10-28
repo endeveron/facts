@@ -12,8 +12,9 @@ import {
 import { commonHeaders } from '@/core/constants/api';
 import { consoleClors } from '@/core/constants/colors';
 import { factActions } from '@/core/constants/facts';
-import { getTimeFromNow, logMessage } from '@/core/helpers/misc';
+import { getTimeFromNow, logMessage, wait } from '@/core/helpers/misc';
 import {
+  getNotifSubFetchedFromAsyncStorage,
   getNotifSubFromSecureStore,
   saveNotifSubFetchedInAsyncStorage,
   saveNotifSubInSecureStore,
@@ -29,6 +30,7 @@ import {
   TNotificationSubscription,
 } from '@/core/types/notification';
 import { TaskManagerTaskExecutor } from 'expo-task-manager';
+import { Alert, Linking } from 'react-native';
 
 export const logNotificationData = async (
   notification: Notifications.Notification
@@ -281,6 +283,45 @@ TAuthData & {
   }
 };
 
+export const checkNotifPermissions = async (): Promise<boolean | null> => {
+  try {
+    if (Device.isDevice) {
+      const { status: existingStatus } =
+        await Notifications.getPermissionsAsync();
+      let finalStatus = existingStatus;
+      if (existingStatus !== 'granted') {
+        const { status } = await Notifications.requestPermissionsAsync();
+        finalStatus = status;
+      }
+      if (finalStatus !== 'granted') {
+        // notify user and provide a way to enable notifications
+        Alert.alert(
+          'Notification Permission',
+          'Please allow app notifications in your settings',
+          [
+            {
+              text: 'Go to Settings',
+              onPress: () => {
+                Linking.openSettings(); // for android
+              },
+            },
+            { text: 'Cancel', style: 'cancel' },
+          ]
+        );
+      }
+
+      await wait(2000);
+      const { status: newStatus } = await Notifications.getPermissionsAsync();
+      return newStatus === 'granted';
+    }
+    return null;
+  } catch (error: any) {
+    console.error(`askForNotifPermissions ${error}`);
+    logMessage('unable to get notification permissions', 'error');
+    return null;
+  }
+};
+
 export const scheduleNotification = async ({
   hour,
   minute,
@@ -300,11 +341,12 @@ export const scheduleNotification = async ({
   // - update it and save in secure store
   // - update subscription in remote db
 
-  // create schedule string
-  const schedule = createScheduleString();
   let subscription: TNotificationSubscription;
 
   try {
+    // create schedule string
+    const schedule = createScheduleString();
+
     // schedule local notification (also with buttons)
     const notificationId = await Notifications.scheduleNotificationAsync({
       content: {
@@ -540,10 +582,7 @@ export const unscheduleNotification = async ({
 };
 
 const handleRegistrationError = async (errorMessage: string) => {
-  await logMessage(
-    `Push notification service registration error: ${errorMessage}`,
-    'error'
-  );
+  await logMessage(`[ NS ] ${errorMessage}`, 'error');
   return {
     data: null,
     error: {
@@ -561,10 +600,8 @@ export const registerPushNotificationService = async ({
   token,
   userId,
   subscription,
-}: // subscrSource,
-TAuthData & {
+}: TAuthData & {
   subscription: TNotificationSubscription | null;
-  // subscrSource: string | null;
 }): Promise<
   | TResponse<{
       subscription: TNotificationSubscription;
@@ -581,7 +618,6 @@ TAuthData & {
   };
 
   try {
-    // if (Platform.OS === 'android') {}
     if (Device.isDevice) {
       const { status: existingStatus } =
         await Notifications.getPermissionsAsync();
@@ -592,14 +628,14 @@ TAuthData & {
       }
       if (finalStatus !== 'granted') {
         return handleRegistrationError(
-          'Permission not granted to get push token'
+          'permission not granted to get push token'
         );
       }
       const projectId =
         Constants?.expoConfig?.extra?.eas?.projectId ??
         Constants?.easConfig?.projectId;
       if (!projectId) {
-        return handleRegistrationError('Project ID not found');
+        return handleRegistrationError('project id not found');
       }
 
       expoPushToken = (

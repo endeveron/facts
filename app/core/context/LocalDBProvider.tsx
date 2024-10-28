@@ -59,7 +59,6 @@ const Logs = ({ children }: PropsWithChildren) => {
 };
 
 const LocalDBProvider = ({ children }: PropsWithChildren) => {
-  // console.log('LocalDBProvider');
   return (
     <SQLite.SQLiteProvider databaseName={LOCAL_DB_NAME}>
       <Logs>{children}</Logs>

@@ -85,16 +85,12 @@ const profile = () => {
     }
   };
 
-  const handleDev = async () => {
-    try {
-      // const cursor = await getCursor();
-      // const group = await getFactGroup();
-      // console.log('cursor', cursor);
-      // console.log('group', group);
-    } catch (err: any) {
-      console.error(err);
-    }
-  };
+  // const handleDev = async () => {
+  //   try {
+  //   } catch (err: any) {
+  //     console.error(err);
+  //   }
+  // };
 
   const handleReset = async () => {
     try {

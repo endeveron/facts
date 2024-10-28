@@ -28,6 +28,7 @@ const KEY_LOCAL_DB_FACTS_INIT = 'local_db_facts_init';
 const KEY_FACTS_STATE_TIMESTAMP = 'facts_state_timestamp';
 const KEY_NOTIF_SUBSCR = 'notif_subscription';
 const KEY_NOTIF_SUBSCR_FETCHED = 'notif_subscription_fetched';
+const KEY_NOTIF_PERMISSION_GRANTED = 'notif_permission_granted';
 
 export {
   API_BASE_URL,
@@ -41,6 +42,7 @@ export {
   KEY_FACTS_STATE_TIMESTAMP,
   KEY_NOTIF_SUBSCR,
   KEY_NOTIF_SUBSCR_FETCHED,
+  KEY_NOTIF_PERMISSION_GRANTED,
   NOTIFICATION_BACKGROUND_TASK,
   NOTIFICATION_REMINDER_BODY,
   NOTIFICATION_REMINDER_TITLE,

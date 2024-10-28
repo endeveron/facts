@@ -368,13 +368,6 @@ export const getFactsFromStorage = async ({
       }
     }
 
-    // // dev
-    // const ngmap = factItems.map((d) => ({
-    //   index: d.index,
-    //   title: d.title.substring(0, 50),
-    // }));
-    // console.log('NewGroup', ngmap);
-
     // assign the correct indexes
     const startIndex = currentGroup.length;
     factItems = factItems.map(({ index, ...rest }, newIndex) => ({
@@ -670,11 +663,6 @@ export const addFactsToFactGroupTable = async (
     // get facts for the current category from the fact_group table
     const factsInGroup = await getFactGroup();
 
-    // const query = `SELECT * FROM fact_group;`;
-    // const data: TFactItem[] = await db.getAllAsync<TFactGroupTableItem>(query);
-    // const prevFactsMap = data.map((d) => ({ index: d.index, title: d.title }));
-    // console.log('PrevCatGroup', prevFactsMap);
-
     statement = await db.prepareAsync(`
       INSERT INTO fact_group (id, 'index', category, title) 
       VALUES ($id, $index, $category, $title)
@@ -691,15 +679,6 @@ export const addFactsToFactGroupTable = async (
         $title: fact.title,
       });
     }
-
-    // const newData: TFactItem[] = await db.getAllAsync<TFactGroupTableItem>(
-    //   query
-    // );
-    // const newFactsMap = newData.map((d) => ({
-    //   index: d.index,
-    //   title: d.title,
-    // }));
-    // console.log('NewCatGroup', newFactsMap);
 
     return true;
   } catch (error: any) {
@@ -781,11 +760,6 @@ export const addFactsToCategoryGroupTable = async ({
     // get facts for the current category from the category_group table
     const factsInGroup = await getFactGroup(category);
 
-    // const query = `SELECT * FROM category_group;`;
-    // const data: TFactItem[] = await db.getAllAsync<TFactGroupTableItem>(query);
-    // const prevFactsMap = data.map((d) => ({ index: d.index, title: d.title }));
-    // console.log('PrevCatGroup', prevFactsMap);
-
     statement = await db.prepareAsync(`
       INSERT INTO category_group (id, 'index', category, title) 
       VALUES ($id, $index, $category, $title)
@@ -802,15 +776,6 @@ export const addFactsToCategoryGroupTable = async ({
         $title: fact.title,
       });
     }
-
-    // const newData: TFactItem[] = await db.getAllAsync<TFactGroupTableItem>(
-    //   query
-    // );
-    // const newFactsMap = newData.map((d) => ({
-    //   index: d.index,
-    //   title: d.title,
-    // }));
-    // console.log('NewCatGroup', newFactsMap);
 
     return true;
   } catch (error: any) {
@@ -1149,11 +1114,6 @@ export const truncateFactsOnScroll = async ({
     ...rest,
   }));
 
-  // console.log('truncatedGroup', truncatedGroup);
-  // console.log('newGroup', newGroup);
-  // console.log('newCursor', newCursor);
-
-  // await updateCursorTable(newCursor, category);
   await updateFactGroupTable(newGroup, category);
 
   return {

@@ -17,8 +17,10 @@ const ScheduleNotification = () => {
   } = useNotifications();
 
   const [isActive, setIsActive] = useState(isSubscription);
+  const [isLoading, setIsLoading] = useState(isSubscription);
 
   const handleToggle = async () => {
+    setIsLoading(true);
     if (isActive) {
       unscheduleDailyNotification();
     } else {
@@ -27,6 +29,7 @@ const ScheduleNotification = () => {
   };
 
   useEffect(() => {
+    if (isLoading) setIsLoading(false);
     setIsActive(isSubscription);
   }, [isSubscription]);
 
@@ -35,7 +38,11 @@ const ScheduleNotification = () => {
       <Text colorName="muted" className="text-base font-psemibold">
         Daily Notification
       </Text>
-      <ButtonToggle isActive={isActive} onChange={handleToggle} />
+      <ButtonToggle
+        isActive={isActive}
+        isLoading={isLoading}
+        onChange={handleToggle}
+      />
     </View>
   );
 };

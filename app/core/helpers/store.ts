@@ -6,6 +6,7 @@ import {
   KEY_AUTH_USER,
   KEY_FACTS_STATE_TIMESTAMP,
   KEY_LOCAL_DB_FACTS_INIT,
+  KEY_NOTIF_PERMISSION_GRANTED,
   KEY_NOTIF_SUBSCR,
   KEY_NOTIF_SUBSCR_FETCHED,
 } from '@/core/constants';
@@ -36,7 +37,6 @@ export const getAuthDataFromSecureStore = async (): Promise<
       };
     }
     const user = JSON.parse(userStr as string);
-    // console.log('Auth data retrieved from store.');
     return {
       data: {
         token,
@@ -69,7 +69,6 @@ export const saveAuthDataInSecureStore = async ({
     // add user data
     const userStr = JSON.stringify(user);
     await SecureStore.setItemAsync(KEY_AUTH_USER, userStr);
-    // console.log('Auth data saved to storage.');
     return {
       data: { success: true },
       error: null,
@@ -190,7 +189,7 @@ export const saveNotifSubFetchedInAsyncStorage = async (): Promise<
   TResponse<TStatus>
 > => {
   try {
-    await AsyncStorage.setItem(KEY_NOTIF_SUBSCR_FETCHED, '1');
+    await AsyncStorage.setItem(KEY_NOTIF_SUBSCR_FETCHED, 'true');
     return {
       data: { success: true },
       error: null,
@@ -255,7 +254,7 @@ export const getNotifSubFetchedFromAsyncStorage = async (): Promise<
 };
 
 /**
- * Saves notification subscription fetched status in AsyncStorage.
+ * Saves the facts latest update timestamp in AsyncStorage.
  * @returns a Promise that resolves to an object of type
  * `TResponse` TStatus indicating success or failure.
  */
@@ -281,7 +280,7 @@ export const saveFactsUpdTimestampInAsyncStorage = async (
 };
 
 /**
- * Get notification subscription fetched status in AsyncStorage.
+ * Get the facts latest update timestamp from AsyncStorage.
  * @returns a Promise that resolves to an object of type
  * `TResponse` isFetched: boolean
  */

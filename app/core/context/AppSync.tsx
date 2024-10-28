@@ -11,7 +11,6 @@ import {
 const APP_SYNC_PERIOD = 24 * 60 * 60 * 1000; // 24 hours
 
 const AppSync = ({ children }: PropsWithChildren) => {
-  // console.log('AppSync');
   const { session } = useSession();
 
   const exportData = async () => {

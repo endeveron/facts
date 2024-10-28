@@ -1,5 +1,5 @@
 import * as Notifications from 'expo-notifications';
-import { router, useLocalSearchParams } from 'expo-router';
+import { router } from 'expo-router';
 import * as TaskManager from 'expo-task-manager';
 import {
   createContext,
@@ -18,12 +18,14 @@ import { useSession } from '@/core/context/SessionProvider';
 import { openNextFact } from '@/core/helpers/db/main';
 import { getTimeFromNow, logMessage } from '@/core/helpers/misc';
 import {
+  checkNotifPermissions,
   handleBackgroundNotification,
   handleForegroundNotification,
   handleNotificationClick,
   logNotificationData,
   logScheduledNotifications,
   registerPushNotificationService,
+  resetNotificationSubscriptions,
   scheduleNotification,
   unscheduleNotification,
 } from '@/core/helpers/notification';
@@ -54,10 +56,6 @@ type TNotificContextProps = {
   setIsSubscription: (value: boolean) => void;
   scheduleDailyNotification: () => Promise<void>;
   unscheduleDailyNotification: () => Promise<void>;
-  // expoPushToken: string;
-  // notification: Notifications.Notification | undefined;
-  // response: Notifications.NotificationResponse | null;
-  // sendNotification: (config: TNotificationConfig) => Promise<void>;
 };
 
 const NotificContext = createContext<TNotificContextProps>({
@@ -65,10 +63,6 @@ const NotificContext = createContext<TNotificContextProps>({
   setIsSubscription: () => {},
   scheduleDailyNotification: async () => {},
   unscheduleDailyNotification: async () => {},
-  // expoPushToken: '',
-  // notification: undefined,
-  // response: null,
-  // sendNotification: async () => {},
 });
 
 export const useNotifications = () => {
@@ -84,7 +78,6 @@ export const useNotifications = () => {
 };
 
 const NotificProvider = ({ children }: PropsWithChildren) => {
-  // console.log('NotificProvider');
   const { session } = useSession();
   const { showToast } = useToast();
 
@@ -98,7 +91,6 @@ const NotificProvider = ({ children }: PropsWithChildren) => {
 
   const registerService = async (
     subscription: TNotificationSubscription | null
-    // subscrSource: string | null
   ) => {
     if (!token || !userId) return;
 
@@ -108,7 +100,6 @@ const NotificProvider = ({ children }: PropsWithChildren) => {
         token,
         userId,
         subscription,
-        // subscrSource,
       });
 
       if (!serviceRes) {
@@ -152,66 +143,66 @@ const NotificProvider = ({ children }: PropsWithChildren) => {
   const initService = async () => {
     const defaultErrorMsg = 'unable to handle subscription';
 
-    await logMessage('[ NS ] start notification service');
-
-    const loadSubscriptionDataFromStore = async () => {
-      const result = await getNotifSubFromSecureStore();
-
-      if (result.error) {
-        await logMessage(`[ NS ] ${result.error.message}`, 'error');
-        return;
-      }
-      if (!result || result.error) {
-        showToast('Unable to get subscription state');
-        return;
-      }
-      if (!result.data) return;
-
-      await logMessage('[ NS ] subscription data already recieved');
-
-      // update local state
-      const isActive = result.data.isActive;
-      setIsSubscription(isActive);
-      await logMessage(
-        `[ NS ] subscription is ${isActive ? 'enabled' : 'disabled'}`
-      );
-
-      return {
-        subscription: result.data,
-        subscrSource: 'store',
-      };
-    };
-
-    const fetchSubscriptionDataFromRemoteDb = async () => {
-      await logMessage('[ NS ] fetching subscription data');
-
-      // fetch data
-      const result = await getSubscription({ token, userId });
-      if (result.error) {
-        await logMessage(`[ NS ] ${result.error.message}`, 'error');
-        return null;
-      }
-
-      const subscription = result.data;
-
-      if (subscription === null) {
-        await logMessage('[ NS ] no subscription in remote db');
-        return null;
-      }
-
-      await logMessage('[ NS ] subscription fetched from remote db');
-
-      if (subscription.isActive === false) {
-        await logMessage('[ NS ] subscription is disabled');
-      }
-
-      // save subscription data in the secure store
-      await saveNotifSubInSecureStore(subscription);
-
-      return subscription;
-    };
-
     try {
+      await logMessage('[ NS ] start notification service');
+
+      const loadSubscriptionDataFromStore = async () => {
+        const result = await getNotifSubFromSecureStore();
+
+        if (result.error) {
+          await logMessage(`[ NS ] ${result.error.message}`, 'error');
+          return;
+        }
+        if (!result || result.error) {
+          showToast('Unable to get subscription state');
+          return;
+        }
+        if (!result.data) return;
+
+        await logMessage('[ NS ] subscription data already recieved');
+
+        // update local state
+        const isActive = result.data.isActive;
+        setIsSubscription(isActive);
+        await logMessage(
+          `[ NS ] subscription is ${isActive ? 'enabled' : 'disabled'}`
+        );
+
+        return {
+          subscription: result.data,
+          subscrSource: 'store',
+        };
+      };
+
+      const fetchSubscriptionDataFromRemoteDb = async () => {
+        await logMessage('[ NS ] fetching subscription data');
+
+        // fetch data
+        const result = await getSubscription({ token, userId });
+        if (result.error) {
+          await logMessage(`[ NS ] ${result.error.message}`, 'error');
+          return null;
+        }
+
+        const subscription = result.data;
+
+        if (subscription === null) {
+          await logMessage('[ NS ] no subscription in remote db');
+          return null;
+        }
+
+        await logMessage('[ NS ] subscription fetched from remote db');
+
+        if (subscription.isActive === false) {
+          await logMessage('[ NS ] subscription is disabled');
+        }
+
+        // save subscription data in the secure store
+        await saveNotifSubInSecureStore(subscription);
+
+        return subscription;
+      };
+
       // exit if subscription already exists
       const isSubFetched = await getNotifSubFetchedFromAsyncStorage();
 
@@ -232,6 +223,16 @@ const NotificProvider = ({ children }: PropsWithChildren) => {
   const scheduleDailyNotification = async () => {
     if (!token || !userId) return;
     try {
+      // check / ask for permissions
+      const permissionResult = await checkNotifPermissions();
+      if (!permissionResult) return;
+
+      // check if the subscription is already created
+      const scheduledNotifications =
+        await Notifications.getAllScheduledNotificationsAsync();
+      if (scheduledNotifications.length) return;
+
+      // schedule notification
       const { hour, minute } = getTimeFromNow(NOTIFICATION_TIME_SHIFT);
       const result = await scheduleNotification({
         // hour: HOUR,
@@ -247,7 +248,7 @@ const NotificProvider = ({ children }: PropsWithChildren) => {
       }
       if (result.data?.success) {
         await logMessage(`[ NS ] schedule enabled`, 'success');
-        setIsSubscription(true);
+        setIsSubscription(permissionResult);
       }
     } catch (err: any) {
       console.error(err);
@@ -310,12 +311,6 @@ const NotificProvider = ({ children }: PropsWithChildren) => {
       if (responseListener.current) {
         responseListener.current.remove();
       }
-      // notificationListener.current &&
-      //   Notifications.removeNotificationSubscription(
-      //     notificationListener.current
-      //   );
-      // responseListener.current &&
-      //   Notifications.removeNotificationSubscription(responseListener.current);
     };
   }, []);
 
@@ -324,10 +319,6 @@ const NotificProvider = ({ children }: PropsWithChildren) => {
     setIsSubscription,
     scheduleDailyNotification,
     unscheduleDailyNotification,
-    // expoPushToken,
-    // notification,
-    // response,
-    // sendNotification,
   };
 
   return (
