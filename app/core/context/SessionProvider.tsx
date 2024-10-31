@@ -9,23 +9,25 @@ import {
 } from 'react';
 
 import { DEFAULT_REDIRECT_URL } from '@/core/constants';
-import { logMessage, logStoreData } from '@/core/helpers/misc';
+import { logMessage } from '@/core/helpers/misc';
 import {
   deleteAuthDataFromSecureStore,
-  deleteNotifSubFromSecureStore,
   getAuthDataFromSecureStore,
+  getLocalDbFactsInitFromAsyncStorage,
   removeNotifSubFetchedFromAsyncStorage,
   saveAuthDataInSecureStore,
 } from '@/core/helpers/store';
 import { useToast } from '@/core/hooks/useToast';
 import { postSignIn, postSignUp } from '@/core/services/auth';
-import { getResetFacts } from '@/core/services/users';
 import {
   TAuthCredentials,
   TAuthSession,
   TSessionContext,
   TUserAuthData,
 } from '@/core/types/auth';
+import { resetNotificationSubscriptions } from '@/core/helpers/notification';
+import { deleteSubscription } from '@/core/services/notifications';
+import { clearFactTables } from '@/core/helpers/db/init';
 
 const SessionContext = createContext<TSessionContext>({
   session: null,
@@ -50,82 +52,6 @@ const SessionProvider = ({ children }: PropsWithChildren) => {
 
   const [isLoading, setIsLoading] = useState(false);
   const [session, setSession] = useState<TAuthSession>(null);
-
-  /** Updates auth state, adds auth data to SecureStore. */
-  const saveAuthData = async ({ token, user }: TUserAuthData) => {
-    setSession({ token, user });
-    const result = await saveAuthDataInSecureStore({ token, user });
-    if (result.error) {
-      showToast(result.error.message);
-      return;
-    }
-  };
-
-  /** Gets auth data from SecureStore, updates auth state. */
-  const restoreAuthData = async () => {
-    const result = await getAuthDataFromSecureStore();
-    if (result.error) {
-      showToast(result.error.message);
-      return;
-    }
-    setSession(result.data);
-    router.push(DEFAULT_REDIRECT_URL);
-  };
-
-  // try to get auth data from SecureStore
-  useEffect(() => {
-    restoreAuthData();
-  }, []);
-
-  const signUp = async ({
-    name,
-    email,
-    password,
-  }: TAuthCredentials): Promise<boolean | undefined> => {
-    try {
-      setIsLoading(true);
-      const result = await postSignUp({ name, email, password });
-      setIsLoading(false);
-      if (result?.error) {
-        showToast(result.error.message);
-        console.error(result.error.message);
-        return false;
-      }
-      if (result?.data) {
-        await saveAuthData(result.data);
-        return true;
-      }
-    } catch (error: any) {
-      showToast(error.message);
-      console.error(error.message);
-      return false;
-    }
-  };
-
-  const signIn = async ({
-    email,
-    password,
-  }: TAuthCredentials): Promise<boolean | undefined> => {
-    try {
-      setIsLoading(true);
-      const result = await postSignIn({ email, password });
-      setIsLoading(false);
-
-      if (result?.error) {
-        showToast(result.error.message);
-        console.error(result.error.message);
-        return false;
-      }
-      if (result?.data) {
-        await saveAuthData(result.data);
-        return true;
-      }
-    } catch (error: any) {
-      showToast(error.message);
-      console.error(error.message);
-      return false;
-    }
-  };
 
   const signOut = async () => {
     try {
@@ -195,6 +121,99 @@ const SessionProvider = ({ children }: PropsWithChildren) => {
         `[ CL ] unable to clear data. ${error.message}`,
         'error'
       );
+    }
+  };
+
+  /** Updates auth state, adds auth data to SecureStore. */
+  const saveAuthData = async ({ token, user }: TUserAuthData) => {
+    setSession({ token, user });
+
+    const result = await saveAuthDataInSecureStore({ token, user });
+    if (result.error) {
+      showToast(result.error.message);
+      return;
+    }
+  };
+
+  /** Gets auth data from SecureStore, updates auth state. */
+  const restoreAuthData = async () => {
+    const result = await getAuthDataFromSecureStore();
+    if (result.error) {
+      showToast(result.error.message);
+      return;
+    }
+    if (result.data) {
+      const { timestamp: prevTimestamp, ...authData } = result.data;
+      // check if the token is valid
+      const currentTimestamp = Date.now();
+      const tokenValidityTime = 48 * 60 * 60 * 1000; // 48h
+      if (currentTimestamp - prevTimestamp < tokenValidityTime) {
+        setSession(authData);
+        router.push(DEFAULT_REDIRECT_URL);
+      } else {
+        signOut();
+      }
+    }
+  };
+
+  // try to get auth data from SecureStore
+  useEffect(() => {
+    restoreAuthData();
+  }, []);
+
+  const signUp = async ({
+    name,
+    email,
+    password,
+  }: TAuthCredentials): Promise<boolean | undefined> => {
+    try {
+      setIsLoading(true);
+      const result = await postSignUp({ name, email, password });
+      setIsLoading(false);
+      if (result?.error) {
+        showToast(result.error.message);
+        console.error(result.error.message);
+        return false;
+      }
+      if (result?.data) {
+        // check if the local db is already initialized
+        const isDbInit = await getLocalDbFactsInitFromAsyncStorage();
+        if (isDbInit) {
+          await clearFactTables();
+          logMessage(`[ CL ] prev local db data cleared`, 'warning');
+        }
+        await saveAuthData(result.data);
+        return true;
+      }
+    } catch (error: any) {
+      showToast(error.message);
+      console.error(error.message);
+      return false;
+    }
+  };
+
+  const signIn = async ({
+    email,
+    password,
+  }: TAuthCredentials): Promise<boolean | undefined> => {
+    try {
+      setIsLoading(true);
+      const result = await postSignIn({ email, password });
+      setIsLoading(false);
+
+      if (result?.error) {
+        showToast(result.error.message);
+        console.error(result.error.message);
+        return false;
+      }
+      if (result?.data) {
+        await saveAuthData(result.data);
+        return true;
+      }
+    } catch (error: any) {
+      showToast(error.message);
+      console.error(error.message);
+      return false;
     }
   };
 

@@ -22,6 +22,9 @@ export const getSubscription = async ({
       }
     );
     if (!response.ok) {
+      if (response.status === 401) {
+        return { data: null, error: { message: 'unauthenticated' } };
+      }
       return {
         data: null,
         error: { message: defaultErrmsg },
@@ -62,6 +65,9 @@ export const deleteSubscription = async ({
       }
     );
     if (!response.ok) {
+      if (response.status === 401) {
+        return { data: null, error: { message: 'unauthenticated' } };
+      }
       return {
         data: null,
         error: { message: defaultErrmsg },
@@ -108,6 +114,9 @@ export const postSubscription = async ({
       }),
     });
     if (!response.ok) {
+      if (response.status === 401) {
+        return { data: null, error: { message: 'unauthenticated' } };
+      }
       return {
         data: null,
         error: { message: defaultErrmsg },
@@ -152,6 +161,9 @@ export const patchSubscription = async ({
       }),
     });
     if (!response.ok) {
+      if (response.status === 401) {
+        return { data: null, error: { message: 'unauthenticated' } };
+      }
       return {
         data: null,
         error: { message: defaultErrmsg },
@@ -196,6 +208,9 @@ export const postSchedule = async ({
       }),
     });
     if (!response.ok) {
+      if (response.status === 401) {
+        return { data: null, error: { message: 'unauthenticated' } };
+      }
       return {
         data: null,
         error: { message: defaultErrmsg },
@@ -243,6 +258,9 @@ export const deleteSchedule = async ({
       }
     );
     if (!response.ok) {
+      if (response.status === 401) {
+        return { data: null, error: { message: 'unauthenticated' } };
+      }
       return {
         data: null,
         error: { message: defaultErrmsg },

@@ -32,8 +32,10 @@ const AppSync = ({ children }: PropsWithChildren) => {
       });
       if (!isSuccess) {
         await logMessage(`[ AS ] unable to export app state`, 'error');
+        await logMessage(`[ AS ] last app state sync time ${date}`);
+      } else {
+        await logMessage(`[ AS ] app state synchronized ${date}`, 'success');
       }
-      await logMessage(`[ AS ] app state synchronized ${date}`, 'success');
     } catch (err: any) {
       console.error(err);
     }

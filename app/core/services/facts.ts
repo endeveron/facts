@@ -36,7 +36,10 @@ export const getFacts = async ({
       },
     });
     if (!response.ok) {
-      return { data: null, error: { message: 'Could not fetch facts.' } };
+      if (response.status === 401) {
+        return { data: null, error: { message: 'unauthenticated' } };
+      }
+      return { data: null, error: { message: 'could not fetch facts' } };
     }
     const result = await response.json();
     if (result?.data) {
@@ -62,7 +65,10 @@ export const getDataToInitLocalDb = async ({
       },
     });
     if (!response.ok) {
-      return { data: null, error: { message: 'Could not fetch facts.' } };
+      if (response.status === 401) {
+        return { data: null, error: { message: 'unauthenticated' } };
+      }
+      return { data: null, error: { message: 'could not fetch facts' } };
     }
     const result = await response.json();
     if (result?.data) {
@@ -100,7 +106,10 @@ export const getFactsForLocalDbStorage = async ({
       },
     });
     if (!response.ok) {
-      return { data: null, error: { message: 'Could not fetch facts.' } };
+      if (response.status === 401) {
+        return { data: null, error: { message: 'unauthenticated' } };
+      }
+      return { data: null, error: { message: 'unable to fetch facts' } };
     }
     const result = await response.json();
     if (result?.data) {
@@ -137,7 +146,10 @@ export const postFact = async ({
       }),
     });
     if (!response.ok) {
-      return { data: null, error: { message: 'Unable to add fact.' } };
+      if (response.status === 401) {
+        return { data: null, error: { message: 'unauthenticated' } };
+      }
+      return { data: null, error: { message: 'unable to add fact' } };
     }
     const result = await response.json();
     if (result?.data) {
@@ -174,7 +186,10 @@ export const postFactState = async ({
       }),
     });
     if (!response.ok) {
-      return { data: null, error: { message: 'Unable to save fact state.' } };
+      if (response.status === 401) {
+        return { data: null, error: { message: 'unauthenticated' } };
+      }
+      return { data: null, error: { message: 'unable to save fact state' } };
     }
     const result = await response.json();
     if (result?.data) {

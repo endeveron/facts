@@ -25,7 +25,6 @@ import {
   logNotificationData,
   logScheduledNotifications,
   registerPushNotificationService,
-  resetNotificationSubscriptions,
   scheduleNotification,
   unscheduleNotification,
 } from '@/core/helpers/notification';
@@ -235,8 +234,8 @@ const NotificProvider = ({ children }: PropsWithChildren) => {
       // schedule notification
       const { hour, minute } = getTimeFromNow(NOTIFICATION_TIME_SHIFT);
       const result = await scheduleNotification({
-        // hour: HOUR,
-        // minute: MINUTE,
+        // hour: NOTIFICATION_HOUR,
+        // minute: NOTIFICATION_MINUTE,
         hour,
         minute,
         token,

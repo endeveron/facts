@@ -2,15 +2,15 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';
 
 import {
-  KEY_AUTH_TOKEN,
-  KEY_AUTH_USER,
+  KEY_AUTH_DATA,
   KEY_FACTS_STATE_TIMESTAMP,
   KEY_LOCAL_DB_FACTS_INIT,
   KEY_NOTIF_SUBSCR,
   KEY_NOTIF_SUBSCR_FETCHED,
+  KEY_SHOW_STATISTICS,
 } from '@/core/constants';
 import { logMessage } from '@/core/helpers/misc';
-import { TUserAuthData } from '@/core/types/auth';
+import { TStoreAuthData, TUserAuthData } from '@/core/types/auth';
 import { TResponse, TStatus } from '@/core/types/common';
 import { TNotificationSubscription } from '@/core/types/notification';
 
@@ -19,55 +19,45 @@ import { TNotificationSubscription } from '@/core/types/notification';
  * @returns a Promise that resolves to an object of type `TResponse` { token, user }
  */
 export const getAuthDataFromSecureStore = async (): Promise<
-  TResponse<TUserAuthData>
+  TResponse<TStoreAuthData>
 > => {
   try {
-    const token = await SecureStore.getItemAsync(KEY_AUTH_TOKEN);
-    if (!token)
+    const authDataStr = await SecureStore.getItemAsync(KEY_AUTH_DATA);
+    if (!authDataStr)
       return {
         data: null,
         error: null,
       };
-    const userStr = await SecureStore.getItemAsync(KEY_AUTH_USER);
-    if (!userStr) {
-      return {
-        data: null,
-        error: { message: 'Could not get user data from store.' },
-      };
-    }
-    const user = JSON.parse(userStr as string);
+    const data = JSON.parse(authDataStr as string);
     return {
-      data: {
-        token,
-        user,
-      },
+      data,
       error: null,
     };
   } catch (err: any) {
     console.error(err);
     return {
       data: null,
-      error: { message: err.message ?? 'Could not get user data from store.' },
+      error: { message: err.message ?? 'Could not get auth data from store' },
     };
   }
 };
 
 /**
  * Stores authentication data in SecureStore
- * @param authData TUserAuthData
+ * @param authData TStoreAuthData
  * @returns a Promise that resolves to an object of type
  * `TResponse` TStatus indicating success or failure.
  */
-export const saveAuthDataInSecureStore = async ({
-  token,
-  user,
-}: TUserAuthData): Promise<TResponse<TStatus>> => {
+export const saveAuthDataInSecureStore = async (
+  authData: TUserAuthData
+): Promise<TResponse<TStatus>> => {
   try {
-    // add auth token
-    await SecureStore.setItemAsync(KEY_AUTH_TOKEN, token);
-    // add user data
-    const userStr = JSON.stringify(user);
-    await SecureStore.setItemAsync(KEY_AUTH_USER, userStr);
+    const data = {
+      ...authData,
+      timestamp: Date.now(),
+    };
+    const authDataStr = JSON.stringify(data);
+    await SecureStore.setItemAsync(KEY_AUTH_DATA, authDataStr);
     return {
       data: { success: true },
       error: null,
@@ -76,7 +66,7 @@ export const saveAuthDataInSecureStore = async ({
     console.error(err);
     return {
       data: null,
-      error: { message: 'Could not save data to storage' },
+      error: { message: 'Could not save auth data in store' },
     };
   }
 };
@@ -90,8 +80,7 @@ export const deleteAuthDataFromSecureStore = async (): Promise<
   TResponse<TStatus>
 > => {
   try {
-    await SecureStore.deleteItemAsync(KEY_AUTH_TOKEN);
-    await SecureStore.deleteItemAsync(KEY_AUTH_USER);
+    await SecureStore.deleteItemAsync(KEY_AUTH_DATA);
     return {
       data: { success: true },
       error: null,
@@ -300,8 +289,6 @@ export const getFactsUpdTimestampFromAsyncStorage = async (): Promise<
   }
 };
 
-/** Local DB */
-
 export const saveLocalDbFactsInitInAsyncStorage =
   async (): Promise<boolean> => {
     try {
@@ -323,6 +310,33 @@ export const getLocalDbFactsInitFromAsyncStorage = async (): Promise<
   } catch (err: any) {
     console.error(err);
     logMessage('[ ST ] unable to get facts init value', 'error');
+    return null;
+  }
+};
+
+export const saveShowStatisticsInAsyncStorage = async (
+  isShow: boolean
+): Promise<boolean> => {
+  try {
+    await AsyncStorage.setItem(KEY_SHOW_STATISTICS, `${isShow}`);
+    return true;
+  } catch (error: any) {
+    logMessage(`[ ST ] unable save 'show statistics' in storage`, 'error');
+    console.error(`saveShowStatisticsInAsyncStorage: ${error}`);
+    return false;
+  }
+};
+
+export const getShowStatisticsFromAsyncStorage = async (): Promise<
+  boolean | null
+> => {
+  try {
+    const isShow = await AsyncStorage.getItem(KEY_SHOW_STATISTICS);
+    if (isShow === null) return null;
+    return isShow === 'true';
+  } catch (err: any) {
+    console.error(err);
+    logMessage(`[ ST ] unable get 'show statistics' from storage`, 'error');
     return null;
   }
 };

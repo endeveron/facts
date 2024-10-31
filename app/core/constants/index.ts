@@ -14,20 +14,23 @@ const LOCAL_DB_NAME = 'facts.db';
 const SHARE_TITLE = 'Did you know this?';
 const NOTIFICATION_REMINDER_TITLE = 'Facts';
 const NOTIFICATION_REMINDER_BODY = 'Did you know this?';
+const NOTIFICATION_BACKGROUND_TASK = 'notification_background_task';
 
 const NOTIFICATION_TIME_SHIFT = 1 * 60 * 1000; // 1 min
 
 const DEFAULT_REDIRECT_URL = '/facts';
 // const DEFAULT_REDIRECT_URL = '/profile';
 
-const NOTIFICATION_BACKGROUND_TASK = 'notification_background_task';
-
-const KEY_AUTH_TOKEN = 'auth_token';
-const KEY_AUTH_USER = 'auth_user';
+const KEY_AUTH_DATA = 'auth_data';
 const KEY_LOCAL_DB_FACTS_INIT = 'local_db_facts_init';
 const KEY_FACTS_STATE_TIMESTAMP = 'facts_state_timestamp';
 const KEY_NOTIF_SUBSCR = 'notif_subscription';
 const KEY_NOTIF_SUBSCR_FETCHED = 'notif_subscription_fetched';
+
+const KEY_SHOW_STATISTICS = 'show_statistics';
+
+const NOTIFICATION_HOUR = 20;
+const NOTIFICATION_MINUTE = 0;
 
 export {
   API_BASE_URL,
@@ -35,19 +38,18 @@ export {
   AUTH_PASSWORD,
   LOCAL_DB_NAME,
   DEFAULT_REDIRECT_URL,
-  KEY_AUTH_TOKEN,
-  KEY_AUTH_USER,
+  KEY_AUTH_DATA,
   KEY_LOCAL_DB_FACTS_INIT,
   KEY_FACTS_STATE_TIMESTAMP,
   KEY_NOTIF_SUBSCR,
   KEY_NOTIF_SUBSCR_FETCHED,
+  KEY_SHOW_STATISTICS,
   NOTIFICATION_BACKGROUND_TASK,
   NOTIFICATION_REMINDER_BODY,
   NOTIFICATION_REMINDER_TITLE,
   NOTIFICATIONS_KEY,
   NOTIFICATION_TIME_SHIFT,
+  NOTIFICATION_HOUR,
+  NOTIFICATION_MINUTE,
   SHARE_TITLE,
 };
-
-export const HOUR = 20;
-export const MINUTE = 0;

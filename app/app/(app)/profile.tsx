@@ -3,13 +3,14 @@ import { View } from 'react-native';
 import { Button } from '@/components/Button';
 import Favorites from '@/components/Favorites';
 import { NavItemName, TNavbarItem } from '@/components/Navbar';
-import ScheduleNotification from '@/components/ScheduleNotification';
 import ScrollScreen from '@/components/ScrollScreen';
 import CategoriesIcon from '@/components/svg/CategoriesIcon';
 import LogsIcon from '@/components/svg/LogsIcon';
 import PlusSquaredIcon from '@/components/svg/PlusSquaredIcon';
 import TextFileIcon from '@/components/svg/TextFileIcon';
 import { Text } from '@/components/Text';
+import ToggleNotificationSchedule from '@/components/ToggleNotificationSchedule';
+import ToggleStatistics from '@/components/ToggleStatistics';
 import { useNotifications } from '@/core/context/NotificProvider';
 import { useSession } from '@/core/context/SessionProvider';
 import { clearFactTables } from '@/core/helpers/db/init';
@@ -21,6 +22,7 @@ import { deleteSubscription } from '@/core/services/notifications';
 const profile = () => {
   const { session, signOut } = useSession();
   const { unscheduleDailyNotification } = useNotifications();
+
   // only admin can create a new fact
   const isAdmin = session?.user.account.role.index === 3;
 
@@ -131,7 +133,10 @@ const profile = () => {
           Sign Out
         </Text>
       </View>
-      <ScheduleNotification />
+
+      <ToggleNotificationSchedule />
+      {isAdmin ? <ToggleStatistics /> : null}
+
       <View className="flex-row mt-6 mb-2">
         <Button
           variant="secondary"

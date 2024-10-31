@@ -21,9 +21,12 @@ export const getFavorites = async ({
       },
     });
     if (!response.ok) {
+      if (response.status === 401) {
+        return { data: null, error: { message: 'unauthenticated' } };
+      }
       return {
         data: null,
-        error: { message: 'Unable to retrieve the facts user favorites.' },
+        error: { message: 'unable to retrieve favorites' },
       };
     }
     const result = await response.json();
@@ -59,7 +62,10 @@ export const postEvaluateFact = async ({
       }),
     });
     if (!response.ok) {
-      return { data: null, error: { message: 'Unable to evaluate fact.' } };
+      if (response.status === 401) {
+        return { data: null, error: { message: 'unauthenticated' } };
+      }
+      return { data: null, error: { message: 'unable to evaluate fact' } };
     }
     const result = await response.json();
     if (result?.data) {
@@ -91,9 +97,12 @@ export const getResetFacts = async ({
       }
     );
     if (!response.ok) {
+      if (response.status === 401) {
+        return { data: null, error: { message: 'unauthenticated' } };
+      }
       return {
         data: null,
-        error: { message: 'Unable to reset facts.' },
+        error: { message: 'unable to reset facts' },
       };
     }
     const result = await response.json();

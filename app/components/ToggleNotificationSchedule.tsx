@@ -6,7 +6,7 @@ import { Text } from '@/components/Text';
 import { useNotifications } from '@/core/context/NotificProvider';
 import { useSession } from '@/core/context/SessionProvider';
 
-const ScheduleNotification = () => {
+const ToggleNotificationSchedule = () => {
   const { session } = useSession();
   if (!session) return null;
 
@@ -47,4 +47,4 @@ const ScheduleNotification = () => {
   );
 };
 
-export default ScheduleNotification;
+export default ToggleNotificationSchedule;

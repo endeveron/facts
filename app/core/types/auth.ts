@@ -23,6 +23,10 @@ export type TUserAuthData = {
   user: TUser;
 };
 
+export type TStoreAuthData = TUserAuthData & {
+  timestamp: number;
+};
+
 export type TAuthData = {
   token: string;
   userId: string;

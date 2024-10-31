@@ -36,6 +36,7 @@ import {
 import { logMessage, wait } from '@/core/helpers/misc';
 import { TFactCursor } from '@/core/types/db';
 import { TFactItem } from '@/core/types/fact';
+import Statistics from '@/components/Statistics';
 
 // get the height of device window
 const windowHeight = Dimensions.get('window').height;
@@ -98,6 +99,7 @@ const Facts = () => {
 
   const userId = session.user.id;
   const token = session.token;
+  const isAdmin = session?.user.account.role.index === 3;
   const factsLength = facts.length;
   const category = factCategory ? (factCategory as string) : null;
   const nextFactIndex = nextIndex ? (nextIndex as string) : null;
@@ -362,54 +364,7 @@ const Facts = () => {
 
   return (
     <View className="h-full relative">
-      <View className="absolute inset-x-0 top-14">
-        <View className="flex-row flex-wrap justify-evenly">
-          <View className="m-2">
-            <Text
-              colorName="muted"
-              className="opacity-80 bg-black px-2 rounded-full"
-            >
-              category
-            </Text>
-            <Text
-              colorName="muted"
-              className="opacity-80 bg-black px-2 rounded-full"
-            >
-              store offset
-            </Text>
-          </View>
-          <View className="m-2">
-            <Text colorName="muted" className="bg-black px-2 rounded-full">
-              {cursor?.category}
-            </Text>
-            <Text colorName="muted" className="bg-black px-2 rounded-full">
-              {cursor?.storageOffset}
-            </Text>
-          </View>
-          <View className="m-2">
-            <Text
-              colorName="muted"
-              className="opacity-80 bg-black px-2 rounded-full"
-            >
-              group length
-            </Text>
-            <Text
-              colorName="muted"
-              className="opacity-80 bg-black px-2 rounded-full"
-            >
-              left in store
-            </Text>
-          </View>
-          <View className="m-2">
-            <Text colorName="muted" className="bg-black px-2 rounded-full">
-              {cursor?.groupLength}
-            </Text>
-            <Text colorName="muted" className="bg-black px-2 rounded-full">
-              {cursor?.leftInStorage}
-            </Text>
-          </View>
-        </View>
-      </View>
+      {isAdmin ? <Statistics cursor={cursor} /> : null}
       <Navbar navItems={navItems} onPress={handleNavbarPress} />
       {factsLength && cursor?.curFactId ? (
         <Animated.View style={{ opacity: fadeListRef }}>

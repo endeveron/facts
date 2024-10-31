@@ -146,7 +146,10 @@ export const sendPushNotification = async ({
       }),
     });
     if (!response.ok) {
-      return { data: null, error: { message: 'Unable to send.' } };
+      if (response.status === 401) {
+        return { data: null, error: { message: 'unauthenticated' } };
+      }
+      return { data: null, error: { message: 'unable to send.' } };
     }
     const result = await response.json();
     if (result?.data?.tickets?.length) {
