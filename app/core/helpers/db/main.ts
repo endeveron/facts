@@ -31,6 +31,25 @@ import {
 import { TCategoryMap, TFactItem } from '@/core/types/fact';
 import { getLocalDb } from '@/core/helpers/db';
 
+export const getTableData = async (tableName: string) => {
+  const errorMessage = `[ DB ] could not get data from ${tableName}`;
+  try {
+    const db = await getLocalDb();
+    const result = await db.getAllAsync<TFactStorageTableItem>(
+      `SELECT * FROM ${tableName}`
+    );
+    if (!result) {
+      logMessage(errorMessage, 'error');
+      return null;
+    }
+    return result;
+  } catch (error: any) {
+    await logMessage(errorMessage, 'error');
+    console.error(`getTableData: ${error}`);
+    return null;
+  }
+};
+
 export const countTableRows = async (tableName: string) => {
   const errorMessage = `[ DB ] could not count rows in ${tableName}`;
   try {

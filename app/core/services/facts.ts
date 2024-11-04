@@ -11,21 +11,29 @@ import {
 } from '@/core/types/fact';
 
 export const getFacts = async ({
-  userId,
-  category,
+  limit,
+  offset,
   token,
-}: TAuthData & {
-  category?: string | null;
+}: // userId,
+// category,
+{
+  // category?: string | null;
+  token: string;
+  limit: number;
+  offset: number;
 }): Promise<
   | TResponse<{
       facts: TFactItem[];
-      favorites: TFavorites;
+      done: boolean;
+      // favorites: TFavorites;
     }>
   | undefined
 > => {
   const searchParams = new URLSearchParams({
-    category: category || 'all',
-    userId,
+    // category: category || 'all',
+    // userId,
+    limit: `${limit}`,
+    offset: `${offset}`,
   });
   const params = searchParams.toString();
   try {

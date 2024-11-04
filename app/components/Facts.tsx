@@ -26,6 +26,7 @@ import { useSession } from '@/core/context/SessionProvider';
 import { initFactDataInLocalDb } from '@/core/helpers/db/init';
 import {
   addFactsOnScroll,
+  countTableRows,
   getFactDataFromLocalDb,
   increaseFactOffset,
   initCategoryDataInLocalDb,

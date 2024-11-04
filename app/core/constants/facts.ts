@@ -6,7 +6,7 @@ const factCategories = enumToArray(FactCategories);
 /** Limitation on the number of facts to be received per request */
 const FACT_GROUP_LIMIT = factCategories.length;
 /** Limitation on the number of facts to be received for the local db */
-const FACT_STORAGE_LIMIT = FACT_GROUP_LIMIT * 128;
+const FACT_STORAGE_LIMIT = FACT_GROUP_LIMIT * 40;
 /** Total rate of all categories (sum of values) to enable proportional distribution */
 const FACT_CATEGORIES_DIST_RATE = FACT_GROUP_LIMIT * 6;
 /** The number of facts left in group to trigger the retrieval of new group */
